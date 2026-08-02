@@ -8,6 +8,7 @@ import {
 } from "../db.js";
 import { initDashboardAnimations, countUpTo, animateProgressBars } from "../animations.js";
 import { seedInitialData } from "../seed.js";
+import { pendingCorrections, applyAugustCorrections } from "../fixes.js";
 import { icon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js";
 
 let chartInstance = null;
@@ -22,6 +23,19 @@ export function mountDashboard() {
     } catch (err) {
       btn.textContent = "Error al importar, inténtalo de nuevo";
       btn.disabled = false;
+    }
+  });
+
+  const fixBtn = document.getElementById("btn-apply-fixes");
+  fixBtn?.addEventListener("click", async () => {
+    fixBtn.disabled = true;
+    fixBtn.textContent = "Aplicando…";
+    try {
+      const results = await applyAugustCorrections();
+      fixBtn.textContent = results.length ? "Hecho ✓" : "No había nada pendiente";
+    } catch (err) {
+      fixBtn.textContent = "Error, inténtalo de nuevo";
+      fixBtn.disabled = false;
     }
   });
 }
@@ -44,6 +58,9 @@ export function renderDashboard(state) {
 
   const seedBanner = document.getElementById("seed-banner");
   if (seedBanner) seedBanner.classList.toggle("is-hidden", !(state.ready && cuentas.length === 0));
+
+  const fixBanner = document.getElementById("fix-banner");
+  if (fixBanner) fixBanner.classList.toggle("is-hidden", !(state.ready && pendingCorrections()));
 
   document.getElementById("hero-fecha").textContent = new Intl.DateTimeFormat("es-ES", {
     weekday: "long",

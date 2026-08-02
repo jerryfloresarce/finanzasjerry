@@ -204,18 +204,22 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
    FORM FIELDS
    ========================================================= */
 
-.field { display: flex; flex-direction: column; gap: 6px; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .field__label { font-size: 0.78rem; color: var(--text-secondary); letter-spacing: 0.02em; }
 
 .field input,
 .field select,
 .field textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 11px 14px;
   color: var(--text-primary);
   transition: border-color 0.2s var(--ease-lux), background 0.2s var(--ease-lux);
+  text-overflow: ellipsis;
 }
 
 .field input:focus,
@@ -699,6 +703,7 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   max-width: 460px;
   max-height: 88vh;
   overflow-y: auto;
+  overflow-x: hidden;
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
