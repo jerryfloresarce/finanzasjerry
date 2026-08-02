@@ -1,6 +1,7 @@
 import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js";
 import { openModal, closeModal } from "../modal.js";
 import { icon, iconForCategoriaTipo } from "../icons.js";
+import { attachCopyId, copyIdButton } from "../copy-id.js";
 
 const TIPOS = ["Fijo", "Variable", "Ocio", "PrestamoDado"];
 
@@ -35,6 +36,7 @@ export function renderCategorias(state) {
           <p class="entity-card__amount">${formatEUR(gastado)}</p>
           <p class="entity-card__meta">${c.limite_mensual ? `Límite mensual ${formatEUR(c.limite_mensual)}` : "Sin límite mensual"}</p>
           <div class="entity-card__actions">
+            ${copyIdButton(c.id)}
             <button class="btn btn--ghost btn--sm" data-edit="${c.id}">Editar</button>
             <button class="btn btn--danger btn--sm" data-delete="${c.id}">Eliminar</button>
           </div>
@@ -50,6 +52,7 @@ export function renderCategorias(state) {
       if (confirm("¿Eliminar esta categoría?")) deleteCategoria(btn.dataset.delete);
     })
   );
+  attachCopyId(el);
 }
 
 function openForm(categoria) {

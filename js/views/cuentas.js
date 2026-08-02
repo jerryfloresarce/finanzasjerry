@@ -1,6 +1,7 @@
 import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha } from "../db.js";
 import { openModal, closeModal, todayISO } from "../modal.js";
 import { icon, iconForCuentaTipo } from "../icons.js";
+import { attachCopyId, copyIdButton } from "../copy-id.js";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 
@@ -32,6 +33,7 @@ export function renderCuentas(state) {
           <p class="entity-card__amount">${formatEUR(saldo)}</p>
           <p class="entity-card__meta">Saldo inicial ${formatEUR(c.saldo_inicial)} · desde ${c.fecha_inicio ? formatFecha(new Date(c.fecha_inicio)) : "—"}</p>
           <div class="entity-card__actions">
+            ${copyIdButton(c.id)}
             <button class="btn btn--ghost btn--sm" data-edit="${c.id}">Editar</button>
             <button class="btn btn--danger btn--sm" data-delete="${c.id}">Eliminar</button>
           </div>
@@ -47,6 +49,7 @@ export function renderCuentas(state) {
       if (confirm("¿Eliminar esta cuenta? No se borrarán sus movimientos.")) deleteCuenta(btn.dataset.delete);
     })
   );
+  attachCopyId(el);
 }
 
 function openForm(cuenta) {
