@@ -39,7 +39,19 @@ loginForm?.addEventListener("submit", async (e) => {
   try {
     await signInWithEmailAndPassword(auth, email, password);
   } catch (err) {
-    loginError.textContent = "Email o contraseña incorrectos.";
+    console.error("Error de login:", err.code, err.message);
+    const mensajes = {
+      "auth/invalid-email": "Ese email no tiene un formato válido.",
+      "auth/user-not-found": "No existe ningún usuario con ese email en Firebase.",
+      "auth/wrong-password": "La contraseña no coincide con ese email.",
+      "auth/invalid-credential": "Email o contraseña incorrectos (revisa mayúsculas y espacios).",
+      "auth/user-disabled": "Este usuario está deshabilitado en Firebase.",
+      "auth/too-many-requests": "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
+      "auth/network-request-failed": "No hay conexión con Firebase. Revisa tu internet.",
+      "auth/api-key-not-valid.-please-pass-a-valid-api-key.": "La apiKey de firebase-config.js no es válida.",
+      "auth/unauthorized-domain": "Este dominio no está autorizado en Firebase Authentication → Configuración → Dominios autorizados.",
+    };
+    loginError.textContent = mensajes[err.code] || `Error inesperado (${err.code || err.message}).`;
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = "Entrar";
