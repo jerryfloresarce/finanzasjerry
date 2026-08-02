@@ -29,6 +29,7 @@ const PH = {
   arrowRight: "arrow-right",
   plus: "plus",
   check: "check",
+  copy: "copy",
   logout: "sign-out",
   logo: "leaf",
 };
