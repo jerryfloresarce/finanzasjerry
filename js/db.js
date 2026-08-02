@@ -101,12 +101,20 @@ export const updateConfig = (data) => setDoc(doc(db, "configuracion", "app"), da
 
 export function calcularSaldoCuenta(cuenta, movimientos) {
   const inicial = Number(cuenta.saldo_inicial ?? 0);
-  const delta = movimientos
-    .filter((m) => m.cuenta_id === cuenta.id)
-    .reduce((acc, m) => {
-      const importe = Number(m.importe ?? 0);
-      return acc + (m.tipo === "Ingreso" ? importe : -importe);
-    }, 0);
+  const delta = movimientos.reduce((acc, m) => {
+    const importe = Number(m.importe ?? 0);
+    // Una transferencia mueve dinero entre dos cuentas propias (o un
+    // retiro a "Efectivo") — no es gasto ni ingreso, así que resta en la
+    // cuenta de origen y suma en la de destino, sin pasar por el resto de
+    // cálculos (gráficos, totales de gasto/ingreso, etc.).
+    if (m.tipo === "Transferencia") {
+      if (m.cuenta_id === cuenta.id) return acc - importe;
+      if (m.cuenta_destino_id === cuenta.id) return acc + importe;
+      return acc;
+    }
+    if (m.cuenta_id !== cuenta.id) return acc;
+    return acc + (m.tipo === "Ingreso" ? importe : -importe);
+  }, 0);
   return inicial + delta;
 }
 
@@ -230,7 +238,7 @@ export function evolucionMensual(movimientos, meses = 12, fecha = new Date()) {
     const bucket = buckets.find((b) => b.year === d.getFullYear() && b.month === d.getMonth());
     if (!bucket) return;
     if (m.tipo === "Ingreso") bucket.ingresos += Number(m.importe ?? 0);
-    else bucket.gastos += Number(m.importe ?? 0);
+    else if (m.tipo === "Gasto") bucket.gastos += Number(m.importe ?? 0);
   });
   return buckets;
 }

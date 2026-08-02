@@ -39,12 +39,21 @@ export function renderMovimientos(state) {
     ordenados
       .map((m) => {
         const cat = catMap.get(m.categoria_id);
+        const esTransferencia = m.tipo === "Transferencia";
+        const catCell = esTransferencia
+          ? `<span class="mini-row__icon">${icon("movimientos", { size: 14 })}</span>Transferencia${m.nota ? " · " + m.nota : ""}`
+          : `<span class="mini-row__icon">${icon(iconForCategoriaTipo(cat?.tipo), { size: 14 })}</span>${m.subcategoria ? "<strong>" + m.subcategoria + "</strong> · " : ""}${cat?.nombre || "—"}${m.nota ? " · " + m.nota : ""}`;
+        const cuentaCell = esTransferencia
+          ? `${cuentaMap.get(m.cuenta_id) || "—"} → ${cuentaMap.get(m.cuenta_destino_id) || "—"}`
+          : cuentaMap.get(m.cuenta_id) || "—";
+        const amountClass = esTransferencia ? "" : `data-row__amount--${m.tipo}`;
+        const amountSign = esTransferencia ? "" : m.tipo === "Ingreso" ? "+ " : "− ";
         return `
       <div class="data-row">
         <span>${formatFecha(fromTimestamp(m.fecha))}</span>
-        <span class="data-row__cat"><span class="mini-row__icon">${icon(iconForCategoriaTipo(cat?.tipo), { size: 14 })}</span>${m.subcategoria ? "<strong>" + m.subcategoria + "</strong> · " : ""}${cat?.nombre || "—"}${m.nota ? " · " + m.nota : ""}</span>
-        <span>${cuentaMap.get(m.cuenta_id) || "—"}</span>
-        <span class="data-row__amount--${m.tipo}">${m.tipo === "Ingreso" ? "+" : "−"} ${formatEUR(Math.abs(Number(m.importe)))}</span>
+        <span class="data-row__cat">${catCell}</span>
+        <span>${cuentaCell}</span>
+        <span class="${amountClass}">${amountSign}${formatEUR(Math.abs(Number(m.importe)))}</span>
         <span class="data-row__actions">
           <button class="btn btn--ghost btn--sm" data-edit="${m.id}">Editar</button>
           <button class="btn btn--danger btn--sm" data-delete="${m.id}">Eliminar</button>
@@ -73,28 +82,33 @@ function openForm(movimiento, state) {
     <form id="form-movimiento" class="form-grid">
       <label class="field">
         <span class="field__label">Tipo</span>
-        <select name="tipo">
+        <select name="tipo" id="movimiento-tipo">
           <option value="Gasto" ${movimiento?.tipo === "Gasto" ? "selected" : ""}>Gasto</option>
           <option value="Ingreso" ${movimiento?.tipo === "Ingreso" ? "selected" : ""}>Ingreso</option>
+          <option value="Transferencia" ${movimiento?.tipo === "Transferencia" ? "selected" : ""}>Transferencia entre cuentas</option>
         </select>
       </label>
       <label class="field">
         <span class="field__label">Importe</span>
         <input type="number" step="0.01" min="0" name="importe" required value="${movimiento ? Math.abs(movimiento.importe) : ""}" placeholder="0.00" />
       </label>
-      <label class="field">
+      <label class="field" id="campo-categoria">
         <span class="field__label">Categoría</span>
-        <select name="categoria_id" required>${optionsFrom(state.categorias, { selected: movimiento?.categoria_id })}</select>
+        <select name="categoria_id">${optionsFrom(state.categorias, { selected: movimiento?.categoria_id })}</select>
       </label>
       <label class="field">
-        <span class="field__label">Cuenta</span>
+        <span class="field__label" id="etiqueta-cuenta">Cuenta</span>
         <select name="cuenta_id" required>${optionsFrom(state.cuentas, { selected: movimiento?.cuenta_id })}</select>
+      </label>
+      <label class="field is-hidden" id="campo-cuenta-destino">
+        <span class="field__label">Cuenta destino</span>
+        <select name="cuenta_destino_id">${optionsFrom(state.cuentas, { selected: movimiento?.cuenta_destino_id })}</select>
       </label>
       <label class="field">
         <span class="field__label">Fecha</span>
         <input type="date" name="fecha" value="${fechaValue}" required />
       </label>
-      <label class="field">
+      <label class="field" id="campo-subcategoria">
         <span class="field__label">Subcategoría (opcional)</span>
         <input type="text" name="subcategoria" value="${movimiento?.subcategoria ?? ""}" placeholder="Five Guys, Zara…" />
       </label>
@@ -111,17 +125,37 @@ function openForm(movimiento, state) {
   `,
     {
       onMount: (root) => {
+        const tipoSelect = root.querySelector("#movimiento-tipo");
+        const campoCategoria = root.querySelector("#campo-categoria");
+        const campoCuentaDestino = root.querySelector("#campo-cuenta-destino");
+        const campoSubcategoria = root.querySelector("#campo-subcategoria");
+        const etiquetaCuenta = root.querySelector("#etiqueta-cuenta");
+
+        function toggleCampos() {
+          const esTransferencia = tipoSelect.value === "Transferencia";
+          campoCategoria.classList.toggle("is-hidden", esTransferencia);
+          campoCuentaDestino.classList.toggle("is-hidden", !esTransferencia);
+          campoSubcategoria.classList.toggle("is-hidden", esTransferencia);
+          etiquetaCuenta.textContent = esTransferencia ? "Cuenta origen" : "Cuenta";
+          root.querySelector("[name=categoria_id]").required = !esTransferencia;
+          root.querySelector("[name=cuenta_destino_id]").required = esTransferencia;
+        }
+        tipoSelect.addEventListener("change", toggleCampos);
+        toggleCampos();
+
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
         root.querySelector("#form-movimiento").addEventListener("submit", async (e) => {
           e.preventDefault();
           const f = e.target;
+          const esTransferencia = f.tipo.value === "Transferencia";
           const data = {
             tipo: f.tipo.value,
             importe: Number(f.importe.value),
-            categoria_id: f.categoria_id.value,
+            categoria_id: esTransferencia ? null : f.categoria_id.value,
             cuenta_id: f.cuenta_id.value,
+            cuenta_destino_id: esTransferencia ? f.cuenta_destino_id.value : null,
             fecha: toTimestamp(f.fecha.value),
-            subcategoria: f.subcategoria.value.trim(),
+            subcategoria: esTransferencia ? "" : f.subcategoria.value.trim(),
             nota: f.nota.value.trim(),
           };
           try {

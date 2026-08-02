@@ -63,11 +63,12 @@ export async function importarDatos(data) {
   }
 
   for (const m of data.movimientos || []) {
-    const { id, categoria_id, cuenta_id, fecha, ...rest } = m;
+    const { id, categoria_id, cuenta_id, cuenta_destino_id, fecha, ...rest } = m;
     await addMovimiento({
       ...rest,
-      categoria_id: idMapCategorias.get(categoria_id) ?? categoria_id,
+      categoria_id: categoria_id ? idMapCategorias.get(categoria_id) ?? categoria_id : null,
       cuenta_id: idMapCuentas.get(cuenta_id) ?? cuenta_id,
+      cuenta_destino_id: cuenta_destino_id ? idMapCuentas.get(cuenta_destino_id) ?? cuenta_destino_id : null,
       fecha: fecha ? toTimestamp(fecha) : null,
     });
   }
