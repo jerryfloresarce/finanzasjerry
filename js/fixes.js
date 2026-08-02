@@ -41,27 +41,36 @@ export function dismissCorrections() {
 export async function applyAugustCorrections() {
   const results = [];
 
-  const ana = state.prestamos.find((p) => p.persona === "(pendiente — dime el nombre)");
+  // Comprueba tanto el nombre provisional como el ya corregido, y si ya
+  // tiene pagos no los vuelve a añadir — así un reintento tras un fallo a
+  // mitad (ej. de permisos) no deja el préstamo a medio corregir ni
+  // duplica los 20 pagos.
+  const ana = state.prestamos.find((p) => p.persona === "(pendiente — dime el nombre)" || p.persona === "Ana (mamá)");
   if (ana) {
-    await updatePrestamo(ana.id, {
-      persona: "Ana (mamá)",
-      interes_porcentaje: 20,
-      notas:
-        "Ciclo de 20 días: devuelve 30€/día (excepto domingos). Al terminar este ciclo se renueva " +
-        "con un préstamo nuevo igual, empezando al día siguiente — cuando lo acabe, crea el siguiente ciclo a mano.",
-    });
-    for (const f of ANA_FECHAS) {
-      await addPagoPrestamo({
-        prestamo_id: ana.id,
-        fecha: toTimestamp(f),
-        tipo: "Ambos",
-        importe: 30,
-        importe_capital: 25,
-        importe_interes: 5,
-        pagado: false,
+    if (ana.persona !== "Ana (mamá)") {
+      await updatePrestamo(ana.id, {
+        persona: "Ana (mamá)",
+        interes_porcentaje: 20,
+        notas:
+          "Ciclo de 20 días: devuelve 30€/día (excepto domingos). Al terminar este ciclo se renueva " +
+          "con un préstamo nuevo igual, empezando al día siguiente — cuando lo acabe, crea el siguiente ciclo a mano.",
       });
     }
-    results.push("Ana (mamá): préstamo renombrado y 20 pagos diarios añadidos.");
+    const yaTienePagos = state.pagosPrestamos.some((p) => p.prestamo_id === ana.id);
+    if (!yaTienePagos) {
+      for (const f of ANA_FECHAS) {
+        await addPagoPrestamo({
+          prestamo_id: ana.id,
+          fecha: toTimestamp(f),
+          tipo: "Ambos",
+          importe: 30,
+          importe_capital: 25,
+          importe_interes: 5,
+          pagado: false,
+        });
+      }
+      results.push("Ana (mamá): préstamo renombrado y 20 pagos diarios añadidos.");
+    }
   }
 
   const liz = state.prestamos.find((p) => p.persona === "Liz colombiana" && Number(p.capital_inicial) === 600);
@@ -155,8 +164,12 @@ export function dismissHistorial() {
 export async function importarJessicaYSilvia() {
   const results = [];
 
-  if (!state.prestamos.some((p) => p.persona === "Jessica")) {
-    const jessica = await addPrestamo({
+  // Si el préstamo ya existe pero (por un fallo a mitad en un intento
+  // anterior) todavía no tiene sus pagos, esto los completa en vez de
+  // saltárselo por existir ya — y si ya tiene pagos, no los duplica.
+  let jessica = state.prestamos.find((p) => p.persona === "Jessica");
+  if (!jessica) {
+    jessica = await addPrestamo({
       persona: "Jessica",
       capital_inicial: 2500,
       interes_porcentaje: 20,
@@ -166,14 +179,17 @@ export async function importarJessicaYSilvia() {
         "El interés no pagado se capitaliza (se suma al capital) cada mes. " +
         "Pago mensual el día 3. Capital y cuota suben cuando no paga a tiempo.",
     });
+  }
+  if (!state.pagosPrestamos.some((p) => p.prestamo_id === jessica.id)) {
     for (const p of JESSICA_PAGOS) {
       await addPagoPrestamo({ prestamo_id: jessica.id, ...p });
     }
     results.push(`Jessica: préstamo creado con ${JESSICA_PAGOS.length} movimientos.`);
   }
 
-  if (!state.prestamos.some((p) => p.persona === "Silvia")) {
-    const silvia = await addPrestamo({
+  let silvia = state.prestamos.find((p) => p.persona === "Silvia");
+  if (!silvia) {
+    silvia = await addPrestamo({
       persona: "Silvia",
       capital_inicial: 700,
       interes_porcentaje: 20,
@@ -183,6 +199,8 @@ export async function importarJessicaYSilvia() {
         "Incluye 3 préstamos adicionales (14/09/2025, 22/09/2025 y 02/01/2026) sumados al mismo capital. " +
         "El interés no pagado se capitaliza. Pago mensual el día 1.",
     });
+  }
+  if (!state.pagosPrestamos.some((p) => p.prestamo_id === silvia.id)) {
     for (const p of SILVIA_PAGOS) {
       await addPagoPrestamo({ prestamo_id: silvia.id, ...p });
     }

@@ -21,6 +21,16 @@ import { icon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, init
 
 let chartInstance = null;
 
+// Mensaje legible para el error más probable en este banner: las reglas de
+// Firestore todavía no incluyen la colección "configuracion" porque no se
+// han vuelto a publicar tras la última actualización (ver SETUP.md 1.3).
+function mensajeError(err) {
+  if (err?.code === "permission-denied") {
+    return "Sin permiso para guardar (¿has vuelto a publicar firestore.rules? Mira SETUP.md, sección 1.3).";
+  }
+  return `Error: ${err?.message || "inténtalo de nuevo"}`;
+}
+
 export function mountDashboard() {
   const btn = document.getElementById("btn-seed");
   btn?.addEventListener("click", async () => {
@@ -38,14 +48,17 @@ export function mountDashboard() {
   fixBtn?.addEventListener("click", async () => {
     fixBtn.disabled = true;
     fixBtn.textContent = "Aplicando…";
+    document.getElementById("fix-banner-error").textContent = "";
     try {
       await applyAugustCorrections();
       await dismissCorrections();
       fixBtn.textContent = "Hecho ✓";
       document.getElementById("fix-banner")?.classList.add("is-hidden");
     } catch (err) {
-      fixBtn.textContent = "Error, inténtalo de nuevo";
+      console.error("Error al aplicar correcciones:", err);
+      fixBtn.textContent = "Reintentar";
       fixBtn.disabled = false;
+      document.getElementById("fix-banner-error").textContent = mensajeError(err);
     }
   });
 
@@ -53,14 +66,17 @@ export function mountDashboard() {
   historialBtn?.addEventListener("click", async () => {
     historialBtn.disabled = true;
     historialBtn.textContent = "Importando…";
+    document.getElementById("historial-banner-error").textContent = "";
     try {
       await importarJessicaYSilvia();
       await dismissHistorial();
       historialBtn.textContent = "Hecho ✓";
       document.getElementById("historial-banner")?.classList.add("is-hidden");
     } catch (err) {
-      historialBtn.textContent = "Error, inténtalo de nuevo";
+      console.error("Error al importar historial:", err);
+      historialBtn.textContent = "Reintentar";
       historialBtn.disabled = false;
+      document.getElementById("historial-banner-error").textContent = mensajeError(err);
     }
   });
 }
@@ -82,6 +98,17 @@ function capitalActual(prestamo, pagos) {
 }
 
 export function renderDashboard(state) {
+  const loadingEl = document.getElementById("dashboard-loading");
+  const contentEl = document.getElementById("dashboard-content");
+
+  if (!state.ready) {
+    loadingEl?.classList.remove("is-hidden");
+    contentEl?.classList.add("is-hidden");
+    return;
+  }
+  loadingEl?.classList.add("is-hidden");
+  contentEl?.classList.remove("is-hidden");
+
   const { cuentas, categorias, movimientos, suscripciones, prestamos, pagosPrestamos } = state;
 
   const seedBanner = document.getElementById("seed-banner");

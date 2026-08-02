@@ -116,6 +116,11 @@
 
     <!-- ---------- DASHBOARD ---------- -->
     <section class="view" data-view="dashboard" id="view-dashboard">
+      <div id="dashboard-loading" class="loading-state">
+        <div class="loading-spinner" aria-hidden="true"></div>
+        <p>Cargando tus datos…</p>
+      </div>
+      <div id="dashboard-content" class="is-hidden">
       <div id="seed-banner" class="card is-hidden" style="margin-bottom: 20px;">
         <h2 class="card__title">Es tu primera vez aquí</h2>
         <p class="entity-card__meta" style="margin-bottom: 16px;">
@@ -131,6 +136,7 @@
           Añadir a Ana (mamá) con sus 20 pagos diarios, corregir las fechas de Liz colombiana y actualizar el Pasanaco a 600€.
         </p>
         <button class="btn btn--primary" id="btn-apply-fixes">Aplicar correcciones</button>
+        <p class="field-error" id="fix-banner-error" style="margin-top: 10px;"></p>
       </div>
 
       <div id="historial-banner" class="card is-hidden" style="margin-bottom: 20px;">
@@ -139,6 +145,7 @@
           Voy a añadir los dos préstamos con todo su historial de pagos y capitalizaciones de interés tal como me los pasaste.
         </p>
         <button class="btn btn--primary" id="btn-import-historial">Importar historial</button>
+        <p class="field-error" id="historial-banner-error" style="margin-top: 10px;"></p>
       </div>
 
       <div class="hero" id="hero-parallax">
@@ -205,6 +212,7 @@
           <h2 class="card__title">Top gastos por lugar · este mes</h2>
           <div id="top-lugares" class="mini-list dash-scroll"></div>
         </article>
+      </div>
       </div>
     </section>
 
