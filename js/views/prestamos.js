@@ -73,8 +73,8 @@ export function renderPrestamos(state) {
                   <label class="field-check" style="flex:1;">
                     <input type="checkbox" data-toggle-pago="${pg.id}" ${pg.pagado ? "checked" : ""} />
                     <span class="mini-row__main">
-                      <span class="mini-row__title">${TIPO_LABELS[pg.tipo] || pg.tipo}${pg.tipo === "Ambos" ? ` (${formatEUR(pg.importe_capital)} cap. + ${formatEUR(pg.importe_interes)} int.)` : ""}</span>
-                      <span class="mini-row__sub">${formatFecha(fromTimestamp(pg.fecha))}</span>
+                      <span class="mini-row__title">${TIPO_LABELS[pg.tipo] || pg.tipo}</span>
+                      <span class="mini-row__sub">${formatFecha(fromTimestamp(pg.fecha))}${pg.tipo === "Ambos" ? ` · ${formatEUR(pg.importe_capital)} cap + ${formatEUR(pg.importe_interes)} int` : ""}</span>
                     </span>
                   </label>
                   <span class="mini-row__amount">${formatEUR(pg.importe)}</span>
