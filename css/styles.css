@@ -560,13 +560,31 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
    ========================================================= */
 
 .grid { display: grid; gap: 20px; }
-.grid--dashboard { grid-template-columns: repeat(3, 1fr); gap: 16px; }
-.grid--dashboard .card--chart { grid-column: span 2; }
+.grid--dashboard {
+  grid-template-columns: 1fr 1.3fr 1fr;
+  grid-template-areas:
+    "l1 center r1"
+    "l2 center r2"
+    "l3 center r3";
+  gap: 16px;
+}
+.gd-l1 { grid-area: l1; }
+.gd-l2 { grid-area: l2; }
+.gd-l3 { grid-area: l3; }
+.gd-r1 { grid-area: r1; }
+.gd-r2 { grid-area: r2; }
+.gd-r3 { grid-area: r3; }
+.gd-center { grid-area: center; }
+
 .grid--dashboard .card {
   display: flex;
   flex-direction: column;
   height: 230px;
   padding: 18px 20px;
+}
+.grid--dashboard .card--chart {
+  height: auto;
+  align-self: stretch;
 }
 .grid--dashboard .card__title,
 .grid--dashboard .card__header {
@@ -916,8 +934,15 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
    ========================================================= */
 
 @media (max-width: 1024px) {
-  .grid--dashboard { grid-template-columns: repeat(2, 1fr); }
-  .grid--dashboard .card--chart { grid-column: span 2; }
+  .grid--dashboard {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-areas:
+      "center center"
+      "l1 r1"
+      "l2 r2"
+      "l3 r3";
+  }
+  .grid--dashboard .card--chart { height: 300px; }
 }
 
 .mobile-nav-scrim {
@@ -952,9 +977,13 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   .sidebar { display: none; }
   .topbar { display: flex; }
   .view-container { padding: 20px 16px 100px; }
-  .grid--dashboard { grid-template-columns: 1fr; }
-  .grid--dashboard .card--chart { grid-column: span 1; }
+  .grid--dashboard { grid-template-columns: 1fr; grid-template-areas: none; }
+  .grid--dashboard .gd-l1, .grid--dashboard .gd-l2, .grid--dashboard .gd-l3,
+  .grid--dashboard .gd-r1, .grid--dashboard .gd-r2, .grid--dashboard .gd-r3,
+  .grid--dashboard .gd-center { grid-area: auto; }
+  .gd-center { order: -1; }
   .grid--dashboard .card { height: auto; max-height: none; }
+  .grid--dashboard .card--chart { height: 280px; }
   .dash-scroll {
     overflow: visible;
     max-height: none;

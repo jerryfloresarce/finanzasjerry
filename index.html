@@ -153,19 +153,12 @@
       </div>
 
       <div class="grid grid--dashboard">
-        <article class="card card--chart reveal">
-          <h2 class="card__title">Gastos por categoría · este mes</h2>
-          <div class="chart-wrap">
-            <canvas id="chart-categorias" height="140"></canvas>
-          </div>
+        <article class="card gd-l1 reveal">
+          <h2 class="card__title">Cuentas</h2>
+          <div id="cuentas-resumen" class="mini-list dash-scroll"></div>
         </article>
 
-        <article class="card reveal">
-          <h2 class="card__title">Límites del mes</h2>
-          <div id="limites-list" class="limites-list dash-scroll"></div>
-        </article>
-
-        <article class="card reveal">
+        <article class="card gd-l2 reveal">
           <div class="card__header">
             <h2 class="card__title">Movimientos recientes</h2>
             <a href="#/movimientos" class="card__link">Ver todos</a>
@@ -173,7 +166,19 @@
           <div id="movimientos-recientes" class="mini-list dash-scroll"></div>
         </article>
 
-        <article class="card reveal">
+        <article class="card gd-l3 reveal">
+          <h2 class="card__title">Límites del mes</h2>
+          <div id="limites-list" class="limites-list dash-scroll"></div>
+        </article>
+
+        <article class="card card--chart gd-center reveal">
+          <h2 class="card__title">Gastos por categoría · este mes</h2>
+          <div class="chart-wrap">
+            <canvas id="chart-categorias"></canvas>
+          </div>
+        </article>
+
+        <article class="card gd-r1 reveal">
           <div class="card__header">
             <h2 class="card__title">Préstamos activos</h2>
             <a href="#/prestamos" class="card__link">Ver todos</a>
@@ -181,7 +186,7 @@
           <div id="prestamos-activos" class="mini-list dash-scroll"></div>
         </article>
 
-        <article class="card reveal">
+        <article class="card gd-r2 reveal">
           <div class="card__header">
             <h2 class="card__title">Suscripciones activas</h2>
             <a href="#/suscripciones" class="card__link">Ver todas</a>
@@ -189,12 +194,7 @@
           <div id="suscripciones-activas" class="mini-list dash-scroll"></div>
         </article>
 
-        <article class="card reveal">
-          <h2 class="card__title">Cuentas</h2>
-          <div id="cuentas-resumen" class="mini-list dash-scroll"></div>
-        </article>
-
-        <article class="card reveal">
+        <article class="card gd-r3 reveal">
           <h2 class="card__title">Top gastos por lugar · este mes</h2>
           <div id="top-lugares" class="mini-list dash-scroll"></div>
         </article>
