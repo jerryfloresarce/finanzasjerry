@@ -15,7 +15,13 @@ import { capitalActual } from "./dashboard.js";
 import { initials, avatarColor } from "../icons.js";
 
 const ESTADOS = ["Activo", "Pagado", "Impago"];
-const TIPOS_PAGO = ["Interes", "Capital", "Ambos"];
+const TIPOS_PAGO = ["Interes", "Capital", "Ambos", "AumentoCapital"];
+const TIPO_LABELS = {
+  Interes: "Interés",
+  Capital: "Capital",
+  Ambos: "Ambos",
+  AumentoCapital: "Capitalización de interés",
+};
 
 let currentState = null;
 
@@ -39,7 +45,7 @@ export function renderPrestamos(state) {
         (a, b) => (fromTimestamp(a.fecha) ?? 0) - (fromTimestamp(b.fecha) ?? 0)
       );
       const restante = capitalActual(p, pagosPrestamos);
-      const totalInteres = Number(p.capital_inicial ?? 0) * (Number(p.interes_porcentaje ?? 0) / 100);
+      const totalInteres = restante * (Number(p.interes_porcentaje ?? 0) / 100);
       const tagClass =
         p.estado === "Pagado" ? "entity-card__tag--pagado" : p.estado === "Impago" ? "entity-card__tag--impago" : "entity-card__tag--activo";
 
@@ -67,7 +73,7 @@ export function renderPrestamos(state) {
                   <label class="field-check" style="flex:1;">
                     <input type="checkbox" data-toggle-pago="${pg.id}" ${pg.pagado ? "checked" : ""} />
                     <span class="mini-row__main" style="display:inline-flex;flex-direction:column;">
-                      <span class="mini-row__title">${pg.tipo}${pg.tipo === "Ambos" ? ` (${formatEUR(pg.importe_capital)} cap. + ${formatEUR(pg.importe_interes)} int.)` : ""}</span>
+                      <span class="mini-row__title">${TIPO_LABELS[pg.tipo] || pg.tipo}${pg.tipo === "Ambos" ? ` (${formatEUR(pg.importe_capital)} cap. + ${formatEUR(pg.importe_interes)} int.)` : ""}</span>
                       <span class="mini-row__sub">${formatFecha(fromTimestamp(pg.fecha))}</span>
                     </span>
                   </label>
@@ -181,7 +187,7 @@ function openPagoForm(prestamoId) {
       <label class="field">
         <span class="field__label">Tipo</span>
         <select name="tipo" id="pago-tipo">
-          ${TIPOS_PAGO.map((t) => `<option value="${t}">${t}</option>`).join("")}
+          ${TIPOS_PAGO.map((t) => `<option value="${t}">${TIPO_LABELS[t]}</option>`).join("")}
         </select>
       </label>
       <label class="field">
@@ -205,7 +211,7 @@ function openPagoForm(prestamoId) {
         </label>
       </div>
 
-      <label class="field-check field--full">
+      <label class="field-check field--full" id="pago-pagado-wrap">
         <input type="checkbox" name="pagado" checked />
         Ya pagado
       </label>
@@ -221,11 +227,14 @@ function openPagoForm(prestamoId) {
         const tipoSelect = root.querySelector("#pago-tipo");
         const simple = root.querySelector("#pago-simple");
         const ambos = root.querySelector("#pago-ambos");
+        const pagadoWrap = root.querySelector("#pago-pagado-wrap");
 
         function toggleFields() {
           const esAmbos = tipoSelect.value === "Ambos";
+          const esAumento = tipoSelect.value === "AumentoCapital";
           simple.classList.toggle("is-hidden", esAmbos);
           ambos.classList.toggle("is-hidden", !esAmbos);
+          pagadoWrap.classList.toggle("is-hidden", esAumento);
         }
         tipoSelect.addEventListener("change", toggleFields);
         toggleFields();
@@ -254,7 +263,7 @@ function openPagoForm(prestamoId) {
             importe,
             importe_capital,
             importe_interes,
-            pagado: f.pagado.checked,
+            pagado: tipo === "AumentoCapital" ? true : f.pagado.checked,
           };
           try {
             await addPagoPrestamo(data);
