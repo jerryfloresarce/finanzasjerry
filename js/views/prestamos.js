@@ -42,7 +42,7 @@ export function renderPrestamos(state) {
   el.innerHTML = prestamos
     .map((p) => {
       const pagos = pagosPrestamos.filter((pg) => pg.prestamo_id === p.id).sort(
-        (a, b) => (fromTimestamp(a.fecha) ?? 0) - (fromTimestamp(b.fecha) ?? 0)
+        (a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0)
       );
       const restante = capitalActual(p, pagosPrestamos);
       const totalInteres = restante * (Number(p.interes_porcentaje ?? 0) / 100);
@@ -62,7 +62,7 @@ export function renderPrestamos(state) {
           <p class="entity-card__meta">Prestado ${formatEUR(p.capital_inicial)} el ${p.fecha_inicio ? formatFecha(new Date(p.fecha_inicio)) : "—"} · ${p.interes_porcentaje}% interés (${formatEUR(totalInteres)})</p>
           ${p.notas ? `<p class="entity-card__meta">${p.notas}</p>` : ""}
 
-          <div class="mini-list" style="margin-top:12px;">
+          <div class="mini-list pago-list">
             ${
               pagos.length === 0
                 ? `<p class="empty-state" style="padding:8px 0;">Sin pagos registrados</p>`
@@ -72,7 +72,7 @@ export function renderPrestamos(state) {
                 <div class="mini-row">
                   <label class="field-check" style="flex:1;">
                     <input type="checkbox" data-toggle-pago="${pg.id}" ${pg.pagado ? "checked" : ""} />
-                    <span class="mini-row__main" style="display:inline-flex;flex-direction:column;">
+                    <span class="mini-row__main">
                       <span class="mini-row__title">${TIPO_LABELS[pg.tipo] || pg.tipo}${pg.tipo === "Ambos" ? ` (${formatEUR(pg.importe_capital)} cap. + ${formatEUR(pg.importe_interes)} int.)` : ""}</span>
                       <span class="mini-row__sub">${formatFecha(fromTimestamp(pg.fecha))}</span>
                     </span>
