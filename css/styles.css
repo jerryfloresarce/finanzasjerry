@@ -657,13 +657,36 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   overflow-x: hidden;
   margin-top: 12px;
   padding-right: 4px;
-  mask-image: linear-gradient(to bottom, black calc(100% - 20px), transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 20px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, black 14px, black calc(100% - 20px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 14px, black calc(100% - 20px), transparent 100%);
 }
 .pago-list .mini-row { font-size: 0.86rem; }
 .pago-list .mini-row__title { font-size: 0.86rem; }
 .pago-list .mini-row__sub { font-size: 0.74rem; }
 .pago-list .mini-row__amount { font-size: 0.92rem; }
+
+/* Préstamos: todas las tarjetas con la misma altura, la lista de pagos
+   se lleva el espacio sobrante y hace scroll dentro de sí misma. */
+.grid--prestamos .entity-card {
+  height: 520px;
+}
+.grid--prestamos .entity-card__top,
+.grid--prestamos .entity-card__amount,
+.grid--prestamos .entity-card__meta {
+  flex-shrink: 0;
+}
+.grid--prestamos .entity-card__meta {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.grid--prestamos .pago-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+}
+.grid--prestamos .entity-card__actions { flex-shrink: 0; }
 
 /* =========================================================
    DATA TABLE (movimientos)
