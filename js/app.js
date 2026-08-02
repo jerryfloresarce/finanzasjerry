@@ -8,10 +8,12 @@ import { mountCuentas, renderCuentas } from "./views/cuentas.js";
 import { mountCategorias, renderCategorias } from "./views/categorias.js";
 import { mountPrestamos, renderPrestamos } from "./views/prestamos.js";
 import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js";
+import { mountGraficos, renderGraficos } from "./views/graficos.js";
 import { refreshAnimations } from "./animations.js";
 
 const ROUTES = {
   dashboard: renderDashboard,
+  graficos: renderGraficos,
   movimientos: renderMovimientos,
   cuentas: renderCuentas,
   categorias: renderCategorias,
@@ -93,6 +95,7 @@ onAuthReady(() => {
   if (!mounted) {
     mounted = true;
     mountDashboard();
+    mountGraficos();
     mountMovimientos();
     mountCuentas();
     mountCategorias();

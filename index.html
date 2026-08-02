@@ -52,6 +52,9 @@
       <a href="#/dashboard" class="nav__link" data-route="dashboard">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-squares-four"></i></span> Dashboard
       </a>
+      <a href="#/graficos" class="nav__link" data-route="graficos">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
+      </a>
       <a href="#/movimientos" class="nav__link" data-route="movimientos">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-left-right"></i></span> Movimientos
       </a>
@@ -80,6 +83,9 @@
   <nav id="mobile-nav" class="mobile-nav is-hidden">
     <a href="#/dashboard" class="nav__link" data-route="dashboard">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-squares-four"></i></span> Dashboard
+    </a>
+    <a href="#/graficos" class="nav__link" data-route="graficos">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
     </a>
     <a href="#/movimientos" class="nav__link" data-route="movimientos">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-left-right"></i></span> Movimientos
@@ -238,6 +244,74 @@
         <button class="btn btn--primary" id="btn-add-suscripcion">+ Añadir suscripción</button>
       </div>
       <div id="suscripciones-grid" class="grid grid--cards"></div>
+    </section>
+
+    <!-- ---------- GRAFICOS ---------- -->
+    <section class="view is-hidden" data-view="graficos" id="view-graficos">
+      <div class="view-header">
+        <h1 class="view-title">Gráficos</h1>
+        <div class="segmented" id="graficos-rango">
+          <button class="segmented__btn is-active" data-rango="mes">Mes</button>
+          <button class="segmented__btn" data-rango="anio">Año</button>
+          <button class="segmented__btn" data-rango="todo">Todo</button>
+        </div>
+      </div>
+
+      <div class="grid grid--kpis">
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">Ingresos</span>
+          <span class="kpi-tile__value kpi-tile__value--pos" id="kpi-ingresos">—</span>
+        </div>
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">Gastos</span>
+          <span class="kpi-tile__value" id="kpi-gastos">—</span>
+        </div>
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">Balance</span>
+          <span class="kpi-tile__value" id="kpi-balance">—</span>
+        </div>
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">Interés generado en préstamos</span>
+          <span class="kpi-tile__value kpi-tile__value--pos" id="kpi-intereses">—</span>
+        </div>
+      </div>
+
+      <article class="card" style="margin-bottom: 20px;">
+        <h2 class="card__title">Evolución · últimos 12 meses</h2>
+        <div class="chart-wrap" style="height: 240px;">
+          <canvas id="chart-evolucion"></canvas>
+        </div>
+      </article>
+
+      <div class="grid grid--graficos-donuts">
+        <article class="card">
+          <h2 class="card__title">Gastos por categoría</h2>
+          <div class="chart-wrap" style="height: 220px;">
+            <canvas id="chart-gastos-cat"></canvas>
+          </div>
+        </article>
+        <article class="card">
+          <h2 class="card__title">Ingresos por categoría</h2>
+          <div class="chart-wrap" style="height: 220px;">
+            <canvas id="chart-ingresos-cat"></canvas>
+          </div>
+        </article>
+      </div>
+
+      <div class="grid grid--graficos-donuts">
+        <article class="card">
+          <div class="card__header">
+            <h2 class="card__title">Gastos por lugar</h2>
+          </div>
+          <input type="text" id="filtro-subcategoria" class="filtro-input" placeholder="Buscar: Five Guys, KFC, Taco Bell…" />
+          <div id="lista-subcategorias" class="mini-list dash-scroll" style="height: 220px; margin-top: 12px;"></div>
+        </article>
+
+        <article class="card">
+          <h2 class="card__title">Generado con préstamos</h2>
+          <div id="lista-prestamos-interes" class="mini-list dash-scroll" style="height: 220px; margin-top: 4px;"></div>
+        </article>
+      </div>
     </section>
 
   </main>
