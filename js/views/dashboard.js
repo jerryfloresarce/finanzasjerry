@@ -242,6 +242,7 @@ function renderTopLugares(movimientos) {
 function renderRecientes(movimientos, categorias, cuentas) {
   const el = document.getElementById("movimientos-recientes");
   const catMap = new Map(categorias.map((c) => [c.id, c]));
+  const cuentaMap = new Map(cuentas.map((c) => [c.id, c.nombre]));
 
   const recientes = [...movimientos]
     .sort((a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0))
@@ -254,6 +255,19 @@ function renderRecientes(movimientos, categorias, cuentas) {
 
   el.innerHTML = recientes
     .map((m) => {
+      if (m.tipo === "Transferencia") {
+        return `
+        <div class="mini-row">
+          <div class="mini-row__body">
+            <span class="mini-row__icon">${icon("movimientos")}</span>
+            <div class="mini-row__main">
+              <span class="mini-row__title">${cuentaMap.get(m.cuenta_id) || "—"} → ${cuentaMap.get(m.cuenta_destino_id) || "—"}</span>
+              <span class="mini-row__sub">Transferencia · ${formatFecha(fromTimestamp(m.fecha))}</span>
+            </div>
+          </div>
+          <span class="mini-row__amount">${formatEUR(Math.abs(Number(m.importe)))}</span>
+        </div>`;
+      }
       const cat = catMap.get(m.categoria_id);
       const signo = m.tipo === "Ingreso" ? "+" : "−";
       const cls = m.tipo === "Ingreso" ? "mini-row__amount--pos" : "mini-row__amount--neg";

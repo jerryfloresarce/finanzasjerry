@@ -37,9 +37,11 @@ Esto asegura que solo tú (con sesión iniciada) puedas leer o escribir tus dato
 
 Cada vez que yo haga push a `main`, GitHub Pages se actualiza solo.
 
-## 3. Shortcut de iPhone — añadir movimientos con un toque
+## 3. Shortcuts de iPhone — añadir movimientos con un toque
 
-La idea: el Shortcut hace 2 peticiones HTTP (login + escribir en Firestore), sin backend intermedio, sin coste, y el movimiento aparece en la web al instante (la web escucha Firestore en tiempo real).
+La idea: 3 Atajos independientes — **Registrar un ingreso**, **Registrar un gasto** y **Registrar una transferencia** — cada uno hace 2 peticiones HTTP (login + escribir en Firestore), sin backend intermedio, sin coste, y el movimiento aparece en la web al instante (la web escucha Firestore en tiempo real). Al ser 3 atajos separados (no uno con menú), puedes añadir cada uno como un **control del Centro de Control** del iPhone y tenerlos a un toque sin ni abrir la app Atajos.
+
+Las transferencias (mover dinero entre tus propias cuentas, o un retiro a efectivo) no son ni gasto ni ingreso — no cuentan en los totales de gastos/ingresos ni en los gráficos, solo mueven el saldo de una cuenta a otra.
 
 ### 3.1 Sacar los IDs de tus categorías y cuentas
 
@@ -56,55 +58,49 @@ Haz esto una vez por cada cuenta y categoría que vayas a usar desde el Shortcut
 
 Ninguno de estos datos es "secreto" en el sentido de dar acceso a nadie que no tenga también tu contraseña — pero aun así, no compartas el Shortcut públicamente con tu contraseña ya escrita dentro.
 
-### 3.3 Construir el Shortcut, paso a paso
+### 3.3 Los 3 pasos comunes a los 3 Atajos
 
-Abre la app **Atajos** en el iPhone → botón **+** para crear uno nuevo → nómbralo **"Añadir movimiento"**.
+Cada uno de los 3 Atajos (Gasto, Ingreso, Transferencia) empieza igual: pregunta un importe, inicia sesión en Firebase, y saca el token. Solo cambian los pasos del medio (qué preguntas) y el cuerpo de la petición final. Monta cada Atajo por separado desde Atajos → **+**.
 
-**Paso 1 — Preguntar el tipo**
-Añade la acción **Elegir de menú** ("Choose from Menu"). Título: "¿Gasto o ingreso?". Añade dos opciones: `Gasto` e `Ingreso`. Esto crea dos ramas en el Atajo; en cada rama irá un valor de texto distinto (lo usarás en el paso 4).
+**A — Preguntar el importe**
+Añade **Preguntar por entrada** ("Ask for Input"), tipo **Número**, texto "¿Cuánto?". Nombra el resultado `Importe`.
+> Si tu iPhone está en español, el teclado usará coma decimal (`12,50`) — no importa, "Ask for Input" siempre da un número válido para las fórmulas siguientes.
 
-**Paso 2 — Preguntar el importe**
-Añade **Preguntar por entrada** ("Ask for Input"), tipo **Número**, con el texto "¿Cuánto?". Resultado: variable `Importe`.
-> Importante: si tu iPhone está en español, el teclado numérico usará coma decimal (`12,50`). Eso es solo de cara a ti — el "Ask for Input" de tipo número siempre te da un número válido para usar en las fórmulas siguientes, independientemente del separador que hayas tecleado.
-
-**Paso 3 — Elegir la categoría**
-Añade otra **Elegir de menú**, con una opción por cada categoría que uses a menudo (ej. "Comida a domicilio", "Nómina", "Ocio"...). En cada opción, añade una acción **Texto** con el ID de Firestore de esa categoría (el que copiaste en 3.1). Guarda el resultado en variable `CategoriaID`.
-
-**Paso 4 — Elegir la cuenta**
-Igual que el paso 3, pero para tus cuentas (ej. "Cuenta Nómina", "Ahorros"). Variable `CuentaID`.
-
-**Paso 5 — Subcategoría opcional (Five Guys, KFC, etc.)**
-Añade **Preguntar por entrada** (tipo Texto), marca la opción "Permitir omitir" ("Allow Skip") si existe en tu versión de Atajos, con el texto "¿Subcategoría? (opcional)". Variable `Subcategoria`.
-
-**Paso 6 — Iniciar sesión en Firebase**
-Añade **Obtener contenido de URL** ("Get Contents of URL"):
+**B — Iniciar sesión en Firebase**
+Añade **Obtener contenido de URL**:
 - URL: `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAbn6ZT3C1Toe3y8zOmcoGU1INC-FiYtRE`
-- Método: `POST`
-- Cabeceras: `Content-Type` = `application/json`
-- Cuerpo: **JSON**, y dentro añade tres campos de tipo texto:
-  - `email` → tu email
-  - `password` → tu contraseña
-  - `returnSecureToken` → `true` (elige tipo Booleano si Atajos te deja, o escribe `true` en texto)
+- Método `POST`, cabecera `Content-Type` = `application/json`
+- Cuerpo JSON con: `email` (el tuyo), `password` (la tuya), `returnSecureToken` = `true`
 
-Guarda el resultado en variable `LoginResponse`.
+Nombra el resultado `LoginResponse`.
 
-**Paso 7 — Sacar el token**
-Añade **Obtener valor de diccionario** ("Get Dictionary Value"), clave `idToken`, diccionario = `LoginResponse`. Resultado: variable `Token`.
+**C — Sacar el token**
+Añade **Obtener valor de diccionario**, clave `idToken`, diccionario = `LoginResponse`. Nombra el resultado `Token`.
 
-**Paso 8 — Fecha de hoy en formato correcto**
-Añade **Fecha actual** ("Current Date") y después **Formatear fecha** ("Format Date") con formato personalizado `yyyy-MM-dd'T'HH:mm:ss'Z'`. Resultado: variable `FechaISO`. Esto evita tener que escribir la fecha a mano cada vez.
+**D — Fecha de hoy**
+Añade **Fecha actual** y luego **Formatear fecha** con formato personalizado `yyyy-MM-dd'T'HH:mm:ss'Z'`. Nombra el resultado `FechaISO`.
 
-**Paso 9 — Escribir el movimiento en Firestore**
-Añade otra **Obtener contenido de URL**:
+A partir de aquí cada Atajo añade sus propias preguntas (categoría/cuenta, o cuenta origen/destino) y termina con la petición a Firestore. Sigue con 3.3.1, 3.3.2 o 3.3.3 según qué Atajo estés montando.
+
+### 3.3.1 Atajo "Registrar un gasto"
+
+Después del paso D:
+
+**E — Elegir categoría**: **Elegir de menú**, una opción por categoría de gasto que uses (Comida a domicilio, Ocio...). En cada opción, acción **Texto** con el ID de esa categoría (el que copiaste en 3.1). Resultado: `CategoriaID`.
+
+**F — Elegir cuenta**: igual, con tus cuentas. Resultado: `CuentaID`.
+
+**G — Subcategoría opcional**: **Preguntar por entrada** (Texto), "Permitir omitir" activado, texto "¿Subcategoría? (opcional)". Resultado: `Subcategoria`.
+
+**H — Escribir en Firestore**: **Obtener contenido de URL**:
 - URL: `https://firestore.googleapis.com/v1/projects/finanzas-jerry/databases/(default)/documents/movimientos`
-- Método: `POST`
-- Cabeceras: `Authorization` = `Bearer ` + `Token` (el espacio después de "Bearer" es importante), `Content-Type` = `application/json`
-- Cuerpo: **JSON**, con esta estructura exacta (usa la acción "Diccionario" de Atajos para construirlo, así se escapan bien las comillas si tecleas algo con acentos o símbolos):
+- Método `POST`, cabeceras `Authorization` = `Bearer ` + `Token`, `Content-Type` = `application/json`
+- Cuerpo JSON (arrastra cada variable desde el teclado de Atajos, no escribas el texto literal):
   ```json
   {
     "fields": {
       "importe": { "doubleValue": Importe },
-      "tipo": { "stringValue": "Gasto o Ingreso, según el paso 1" },
+      "tipo": { "stringValue": "Gasto" },
       "categoria_id": { "stringValue": "CategoriaID" },
       "cuenta_id": { "stringValue": "CuentaID" },
       "fecha": { "timestampValue": "FechaISO" },
@@ -113,18 +109,56 @@ Añade otra **Obtener contenido de URL**:
     }
   }
   ```
-  (Sustituye cada nombre en cursiva por la variable correspondiente arrastrándola desde el teclado de variables de Atajos — no escribas el texto literal.)
 
-**Paso 10 — Confirmación**
-Añade **Mostrar notificación** ("Show Notification") con texto "Movimiento añadido ✓" para saber que salió bien.
+**I — Confirmación**: **Mostrar notificación**, "Gasto añadido ✓".
+
+### 3.3.2 Atajo "Registrar un ingreso"
+
+Igual que el de gasto (pasos E-I), pero:
+- En el menú de categorías (paso E), usa tus categorías de ingreso (Nómina, Horas extra...).
+- En el cuerpo JSON (paso H), `"tipo": { "stringValue": "Ingreso" }`.
+- Notificación final: "Ingreso añadido ✓".
+
+### 3.3.3 Atajo "Registrar una transferencia"
+
+Este no lleva categoría — es dinero moviéndose entre dos de tus propias cuentas (o un retiro a Efectivo, si tienes esa cuenta creada). Después del paso D:
+
+**E — Elegir cuenta de origen**: **Elegir de menú**, una opción por cada cuenta desde la que sueles mover dinero. En cada opción, **Texto** con su ID. Resultado: `CuentaOrigenID`.
+
+**F — Elegir cuenta de destino**: igual, con las cuentas a las que sueles mandar dinero (incluye "Efectivo" si la tienes, para los retiros). Resultado: `CuentaDestinoID`.
+
+**G — Escribir en Firestore**: **Obtener contenido de URL**, misma URL/método/cabeceras que arriba, cuerpo:
+  ```json
+  {
+    "fields": {
+      "importe": { "doubleValue": Importe },
+      "tipo": { "stringValue": "Transferencia" },
+      "cuenta_id": { "stringValue": "CuentaOrigenID" },
+      "cuenta_destino_id": { "stringValue": "CuentaDestinoID" },
+      "fecha": { "timestampValue": "FechaISO" },
+      "nota": { "stringValue": "" }
+    }
+  }
+  ```
+  (Sin `categoria_id` ni `subcategoria` — una transferencia no lleva categoría.)
+
+**H — Confirmación**: **Mostrar notificación**, "Transferencia registrada ✓".
 
 ### 3.4 Probar
 
-Ejecuta el Shortcut una vez con un importe pequeño de prueba y comprueba que aparece en **Movimientos** en la web (puede tardar 1-2 segundos). Si algo falla, la acción "Obtener contenido de URL" del paso 9 te devuelve el error de Google en texto — puedes añadir temporalmente un "Mostrar resultado" después de ese paso para leerlo.
+Ejecuta cada Atajo una vez con un importe pequeño de prueba y comprueba que aparece en **Movimientos** en la web (puede tardar 1-2 segundos; una transferencia se ve como "Cuenta A → Cuenta B" sin +/-, y no cuenta en los totales de gasto/ingreso ni en los gráficos). Si algo falla, la petición a Firestore devuelve el error de Google en texto — añade temporalmente un "Mostrar resultado" después de esa acción para leerlo.
 
-### 3.5 Atajo para ingresos, y atajo desde la pantalla de inicio
+### 3.5 Añadirlos al Centro de Control (sin abrir Atajos)
 
-Puedes duplicar este mismo Atajo y quitarle el paso 1 (fijar `tipo` directamente a `"Ingreso"`) para tener un acceso directo de un solo toque para tus ingresos habituales (nómina, horas extra...). Añade el Atajo a la pantalla de inicio (⋯ → "Añadir a pantalla de inicio") para tenerlo a un toque, como una app más.
+Con los 3 Atajos ya creados y probados:
+
+1. **Ajustes** → **Centro de Control**.
+2. Busca la sección "Controles incluidos" y pulsa **Añadir un control** (o el **+** verde según tu versión de iOS).
+3. Busca **"Atajo"** en la lista — verás una entrada por cada Atajo que tengas creado, incluidos tus 3 nuevos.
+4. Añade **Registrar un ingreso**, **Registrar un gasto** y **Registrar una transferencia**, en ese orden (el orden en que los añades aquí es el orden en que aparecen).
+5. Puedes arrastrar el icono ⠿ de cada uno para reordenarlos o agruparlos como en tu captura (ingreso arriba, gasto abajo).
+
+Desde ahora, deslizando desde arriba a la derecha (o desde abajo, según el modelo) para abrir el Centro de Control, tienes los 3 a un toque — sin desbloquear del todo ni abrir ninguna app.
 
 ## 4. Orden recomendado
 
