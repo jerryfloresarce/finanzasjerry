@@ -269,7 +269,8 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   letter-spacing: 0.01em;
   transition: transform 0.15s var(--ease-lux), background 0.2s var(--ease-lux), border-color 0.2s var(--ease-lux), opacity 0.2s;
 }
-.btn:active { transform: scale(0.97); }
+.btn:hover:not(:disabled) { transform: translateY(-1px); }
+.btn:active:not(:disabled) { transform: scale(0.97); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn--primary {
@@ -311,6 +312,24 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   min-height: 100vh;
 }
 
+.app-shell > main.view-container {
+  display: flex;
+  justify-content: center;
+}
+
+.view {
+  width: 100%;
+  max-width: 1180px;
+}
+
+@media (min-width: 1600px) {
+  .view { max-width: 1420px; }
+}
+
+@media (min-width: 2000px) {
+  .view { max-width: 1640px; }
+}
+
 .sidebar {
   border-right: 1px solid var(--border);
   background: var(--bg-elevated);
@@ -335,7 +354,8 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 }
 .nav__link:hover { background: var(--surface-hover); color: var(--text-primary); }
 .nav__link.is-active { background: var(--accent-soft); color: var(--text-primary); }
-.nav__icon { font-size: 0.85rem; color: var(--accent); width: 16px; text-align: center; }
+.nav__icon { display: inline-flex; color: var(--accent); flex-shrink: 0; }
+.icon { display: block; }
 
 .sidebar__logout { margin: 12px; width: calc(100% - 24px); }
 
@@ -353,7 +373,6 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 
 .view-container {
   padding: 32px 40px 80px;
-  max-width: 1180px;
   width: 100%;
 }
 
@@ -439,7 +458,7 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .grid { display: grid; gap: 20px; }
 .grid--dashboard { grid-template-columns: repeat(3, 1fr); }
 .grid--dashboard .card--chart { grid-column: span 2; }
-.grid--cards { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.grid--cards { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 
 .card {
   background: var(--surface);
@@ -447,7 +466,9 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   border-radius: var(--radius-md);
   padding: 24px;
   box-shadow: var(--shadow-card);
+  transition: border-color 0.25s var(--ease-lux), transform 0.25s var(--ease-lux);
 }
+.card:hover { border-color: var(--border-strong); }
 
 .card__header {
   display: flex;
@@ -485,10 +506,28 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 10px 0;
+  padding: 10px 8px;
+  margin: 0 -8px;
+  border-radius: var(--radius-sm);
   border-bottom: 1px solid var(--border);
+  transition: background 0.2s var(--ease-lux);
 }
-.mini-row:last-child { border-bottom: none; padding-bottom: 0; }
+.mini-row:last-child { border-bottom: none; }
+.mini-row:hover { background: var(--surface-hover); }
+
+.mini-row__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.mini-row__body { display: flex; align-items: center; gap: 12px; min-width: 0; }
 
 .mini-row__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .mini-row__title { font-size: 0.9rem; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -548,9 +587,42 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   flex-direction: column;
   gap: 10px;
   box-shadow: var(--shadow-card);
+  transition: transform 0.25s var(--ease-lux), border-color 0.25s var(--ease-lux), box-shadow 0.25s var(--ease-lux);
+}
+.entity-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-strong);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.4), 0 20px 40px -16px rgba(0, 0, 0, 0.7);
 }
 
 .entity-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+
+.icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: #10150f;
+  flex-shrink: 0;
+}
+
+.entity-card__heading { display: flex; align-items: center; gap: 12px; }
 .entity-card__name { font-family: var(--font-display); font-size: 1.15rem; margin: 0; }
 .entity-card__tag {
   font-size: 0.7rem;
@@ -596,6 +668,9 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 .data-row__amount--Gasto { color: var(--text-primary); }
 
 .data-row__actions { display: flex; gap: 6px; justify-content: flex-end; }
+
+.data-row__cat { display: flex; align-items: center; gap: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.data-row__cat .mini-row__icon { width: 26px; height: 26px; border-radius: 8px; }
 
 /* =========================================================
    MODAL

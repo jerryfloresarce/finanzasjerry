@@ -1,5 +1,6 @@
 import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR } from "../db.js";
 import { openModal, closeModal, todayISO } from "../modal.js";
+import { icon, iconForCuentaTipo } from "../icons.js";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 
@@ -22,7 +23,10 @@ export function renderCuentas(state) {
       return `
         <article class="entity-card">
           <div class="entity-card__top">
-            <p class="entity-card__name">${c.nombre}</p>
+            <div class="entity-card__heading">
+              <span class="icon-badge">${icon(iconForCuentaTipo(c.tipo))}</span>
+              <p class="entity-card__name">${c.nombre}</p>
+            </div>
             <span class="entity-card__tag ${c.activa === false ? "entity-card__tag--pagado" : "entity-card__tag--activo"}">${c.activa === false ? "Inactiva" : c.tipo}</span>
           </div>
           <p class="entity-card__amount">${formatEUR(saldo)}</p>

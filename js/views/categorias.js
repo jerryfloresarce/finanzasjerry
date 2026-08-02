@@ -1,5 +1,6 @@
 import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js";
 import { openModal, closeModal } from "../modal.js";
+import { icon, iconForCategoriaTipo } from "../icons.js";
 
 const TIPOS = ["Fijo", "Variable", "Ocio", "PrestamoDado"];
 
@@ -25,7 +26,10 @@ export function renderCategorias(state) {
       return `
         <article class="entity-card">
           <div class="entity-card__top">
-            <p class="entity-card__name">${c.nombre}</p>
+            <div class="entity-card__heading">
+              <span class="icon-badge">${icon(iconForCategoriaTipo(c.tipo))}</span>
+              <p class="entity-card__name">${c.nombre}</p>
+            </div>
             <span class="entity-card__tag">${c.tipo}</span>
           </div>
           <p class="entity-card__amount">${formatEUR(gastado)}</p>

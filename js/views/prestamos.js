@@ -12,6 +12,7 @@ import {
 } from "../db.js";
 import { openModal, closeModal, todayISO } from "../modal.js";
 import { capitalActual } from "./dashboard.js";
+import { initials, avatarColor } from "../icons.js";
 
 const ESTADOS = ["Activo", "Pagado", "Impago"];
 const TIPOS_PAGO = ["Interes", "Capital", "Ambos"];
@@ -45,7 +46,10 @@ export function renderPrestamos(state) {
       return `
         <article class="entity-card">
           <div class="entity-card__top">
-            <p class="entity-card__name">${p.persona}</p>
+            <div class="entity-card__heading">
+              <span class="avatar" style="background:${avatarColor(p.persona)}">${initials(p.persona)}</span>
+              <p class="entity-card__name">${p.persona}</p>
+            </div>
             <span class="entity-card__tag ${tagClass}">${p.estado}</span>
           </div>
           <p class="entity-card__amount">${formatEUR(restante)} <span style="font-size:0.9rem;color:var(--text-muted);font-family:var(--font-body)">pendiente de capital</span></p>

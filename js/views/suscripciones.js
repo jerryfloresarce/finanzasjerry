@@ -1,5 +1,6 @@
 import { addSuscripcion, updateSuscripcion, deleteSuscripcion, formatEUR, formatFecha } from "../db.js";
 import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js";
+import { icon, iconForSuscripcion } from "../icons.js";
 
 let currentState = null;
 
@@ -25,7 +26,10 @@ export function renderSuscripciones(state) {
       return `
         <article class="entity-card">
           <div class="entity-card__top">
-            <p class="entity-card__name">${s.nombre}</p>
+            <div class="entity-card__heading">
+              <span class="icon-badge">${icon(iconForSuscripcion(s.nombre))}</span>
+              <p class="entity-card__name">${s.nombre}</p>
+            </div>
             <span class="entity-card__tag ${s.activa === false ? "entity-card__tag--pagado" : "entity-card__tag--activo"}">${s.activa === false ? "Inactiva" : s.frecuencia}</span>
           </div>
           <p class="entity-card__amount">${formatEUR(s.precio)}</p>
