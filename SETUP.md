@@ -26,6 +26,8 @@ Todo el código ya está listo. Esto es lo que falta para que la web funcione de
 
 Esto asegura que solo tú (con sesión iniciada) puedas leer o escribir tus datos — nadie más, aunque conozca la URL de la web.
 
+> **Nota:** si ya habías publicado las reglas antes, tienes que volver a publicarlas ahora — se ha añadido una colección nueva (`configuracion`, para recordar qué banners ya has resuelto en todos tus dispositivos) y necesita el mismo permiso que las demás. Repite los pasos 1-3 de aquí arriba pegando el `firestore.rules` actualizado.
+
 ## 2. GitHub Pages — publicar la web
 
 1. En GitHub, entra en `jerryfloresarce/finanzasjerry` → **Settings** → **Pages**.

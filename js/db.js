@@ -4,6 +4,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  setDoc,
   onSnapshot,
   query,
   orderBy,
@@ -78,6 +79,23 @@ export const listenPagosPrestamos = (cb) => listen("pagos_prestamos", "fecha", c
 export const addPagoPrestamo = (data) => addDoc(col("pagos_prestamos"), data);
 export const updatePagoPrestamo = (id, data) => updateDoc(doc(db, "pagos_prestamos", id), data);
 export const deletePagoPrestamo = (id) => deleteDoc(doc(db, "pagos_prestamos", id));
+
+// ---------- Configuración de la app (un solo documento) ----------
+// Guarda cosas como "¿ya se descartó tal banner?" en Firestore en vez de
+// localStorage, para que el estado sea el mismo en todos los dispositivos
+// (móvil, escritorio, cualquier navegador) en vez de por-navegador.
+
+// El segundo argumento de onSnapshot cubre el caso de que las reglas de
+// Firestore aún no se hayan vuelto a publicar con el permiso para esta
+// colección nueva: en vez de dejar la app colgada esperando este dato para
+// siempre, seguimos adelante como si no hubiera nada guardado todavía.
+export const listenConfig = (cb) =>
+  onSnapshot(
+    doc(db, "configuracion", "app"),
+    (snap) => cb(snap.exists() ? snap.data() : {}),
+    () => cb({})
+  );
+export const updateConfig = (data) => setDoc(doc(db, "configuracion", "app"), data, { merge: true });
 
 // ---------- Cálculos derivados ----------
 

@@ -9,6 +9,7 @@ import { mountCategorias, renderCategorias } from "./views/categorias.js";
 import { mountPrestamos, renderPrestamos } from "./views/prestamos.js";
 import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js";
 import { mountGraficos, renderGraficos } from "./views/graficos.js";
+import { mountCuenta, renderCuenta } from "./views/cuenta.js";
 import { refreshAnimations } from "./animations.js";
 
 const ROUTES = {
@@ -19,6 +20,7 @@ const ROUTES = {
   categorias: renderCategorias,
   prestamos: renderPrestamos,
   suscripciones: renderSuscripciones,
+  cuenta: renderCuenta,
 };
 
 const DEFAULT_ROUTE = "dashboard";
@@ -56,6 +58,21 @@ function navigate() {
   document.getElementById("view-container")?.scrollTo({ top: 0 });
 }
 
+// Navegamos con history.replaceState en vez de dejar que los <a href="#/...">
+// empujen una entrada nueva al historial. En el iPhone, cada entrada extra
+// hacía que el gesto de "volver atrás" (deslizar desde el borde) mostrara
+// una vista intermedia rota — con una sola entrada de historial ese gesto
+// ya no tiene ningún "atrás" al que ir dentro de la app.
+document.addEventListener("click", (e) => {
+  const link = e.target.closest('a[href^="#/"]');
+  if (!link) return;
+  e.preventDefault();
+  const route = link.getAttribute("href").slice(2);
+  if (!ROUTES[route]) return;
+  history.replaceState(null, "", `#/${route}`);
+  navigate();
+});
+
 window.addEventListener("hashchange", navigate);
 
 // ---------- Mobile nav ----------
@@ -64,15 +81,23 @@ const mobileNav = document.getElementById("mobile-nav");
 const mobileNavScrim = document.getElementById("mobile-nav-scrim");
 const topbarMenuBtn = document.getElementById("topbar-menu-btn");
 
+let closeNavTimeout = null;
+
 function openMobileNav() {
+  clearTimeout(closeNavTimeout);
   mobileNav.classList.remove("is-hidden");
   mobileNavScrim.classList.remove("is-hidden");
   requestAnimationFrame(() => mobileNav.classList.add("is-open"));
 }
 
+// navigate() llama a esto en cada cambio de ruta, incluso cuando el menú no
+// está abierto — si no está abierto, no hace nada (evita que un cierre
+// "fantasma" programado por una navegación anterior vuelva a ocultar el
+// menú justo después de haberlo abierto).
 function closeMobileNav() {
+  if (!mobileNav.classList.contains("is-open")) return;
   mobileNav.classList.remove("is-open");
-  setTimeout(() => {
+  closeNavTimeout = setTimeout(() => {
     mobileNav.classList.add("is-hidden");
     mobileNavScrim.classList.add("is-hidden");
   }, 300);
@@ -101,8 +126,9 @@ onAuthReady(() => {
     mountCategorias();
     mountPrestamos();
     mountSuscripciones();
+    mountCuenta();
   }
 
-  if (!window.location.hash) window.location.hash = "#/dashboard";
+  if (!window.location.hash) history.replaceState(null, "", "#/dashboard");
   navigate();
 });

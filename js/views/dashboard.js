@@ -40,7 +40,7 @@ export function mountDashboard() {
     fixBtn.textContent = "Aplicando…";
     try {
       await applyAugustCorrections();
-      dismissCorrections();
+      await dismissCorrections();
       fixBtn.textContent = "Hecho ✓";
       document.getElementById("fix-banner")?.classList.add("is-hidden");
     } catch (err) {
@@ -55,7 +55,7 @@ export function mountDashboard() {
     historialBtn.textContent = "Importando…";
     try {
       await importarJessicaYSilvia();
-      dismissHistorial();
+      await dismissHistorial();
       historialBtn.textContent = "Hecho ✓";
       document.getElementById("historial-banner")?.classList.add("is-hidden");
     } catch (err) {
