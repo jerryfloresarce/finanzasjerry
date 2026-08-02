@@ -2,17 +2,25 @@ const modalRoot = document.getElementById("modal-root");
 const modalScrim = document.getElementById("modal-scrim");
 const modalContent = document.getElementById("modal-content");
 
+const MODAL_TRANSITION_MS = 220;
+let modalCloseTimeout = null;
+
 export function openModal(html, { onMount } = {}) {
+  clearTimeout(modalCloseTimeout);
   modalContent.innerHTML = html;
   modalRoot.classList.remove("is-hidden");
+  requestAnimationFrame(() => modalRoot.classList.add("is-open"));
   document.body.style.overflow = "hidden";
   if (onMount) onMount(modalContent);
 }
 
 export function closeModal() {
-  modalRoot.classList.add("is-hidden");
-  modalContent.innerHTML = "";
+  modalRoot.classList.remove("is-open");
   document.body.style.overflow = "";
+  modalCloseTimeout = setTimeout(() => {
+    modalRoot.classList.add("is-hidden");
+    modalContent.innerHTML = "";
+  }, MODAL_TRANSITION_MS);
 }
 
 modalScrim.addEventListener("click", closeModal);

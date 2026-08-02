@@ -445,6 +445,14 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   max-width: 1180px;
   min-width: 0;
 }
+.view:not(.is-hidden) { animation: view-fade-in 0.28s var(--ease-lux); }
+@keyframes view-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .view:not(.is-hidden) { animation: none; }
+}
 
 @media (min-width: 1600px) {
   .view { max-width: 1420px; }
@@ -1012,6 +1020,13 @@ canvas { max-width: 100%; }
   align-items: center;
   justify-content: center;
   padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s var(--ease-lux);
+}
+.modal-root.is-open {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .modal-root__scrim {
@@ -1033,6 +1048,11 @@ canvas { max-width: 100%; }
   border-radius: var(--radius-lg);
   padding: 28px;
   box-shadow: var(--shadow-modal);
+  transform: scale(0.96) translateY(10px);
+  transition: transform 0.22s var(--ease-lux);
+}
+.modal-root.is-open .modal {
+  transform: scale(1) translateY(0);
 }
 
 .modal__title {
@@ -1070,7 +1090,10 @@ canvas { max-width: 100%; }
   background: rgba(6, 9, 7, 0.72);
   backdrop-filter: blur(4px);
   z-index: 30;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-lux);
 }
+.mobile-nav-scrim.is-open { opacity: 1; }
 
 .mobile-nav {
   position: fixed;
