@@ -6,8 +6,9 @@ import {
   formatFecha,
   fromTimestamp,
 } from "../db.js";
-import { initDashboardAnimations } from "../animations.js";
+import { initDashboardAnimations, countUpTo, animateProgressBars } from "../animations.js";
 import { seedInitialData } from "../seed.js";
+import { icon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js";
 
 let chartInstance = null;
 
@@ -51,7 +52,7 @@ export function renderDashboard(state) {
     year: "numeric",
   }).format(new Date());
 
-  document.getElementById("saldo-total").textContent = formatEUR(calcularSaldoTotal(cuentas, movimientos));
+  countUpTo(document.getElementById("saldo-total"), calcularSaldoTotal(cuentas, movimientos), formatEUR);
 
   renderChart(movimientos, categorias);
   renderLimites(movimientos, categorias);
@@ -129,15 +130,17 @@ function renderLimites(movimientos, categorias) {
             <span class="name">${c.nombre}</span>
             <span class="value">${formatEUR(gastado)} / ${formatEUR(limite)}</span>
           </div>
-          <div class="progress-track"><div class="progress-fill ${cls}" style="width:${pct}%"></div></div>
+          <div class="progress-track"><div class="progress-fill ${cls}" data-target-width="${pct}%"></div></div>
         </div>`;
     })
     .join("");
+
+  animateProgressBars(el);
 }
 
 function renderRecientes(movimientos, categorias, cuentas) {
   const el = document.getElementById("movimientos-recientes");
-  const catMap = new Map(categorias.map((c) => [c.id, c.nombre]));
+  const catMap = new Map(categorias.map((c) => [c.id, c]));
 
   const recientes = [...movimientos]
     .sort((a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0))
@@ -150,13 +153,17 @@ function renderRecientes(movimientos, categorias, cuentas) {
 
   el.innerHTML = recientes
     .map((m) => {
+      const cat = catMap.get(m.categoria_id);
       const signo = m.tipo === "Ingreso" ? "+" : "−";
       const cls = m.tipo === "Ingreso" ? "mini-row__amount--pos" : "mini-row__amount--neg";
       return `
         <div class="mini-row">
-          <div class="mini-row__main">
-            <span class="mini-row__title">${m.nota || catMap.get(m.categoria_id) || "Movimiento"}</span>
-            <span class="mini-row__sub">${catMap.get(m.categoria_id) || ""} · ${formatFecha(fromTimestamp(m.fecha))}</span>
+          <div class="mini-row__body">
+            <span class="mini-row__icon">${icon(iconForCategoriaTipo(cat?.tipo))}</span>
+            <div class="mini-row__main">
+              <span class="mini-row__title">${m.nota || cat?.nombre || "Movimiento"}</span>
+              <span class="mini-row__sub">${cat?.nombre || ""} · ${formatFecha(fromTimestamp(m.fecha))}</span>
+            </div>
           </div>
           <span class="mini-row__amount ${cls}">${signo} ${formatEUR(Math.abs(Number(m.importe)))}</span>
         </div>`;
@@ -178,9 +185,12 @@ function renderPrestamos(prestamos, pagosPrestamos) {
       const restante = capitalActual(p, pagosPrestamos);
       return `
         <div class="mini-row">
-          <div class="mini-row__main">
-            <span class="mini-row__title">${p.persona}</span>
-            <span class="mini-row__sub">Prestado ${formatEUR(p.capital_inicial)} · ${p.interes_porcentaje}% interés</span>
+          <div class="mini-row__body">
+            <span class="avatar" style="background:${avatarColor(p.persona)}">${initials(p.persona)}</span>
+            <div class="mini-row__main">
+              <span class="mini-row__title">${p.persona}</span>
+              <span class="mini-row__sub">Prestado ${formatEUR(p.capital_inicial)} · ${p.interes_porcentaje}% interés</span>
+            </div>
           </div>
           <span class="mini-row__amount">${formatEUR(restante)}</span>
         </div>`;
@@ -201,9 +211,12 @@ function renderSuscripciones(suscripciones, cuentas) {
     .map(
       (s) => `
         <div class="mini-row">
-          <div class="mini-row__main">
-            <span class="mini-row__title">${s.nombre}</span>
-            <span class="mini-row__sub">${s.frecuencia}${s.proximo_pago ? " · próximo " + formatFecha(new Date(s.proximo_pago)) : ""}</span>
+          <div class="mini-row__body">
+            <span class="mini-row__icon">${icon(iconForSuscripcion(s.nombre))}</span>
+            <div class="mini-row__main">
+              <span class="mini-row__title">${s.nombre}</span>
+              <span class="mini-row__sub">${s.frecuencia}${s.proximo_pago ? " · próximo " + formatFecha(new Date(s.proximo_pago)) : ""}</span>
+            </div>
           </div>
           <span class="mini-row__amount">${formatEUR(s.precio)}</span>
         </div>`
@@ -225,9 +238,12 @@ function renderCuentasResumen(cuentas, movimientos) {
       const saldo = calcularSaldoCuenta(c, movimientos);
       return `
         <div class="mini-row">
-          <div class="mini-row__main">
-            <span class="mini-row__title">${c.nombre}</span>
-            <span class="mini-row__sub">${c.tipo}</span>
+          <div class="mini-row__body">
+            <span class="mini-row__icon">${icon(iconForCuentaTipo(c.tipo))}</span>
+            <div class="mini-row__main">
+              <span class="mini-row__title">${c.nombre}</span>
+              <span class="mini-row__sub">${c.tipo}</span>
+            </div>
           </div>
           <span class="mini-row__amount">${formatEUR(saldo)}</span>
         </div>`;

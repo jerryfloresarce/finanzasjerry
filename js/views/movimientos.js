@@ -8,6 +8,7 @@ import {
   toTimestamp,
 } from "../db.js";
 import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js";
+import { icon, iconForCategoriaTipo } from "../icons.js";
 
 export function mountMovimientos() {
   document.getElementById("btn-add-movimiento").addEventListener("click", () => openForm(null, currentState));
@@ -19,7 +20,7 @@ export function renderMovimientos(state) {
   currentState = state;
   const el = document.getElementById("movimientos-table");
   const { movimientos, categorias, cuentas } = state;
-  const catMap = new Map(categorias.map((c) => [c.id, c.nombre]));
+  const catMap = new Map(categorias.map((c) => [c.id, c]));
   const cuentaMap = new Map(cuentas.map((c) => [c.id, c.nombre]));
 
   if (movimientos.length === 0) {
@@ -36,19 +37,20 @@ export function renderMovimientos(state) {
       <span>Fecha</span><span>Nota / Categoría</span><span>Cuenta</span><span>Importe</span><span></span>
     </div>` +
     ordenados
-      .map(
-        (m) => `
+      .map((m) => {
+        const cat = catMap.get(m.categoria_id);
+        return `
       <div class="data-row">
         <span>${formatFecha(fromTimestamp(m.fecha))}</span>
-        <span>${m.nota ? m.nota + " · " : ""}${catMap.get(m.categoria_id) || "—"}</span>
+        <span class="data-row__cat"><span class="mini-row__icon">${icon(iconForCategoriaTipo(cat?.tipo), { size: 14 })}</span>${m.nota ? m.nota + " · " : ""}${cat?.nombre || "—"}</span>
         <span>${cuentaMap.get(m.cuenta_id) || "—"}</span>
         <span class="data-row__amount--${m.tipo}">${m.tipo === "Ingreso" ? "+" : "−"} ${formatEUR(Math.abs(Number(m.importe)))}</span>
         <span class="data-row__actions">
           <button class="btn btn--ghost btn--sm" data-edit="${m.id}">Editar</button>
           <button class="btn btn--danger btn--sm" data-delete="${m.id}">Eliminar</button>
         </span>
-      </div>`
-      )
+      </div>`;
+      })
       .join("");
 
   el.querySelectorAll("[data-edit]").forEach((btn) =>

@@ -4,10 +4,36 @@
 
 let heroTriggers = [];
 let revealTriggers = [];
+let mouseParallaxBound = false;
 
 function killTriggers(list) {
   list.forEach((t) => t.kill());
   list.length = 0;
+}
+
+function initHeroMouseParallax() {
+  if (mouseParallaxBound || typeof gsap === "undefined") return;
+  mouseParallaxBound = true;
+
+  const hero = document.getElementById("hero-parallax");
+  const heroBg = document.getElementById("hero-bg");
+  if (!hero || !heroBg) return;
+
+  const moveX = gsap.quickTo(heroBg, "x", { duration: 0.9, ease: "power3.out" });
+  const moveY = gsap.quickTo(heroBg, "y", { duration: 0.9, ease: "power3.out" });
+
+  hero.addEventListener("mousemove", (e) => {
+    const rect = hero.getBoundingClientRect();
+    const relX = (e.clientX - rect.left) / rect.width - 0.5;
+    const relY = (e.clientY - rect.top) / rect.height - 0.5;
+    moveX(relX * -18);
+    moveY(relY * -12);
+  });
+
+  hero.addEventListener("mouseleave", () => {
+    moveX(0);
+    moveY(0);
+  });
 }
 
 export function initDashboardAnimations() {
@@ -47,6 +73,8 @@ export function initDashboardAnimations() {
         { y: 0, opacity: 1, duration: 1.1, ease: "power3.out", delay: 0.15 }
       );
     }
+
+    initHeroMouseParallax();
   }
 
   document.querySelectorAll("#view-dashboard .reveal").forEach((el, i) => {
@@ -73,4 +101,43 @@ export function initDashboardAnimations() {
 
 export function refreshAnimations() {
   if (typeof ScrollTrigger !== "undefined") ScrollTrigger.refresh();
+}
+
+// Cuenta un número desde su valor anterior hasta el nuevo, formateando con `format`.
+const countState = new WeakMap();
+
+export function countUpTo(el, targetValue, format) {
+  if (!el) return;
+  const from = countState.get(el) ?? 0;
+  countState.set(el, targetValue);
+
+  if (typeof gsap === "undefined") {
+    el.textContent = format(targetValue);
+    return;
+  }
+
+  const obj = { value: from };
+  gsap.to(obj, {
+    value: targetValue,
+    duration: 1,
+    ease: "power2.out",
+    onUpdate: () => {
+      el.textContent = format(obj.value);
+    },
+  });
+}
+
+// Anima las barras .progress-fill de 0 al ancho final (ya tienen transition en CSS).
+export function animateProgressBars(container) {
+  const bars = container.querySelectorAll(".progress-fill[data-target-width]");
+  bars.forEach((bar) => {
+    bar.style.width = "0%";
+  });
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      bars.forEach((bar) => {
+        bar.style.width = bar.dataset.targetWidth;
+      });
+    });
+  });
 }
