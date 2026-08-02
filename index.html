@@ -70,13 +70,17 @@
       <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Suscripciones
       </a>
+      <a href="#/cuenta" class="nav__link" data-route="cuenta">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-user-circle"></i></span> Mi cuenta
+      </a>
     </nav>
     <button id="logout-btn" class="btn btn--ghost btn--block sidebar__logout">Cerrar sesión</button>
   </aside>
 
   <header class="topbar">
+    <button id="topbar-menu-btn" class="icon-btn" aria-label="Abrir menú"><i class="ph-thin ph-list" aria-hidden="true"></i></button>
     <p class="brand-mark brand-mark--topbar"><i class="ph-thin ph-leaf brand-mark__icon" aria-hidden="true"></i>Finanzas <span>Jerry</span></p>
-    <button id="topbar-menu-btn" class="icon-btn" aria-label="Abrir menú">☰</button>
+    <a href="#/cuenta" class="icon-btn" data-route="cuenta" aria-label="Mi cuenta"><i class="ph-thin ph-user-circle" aria-hidden="true"></i></a>
   </header>
 
   <div id="mobile-nav-scrim" class="mobile-nav-scrim is-hidden"></div>
@@ -101,6 +105,9 @@
     </a>
     <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Suscripciones
+    </a>
+    <a href="#/cuenta" class="nav__link" data-route="cuenta">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-user-circle"></i></span> Mi cuenta
     </a>
     <button id="mobile-logout-btn" class="btn btn--ghost btn--block" style="margin-top: 12px;">Cerrar sesión</button>
   </nav>
@@ -312,6 +319,35 @@
           <div id="lista-prestamos-interes" class="mini-list dash-scroll" style="height: 220px; margin-top: 4px;"></div>
         </article>
       </div>
+    </section>
+
+    <!-- ---------- MI CUENTA ---------- -->
+    <section class="view is-hidden" data-view="cuenta" id="view-cuenta">
+      <div class="view-header">
+        <h1 class="view-title">Mi cuenta</h1>
+      </div>
+
+      <article class="card" style="margin-bottom: 20px; max-width: 480px;">
+        <h2 class="card__title">Sesión</h2>
+        <div class="cuenta-row">
+          <span class="icon-badge"><i class="ph-thin ph-user-circle" style="font-size:18px" aria-hidden="true"></i></span>
+          <div>
+            <p class="entity-card__name" id="cuenta-email" style="margin:0;">—</p>
+            <p class="entity-card__meta">Sesión iniciada con Firebase Auth</p>
+          </div>
+        </div>
+        <div class="entity-card__actions" style="margin-top: 18px;">
+          <button class="btn btn--ghost btn--sm" id="btn-reset-password">Cambiar contraseña</button>
+          <button class="btn btn--danger btn--sm" id="btn-cuenta-logout">Cerrar sesión</button>
+        </div>
+        <p class="field-error" id="cuenta-reset-msg" style="color: var(--success); margin-top: 10px;"></p>
+      </article>
+
+      <article class="card" style="max-width: 480px;">
+        <h2 class="card__title">Sobre la app</h2>
+        <p class="entity-card__meta">Finanzas Jerry — control personal de cuentas, gastos, préstamos y suscripciones.</p>
+        <p class="entity-card__meta" style="margin-top: 8px;">Los datos se guardan en Firestore y solo son visibles con esta sesión iniciada.</p>
+      </article>
     </section>
 
   </main>

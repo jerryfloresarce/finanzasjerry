@@ -10,6 +10,7 @@ const PH = {
   categorias: "tag",
   prestamos: "hand-coins",
   suscripciones: "arrows-clockwise",
+  cuenta: "user-circle",
   corriente: "credit-card",
   ahorro: "trend-up",
   efectivo: "money",

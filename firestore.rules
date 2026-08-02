@@ -43,6 +43,10 @@ service cloud.firestore {
       allow read, write: if autenticado();
     }
 
+    match /configuracion/{docId} {
+      allow read, write: if autenticado();
+    }
+
     // Todo lo demás, denegado por defecto.
     match /{document=**} {
       allow read, write: if false;

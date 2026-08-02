@@ -5,6 +5,7 @@ import {
   listenSuscripciones,
   listenPrestamos,
   listenPagosPrestamos,
+  listenConfig,
 } from "./db.js";
 
 export const state = {
@@ -14,6 +15,7 @@ export const state = {
   suscripciones: [],
   prestamos: [],
   pagosPrestamos: [],
+  config: {},
   ready: false,
 };
 
@@ -25,7 +27,7 @@ export function subscribe(fn) {
 }
 
 const loaded = new Set();
-const REQUIRED = ["cuentas", "categorias", "movimientos", "suscripciones", "prestamos", "pagosPrestamos"];
+const REQUIRED = ["cuentas", "categorias", "movimientos", "suscripciones", "prestamos", "pagosPrestamos", "config"];
 
 function notify(key) {
   loaded.add(key);
@@ -44,4 +46,5 @@ export function initStore() {
   listenSuscripciones((items) => { state.suscripciones = items; notify("suscripciones"); });
   listenPrestamos((items) => { state.prestamos = items; notify("prestamos"); });
   listenPagosPrestamos((items) => { state.pagosPrestamos = items; notify("pagosPrestamos"); });
+  listenConfig((data) => { state.config = data; notify("config"); });
 }

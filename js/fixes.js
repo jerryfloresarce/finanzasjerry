@@ -9,6 +9,7 @@ import {
   addPagoPrestamo,
   updatePagoPrestamo,
   updateSuscripcion,
+  updateConfig,
   toTimestamp,
   fromTimestamp,
 } from "./db.js";
@@ -20,19 +21,13 @@ const ANA_FECHAS = [
   "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-29",
 ];
 
-// Una vez pulsas el botón de un banner de un solo uso, se marca aquí para
-// que no vuelva a aparecer — sin depender de que la comprobación sobre los
-// datos siga dando "pendiente" (que puede fallar si algo se editó a mano).
-function isDismissed(key) {
-  return localStorage.getItem(`finanzas-jerry:dismissed:${key}`) === "1";
-}
-
-function dismiss(key) {
-  localStorage.setItem(`finanzas-jerry:dismissed:${key}`, "1");
-}
-
+// Una vez pulsas el botón de un banner de un solo uso, se marca en Firestore
+// (colección "configuracion") para que no vuelva a aparecer — en cualquier
+// dispositivo o navegador, no solo en el que pulsaste el botón. Antes esto
+// se guardaba en localStorage, que es por-navegador: por eso el banner podía
+// seguir saliendo en el móvil aunque ya lo hubieras "hecho" en el ordenador.
 export function pendingCorrections() {
-  if (isDismissed("august-corrections")) return false;
+  if (state.config?.correccionesAgostoOk) return false;
   const ana = state.prestamos.find((p) => p.persona === "(pendiente — dime el nombre)");
   const liz = state.prestamos.find((p) => p.persona === "Liz colombiana" && Number(p.capital_inicial) === 600);
   const pasanaco = state.suscripciones.find((s) => s.nombre === "Pasanaco" && Number(s.precio) === 400);
@@ -40,7 +35,7 @@ export function pendingCorrections() {
 }
 
 export function dismissCorrections() {
-  dismiss("august-corrections");
+  return updateConfig({ correccionesAgostoOk: true });
 }
 
 export async function applyAugustCorrections() {
@@ -149,12 +144,12 @@ const SILVIA_PAGOS = [
 ];
 
 export function pendingHistorial() {
-  if (isDismissed("jessica-silvia-historial")) return false;
+  if (state.config?.historialJessicaSilviaOk) return false;
   return !state.prestamos.some((p) => p.persona === "Jessica" || p.persona === "Silvia");
 }
 
 export function dismissHistorial() {
-  dismiss("jessica-silvia-historial");
+  return updateConfig({ historialJessicaSilviaOk: true });
 }
 
 export async function importarJessicaYSilvia() {
