@@ -71,6 +71,7 @@ function openForm(suscripcion, state) {
         <span class="field__label">Frecuencia</span>
         <select name="frecuencia">
           <option ${suscripcion?.frecuencia === "Mensual" ? "selected" : ""}>Mensual</option>
+          <option ${suscripcion?.frecuencia === "Bimensual" ? "selected" : ""}>Bimensual</option>
           <option ${suscripcion?.frecuencia === "Anual" ? "selected" : ""}>Anual</option>
         </select>
       </label>

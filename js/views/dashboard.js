@@ -2,6 +2,7 @@ import {
   calcularSaldoCuenta,
   calcularSaldoTotal,
   gastosPorCategoriaDelMes,
+  gastosPorSubcategoriaDelMes,
   formatEUR,
   formatFecha,
   fromTimestamp,
@@ -73,6 +74,7 @@ export function renderDashboard(state) {
 
   renderChart(movimientos, categorias);
   renderLimites(movimientos, categorias);
+  renderTopLugares(movimientos);
   renderRecientes(movimientos, categorias, cuentas);
   renderPrestamos(prestamos, pagosPrestamos);
   renderSuscripciones(suscripciones, cuentas);
@@ -155,6 +157,30 @@ function renderLimites(movimientos, categorias) {
   animateProgressBars(el);
 }
 
+function renderTopLugares(movimientos) {
+  const el = document.getElementById("top-lugares");
+  if (!el) return;
+
+  const top = gastosPorSubcategoriaDelMes(movimientos);
+
+  if (top.length === 0) {
+    el.innerHTML = `<p class="empty-state">Añade una subcategoría (ej. "Five Guys") a tus gastos para verlos aquí.</p>`;
+    return;
+  }
+
+  el.innerHTML = top
+    .map(
+      ({ subcategoria, total }) => `
+        <div class="mini-row">
+          <div class="mini-row__main">
+            <span class="mini-row__title">${subcategoria}</span>
+          </div>
+          <span class="mini-row__amount">${formatEUR(total)}</span>
+        </div>`
+    )
+    .join("");
+}
+
 function renderRecientes(movimientos, categorias, cuentas) {
   const el = document.getElementById("movimientos-recientes");
   const catMap = new Map(categorias.map((c) => [c.id, c]));
@@ -178,7 +204,7 @@ function renderRecientes(movimientos, categorias, cuentas) {
           <div class="mini-row__body">
             <span class="mini-row__icon">${icon(iconForCategoriaTipo(cat?.tipo))}</span>
             <div class="mini-row__main">
-              <span class="mini-row__title">${m.nota || cat?.nombre || "Movimiento"}</span>
+              <span class="mini-row__title">${m.subcategoria || m.nota || cat?.nombre || "Movimiento"}</span>
               <span class="mini-row__sub">${cat?.nombre || ""} · ${formatFecha(fromTimestamp(m.fecha))}</span>
             </div>
           </div>
