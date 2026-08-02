@@ -109,7 +109,7 @@ document.getElementById("mobile-logout-btn")?.addEventListener("click", () => {
   document.getElementById("logout-btn")?.click();
 });
 
-// Gesto táctil: deslizar hacia la izquierda abre el menú, hacia la derecha
+// Gesto táctil: deslizar hacia la derecha abre el menú, hacia la izquierda
 // lo cierra. Solo cuenta si el movimiento es sobre todo horizontal (si no,
 // es un scroll vertical normal y lo dejamos pasar).
 const SWIPE_MIN_DISTANCE = 60;
@@ -137,8 +137,8 @@ document.addEventListener(
     touchStartX = null;
     touchStartY = null;
     if (deltaY > SWIPE_MAX_OFF_AXIS) return;
-    if (deltaX <= -SWIPE_MIN_DISTANCE) openMobileNav();
-    else if (deltaX >= SWIPE_MIN_DISTANCE) closeMobileNav();
+    if (deltaX >= SWIPE_MIN_DISTANCE) openMobileNav();
+    else if (deltaX <= -SWIPE_MIN_DISTANCE) closeMobileNav();
   },
   { passive: true }
 );
