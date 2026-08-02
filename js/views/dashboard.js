@@ -130,11 +130,12 @@ function renderChart(movimientos, categorias) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       cutout: "68%",
       plugins: {
         legend: {
-          position: "bottom",
-          labels: { color: "#9fada4", boxWidth: 10, padding: 16, font: { family: "Inter", size: 12 } },
+          position: "right",
+          labels: { color: "#9fada4", boxWidth: 8, padding: 8, font: { family: "Inter", size: 10.5 } },
         },
         tooltip: {
           callbacks: { label: (ctx) => `${ctx.label}: ${formatEUR(ctx.parsed)}` },
