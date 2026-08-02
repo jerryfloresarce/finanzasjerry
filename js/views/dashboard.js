@@ -9,7 +9,7 @@ import {
 } from "../db.js";
 import { initDashboardAnimations, countUpTo, animateProgressBars } from "../animations.js";
 import { seedInitialData } from "../seed.js";
-import { pendingCorrections, applyAugustCorrections } from "../fixes.js";
+import { pendingCorrections, applyAugustCorrections, pendingHistorial, importarJessicaYSilvia } from "../fixes.js";
 import { icon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js";
 
 let chartInstance = null;
@@ -39,19 +39,35 @@ export function mountDashboard() {
       fixBtn.disabled = false;
     }
   });
+
+  const historialBtn = document.getElementById("btn-import-historial");
+  historialBtn?.addEventListener("click", async () => {
+    historialBtn.disabled = true;
+    historialBtn.textContent = "Importando…";
+    try {
+      const results = await importarJessicaYSilvia();
+      historialBtn.textContent = results.length ? "Hecho ✓" : "No había nada pendiente";
+    } catch (err) {
+      historialBtn.textContent = "Error, inténtalo de nuevo";
+      historialBtn.disabled = false;
+    }
+  });
 }
 
 const CATEGORY_COLORS = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#b6975f", "#7d8f8a", "#9c8a6f", "#6b8778"];
 
 function capitalActual(prestamo, pagos) {
-  const capitalPagado = pagos
-    .filter((p) => p.prestamo_id === prestamo.id && p.pagado)
+  const ajuste = pagos
+    .filter((p) => p.prestamo_id === prestamo.id)
     .reduce((acc, p) => {
-      if (p.tipo === "Capital") return acc + Number(p.importe ?? 0);
-      if (p.tipo === "Ambos") return acc + Number(p.importe_capital ?? 0);
+      // AumentoCapital: interés no pagado (u otro préstamo nuevo) que se suma al capital.
+      if (p.tipo === "AumentoCapital") return acc + Number(p.importe ?? 0);
+      if (!p.pagado) return acc;
+      if (p.tipo === "Capital") return acc - Number(p.importe ?? 0);
+      if (p.tipo === "Ambos") return acc - Number(p.importe_capital ?? 0);
       return acc;
     }, 0);
-  return Number(prestamo.capital_inicial ?? 0) - capitalPagado;
+  return Number(prestamo.capital_inicial ?? 0) + ajuste;
 }
 
 export function renderDashboard(state) {
@@ -62,6 +78,9 @@ export function renderDashboard(state) {
 
   const fixBanner = document.getElementById("fix-banner");
   if (fixBanner) fixBanner.classList.toggle("is-hidden", !(state.ready && pendingCorrections()));
+
+  const historialBanner = document.getElementById("historial-banner");
+  if (historialBanner) historialBanner.classList.toggle("is-hidden", !(state.ready && pendingHistorial()));
 
   document.getElementById("hero-fecha").textContent = new Intl.DateTimeFormat("es-ES", {
     weekday: "long",

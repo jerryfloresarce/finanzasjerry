@@ -4,6 +4,7 @@
 // botón temporal y luego poder borrarse.
 import { state } from "./store.js";
 import {
+  addPrestamo,
   updatePrestamo,
   addPagoPrestamo,
   updatePagoPrestamo,
@@ -69,6 +70,107 @@ export async function applyAugustCorrections() {
   if (pasanaco) {
     await updateSuscripcion(pasanaco.id, { precio: 600 });
     results.push("Pasanaco: actualizado de 400€ a 600€ mensuales.");
+  }
+
+  return results;
+}
+
+// ---------------------------------------------------------------------
+// Historial completo de Jessica y Silvia. "AumentoCapital" = el interés
+// que no se pagó a tiempo y se sumó al capital (así queda registrado
+// como hecho, no como pago pendiente).
+// ---------------------------------------------------------------------
+
+function pago(fecha, tipo, importe, pagado) {
+  const importe_capital = tipo === "Capital" || tipo === "AumentoCapital" ? importe : 0;
+  const importe_interes = tipo === "Interes" ? importe : 0;
+  return { fecha: toTimestamp(fecha), tipo, importe, importe_capital, importe_interes, pagado };
+}
+
+const JESSICA_PAGOS = [
+  pago("2025-09-03", "AumentoCapital", 500, true),
+  pago("2025-09-27", "Capital", 500, true),
+  pago("2025-10-02", "Interes", 500, true),
+  pago("2025-10-02", "Interes", 100, true),
+  pago("2025-11-03", "Interes", 500, true),
+  pago("2025-12-03", "Interes", 500, false),
+  pago("2025-12-03", "AumentoCapital", 500, true),
+  pago("2026-01-03", "Interes", 600, true),
+  pago("2026-02-03", "Interes", 600, false),
+  pago("2026-02-03", "AumentoCapital", 600, true),
+  pago("2026-03-03", "Interes", 610, true),
+  pago("2026-04-03", "Interes", 110, true),
+  pago("2026-04-03", "Interes", 720, true),
+  pago("2026-05-03", "Interes", 720, false),
+  pago("2026-05-03", "AumentoCapital", 720, true),
+  pago("2026-06-03", "Interes", 864, false),
+  pago("2026-06-03", "AumentoCapital", 864, true),
+  pago("2026-07-03", "Interes", 1036.8, false),
+  pago("2026-07-03", "AumentoCapital", 1036.8, true),
+  pago("2026-08-03", "Interes", 1244.16, false),
+  pago("2026-08-03", "AumentoCapital", 1244.16, true),
+  pago("2026-09-03", "Interes", 1492.99, false),
+];
+
+const SILVIA_PAGOS = [
+  pago("2025-09-05", "Capital", 400, true),
+  pago("2025-09-05", "Interes", 140, true),
+  pago("2025-09-14", "AumentoCapital", 200, true),
+  pago("2025-09-22", "AumentoCapital", 200, true),
+  pago("2025-11-01", "Interes", 70, true),
+  pago("2025-11-01", "AumentoCapital", 100, true),
+  pago("2025-12-01", "Interes", 160, true),
+  pago("2026-01-01", "Interes", 160, true),
+  pago("2026-01-02", "AumentoCapital", 200, true),
+  pago("2026-02-01", "Interes", 200, true),
+  pago("2026-03-01", "Interes", 200, false),
+  pago("2026-03-01", "AumentoCapital", 200, true),
+  pago("2026-04-01", "Interes", 240, true),
+  pago("2026-05-01", "Interes", 240, true),
+  pago("2026-06-01", "Interes", 240, true),
+  pago("2026-07-01", "Interes", 240, true),
+  pago("2026-08-01", "Interes", 240, false),
+];
+
+export function pendingHistorial() {
+  return !state.prestamos.some((p) => p.persona === "Jessica" || p.persona === "Silvia");
+}
+
+export async function importarJessicaYSilvia() {
+  const results = [];
+
+  if (!state.prestamos.some((p) => p.persona === "Jessica")) {
+    const jessica = await addPrestamo({
+      persona: "Jessica",
+      capital_inicial: 2500,
+      interes_porcentaje: 20,
+      fecha_inicio: "2025-08-03",
+      estado: "Activo",
+      notas:
+        "El interés no pagado se capitaliza (se suma al capital) cada mes. " +
+        "Pago mensual el día 3. Capital y cuota suben cuando no paga a tiempo.",
+    });
+    for (const p of JESSICA_PAGOS) {
+      await addPagoPrestamo({ prestamo_id: jessica.id, ...p });
+    }
+    results.push(`Jessica: préstamo creado con ${JESSICA_PAGOS.length} movimientos.`);
+  }
+
+  if (!state.prestamos.some((p) => p.persona === "Silvia")) {
+    const silvia = await addPrestamo({
+      persona: "Silvia",
+      capital_inicial: 700,
+      interes_porcentaje: 20,
+      fecha_inicio: "2025-08-04",
+      estado: "Activo",
+      notas:
+        "Incluye 3 préstamos adicionales (14/09/2025, 22/09/2025 y 02/01/2026) sumados al mismo capital. " +
+        "El interés no pagado se capitaliza. Pago mensual el día 1.",
+    });
+    for (const p of SILVIA_PAGOS) {
+      await addPagoPrestamo({ prestamo_id: silvia.id, ...p });
+    }
+    results.push(`Silvia: préstamo creado con ${SILVIA_PAGOS.length} movimientos.`);
   }
 
   return results;
