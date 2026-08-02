@@ -113,8 +113,10 @@ document.getElementById("mobile-logout-btn")?.addEventListener("click", () => {
 // es un scroll vertical normal y lo dejamos pasar).
 const SWIPE_MIN_DISTANCE = 60;
 const SWIPE_MAX_OFF_AXIS = 60;
+const SWIPE_LOCK_THRESHOLD = 10;
 let touchStartX = null;
 let touchStartY = null;
+let swipeIsHorizontal = null;
 
 document.addEventListener(
   "touchstart",
@@ -122,8 +124,30 @@ document.addEventListener(
     if (window.innerWidth > 860) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
+    swipeIsHorizontal = null;
   },
   { passive: true }
+);
+
+// Sin esto, el propio Safari intenta hacer scroll/rebote vertical de la
+// página de fondo a la vez que arrastras el dedo para abrir el menú
+// (cualquier swipe real tiene algo de componente vertical). En cuanto
+// detectamos que el gesto es sobre todo horizontal, bloqueamos ese scroll
+// con preventDefault; si es sobre todo vertical, no tocamos nada y el
+// scroll normal de la página sigue funcionando igual que siempre.
+document.addEventListener(
+  "touchmove",
+  (e) => {
+    if (touchStartX === null) return;
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+    if (swipeIsHorizontal === null && (Math.abs(deltaX) > SWIPE_LOCK_THRESHOLD || Math.abs(deltaY) > SWIPE_LOCK_THRESHOLD)) {
+      swipeIsHorizontal = Math.abs(deltaX) > Math.abs(deltaY);
+    }
+    if (swipeIsHorizontal) e.preventDefault();
+  },
+  { passive: false }
 );
 
 document.addEventListener(
@@ -135,6 +159,7 @@ document.addEventListener(
     const deltaY = Math.abs(touch.clientY - touchStartY);
     touchStartX = null;
     touchStartY = null;
+    swipeIsHorizontal = null;
     if (deltaY > SWIPE_MAX_OFF_AXIS) return;
     if (deltaX >= SWIPE_MIN_DISTANCE) openMobileNav();
     else if (deltaX <= -SWIPE_MIN_DISTANCE) closeMobileNav();
