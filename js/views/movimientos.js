@@ -42,7 +42,7 @@ export function renderMovimientos(state) {
         return `
       <div class="data-row">
         <span>${formatFecha(fromTimestamp(m.fecha))}</span>
-        <span class="data-row__cat"><span class="mini-row__icon">${icon(iconForCategoriaTipo(cat?.tipo), { size: 14 })}</span>${m.nota ? m.nota + " · " : ""}${cat?.nombre || "—"}</span>
+        <span class="data-row__cat"><span class="mini-row__icon">${icon(iconForCategoriaTipo(cat?.tipo), { size: 14 })}</span>${m.subcategoria ? "<strong>" + m.subcategoria + "</strong> · " : ""}${cat?.nombre || "—"}${m.nota ? " · " + m.nota : ""}</span>
         <span>${cuentaMap.get(m.cuenta_id) || "—"}</span>
         <span class="data-row__amount--${m.tipo}">${m.tipo === "Ingreso" ? "+" : "−"} ${formatEUR(Math.abs(Number(m.importe)))}</span>
         <span class="data-row__actions">
@@ -94,6 +94,10 @@ function openForm(movimiento, state) {
         <span class="field__label">Fecha</span>
         <input type="date" name="fecha" value="${fechaValue}" required />
       </label>
+      <label class="field">
+        <span class="field__label">Subcategoría (opcional)</span>
+        <input type="text" name="subcategoria" value="${movimiento?.subcategoria ?? ""}" placeholder="Five Guys, Zara…" />
+      </label>
       <label class="field field--full">
         <span class="field__label">Nota (opcional)</span>
         <input type="text" name="nota" value="${movimiento?.nota ?? ""}" placeholder="Mercadona, Glovo, nómina…" />
@@ -117,6 +121,7 @@ function openForm(movimiento, state) {
             categoria_id: f.categoria_id.value,
             cuenta_id: f.cuenta_id.value,
             fecha: toTimestamp(f.fecha.value),
+            subcategoria: f.subcategoria.value.trim(),
             nota: f.nota.value.trim(),
           };
           try {

@@ -118,6 +118,26 @@ export function gastosPorCategoriaDelMes(movimientos, categorias, fecha = new Da
   }));
 }
 
+export function gastosPorSubcategoriaDelMes(movimientos, fecha = new Date(), limit = 6) {
+  const mes = fecha.getMonth();
+  const anio = fecha.getFullYear();
+  const totales = new Map();
+  movimientos
+    .filter((m) => m.tipo === "Gasto" && m.subcategoria)
+    .filter((m) => {
+      const d = fromTimestamp(m.fecha);
+      return d && d.getMonth() === mes && d.getFullYear() === anio;
+    })
+    .forEach((m) => {
+      const actual = totales.get(m.subcategoria) || 0;
+      totales.set(m.subcategoria, actual + Number(m.importe ?? 0));
+    });
+  return [...totales.entries()]
+    .map(([subcategoria, total]) => ({ subcategoria, total }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, limit);
+}
+
 export function formatEUR(value) {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
