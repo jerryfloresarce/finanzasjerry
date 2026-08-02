@@ -20,11 +20,27 @@ const ANA_FECHAS = [
   "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-29",
 ];
 
+// Una vez pulsas el botón de un banner de un solo uso, se marca aquí para
+// que no vuelva a aparecer — sin depender de que la comprobación sobre los
+// datos siga dando "pendiente" (que puede fallar si algo se editó a mano).
+function isDismissed(key) {
+  return localStorage.getItem(`finanzas-jerry:dismissed:${key}`) === "1";
+}
+
+function dismiss(key) {
+  localStorage.setItem(`finanzas-jerry:dismissed:${key}`, "1");
+}
+
 export function pendingCorrections() {
+  if (isDismissed("august-corrections")) return false;
   const ana = state.prestamos.find((p) => p.persona === "(pendiente — dime el nombre)");
   const liz = state.prestamos.find((p) => p.persona === "Liz colombiana" && Number(p.capital_inicial) === 600);
   const pasanaco = state.suscripciones.find((s) => s.nombre === "Pasanaco" && Number(s.precio) === 400);
   return Boolean(ana || liz || pasanaco);
+}
+
+export function dismissCorrections() {
+  dismiss("august-corrections");
 }
 
 export async function applyAugustCorrections() {
@@ -133,7 +149,12 @@ const SILVIA_PAGOS = [
 ];
 
 export function pendingHistorial() {
+  if (isDismissed("jessica-silvia-historial")) return false;
   return !state.prestamos.some((p) => p.persona === "Jessica" || p.persona === "Silvia");
+}
+
+export function dismissHistorial() {
+  dismiss("jessica-silvia-historial");
 }
 
 export async function importarJessicaYSilvia() {

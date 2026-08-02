@@ -138,6 +138,85 @@ export function gastosPorSubcategoriaDelMes(movimientos, fecha = new Date(), lim
     .slice(0, limit);
 }
 
+// ---------- Gráficos: helpers de rango libre (mes / año / todo) ----------
+
+export function movimientosEnRango(movimientos, rango, fecha = new Date()) {
+  if (rango === "todo") return movimientos;
+  return movimientos.filter((m) => {
+    const d = fromTimestamp(m.fecha);
+    if (!d) return false;
+    if (rango === "mes") return d.getMonth() === fecha.getMonth() && d.getFullYear() === fecha.getFullYear();
+    if (rango === "anio") return d.getFullYear() === fecha.getFullYear();
+    return true;
+  });
+}
+
+export function totalPorTipo(movimientos, tipo) {
+  return movimientos.filter((m) => m.tipo === tipo).reduce((acc, m) => acc + Number(m.importe ?? 0), 0);
+}
+
+export function desglosePorCategoria(movimientos, categorias, tipo) {
+  const totales = new Map();
+  movimientos
+    .filter((m) => m.tipo === tipo)
+    .forEach((m) => totales.set(m.categoria_id, (totales.get(m.categoria_id) || 0) + Number(m.importe ?? 0)));
+  return categorias
+    .map((c) => ({ categoria: c, total: totales.get(c.id) || 0 }))
+    .filter((d) => d.total > 0)
+    .sort((a, b) => b.total - a.total);
+}
+
+export function desglosePorSubcategoria(movimientos, tipo, filtroTexto = "") {
+  const texto = filtroTexto.trim().toLowerCase();
+  const totales = new Map();
+  movimientos
+    .filter((m) => m.tipo === tipo && m.subcategoria)
+    .filter((m) => !texto || m.subcategoria.toLowerCase().includes(texto))
+    .forEach((m) => totales.set(m.subcategoria, (totales.get(m.subcategoria) || 0) + Number(m.importe ?? 0)));
+  return [...totales.entries()]
+    .map(([subcategoria, total]) => ({ subcategoria, total }))
+    .sort((a, b) => b.total - a.total);
+}
+
+export function interesGeneradoPorPrestamo(prestamos, pagosPrestamos) {
+  return prestamos
+    .map((prestamo) => {
+      const interes = pagosPrestamos
+        .filter((pg) => pg.prestamo_id === prestamo.id && pg.pagado)
+        .reduce((acc, pg) => {
+          if (pg.tipo === "Interes") return acc + Number(pg.importe ?? 0);
+          if (pg.tipo === "Ambos") return acc + Number(pg.importe_interes ?? 0);
+          return acc;
+        }, 0);
+      return { prestamo, interes };
+    })
+    .filter((x) => x.interes > 0)
+    .sort((a, b) => b.interes - a.interes);
+}
+
+export function evolucionMensual(movimientos, meses = 12, fecha = new Date()) {
+  const buckets = [];
+  for (let i = meses - 1; i >= 0; i--) {
+    const d = new Date(fecha.getFullYear(), fecha.getMonth() - i, 1);
+    buckets.push({
+      year: d.getFullYear(),
+      month: d.getMonth(),
+      label: new Intl.DateTimeFormat("es-ES", { month: "short" }).format(d),
+      ingresos: 0,
+      gastos: 0,
+    });
+  }
+  movimientos.forEach((m) => {
+    const d = fromTimestamp(m.fecha);
+    if (!d) return;
+    const bucket = buckets.find((b) => b.year === d.getFullYear() && b.month === d.getMonth());
+    if (!bucket) return;
+    if (m.tipo === "Ingreso") bucket.ingresos += Number(m.importe ?? 0);
+    else bucket.gastos += Number(m.importe ?? 0);
+  });
+  return buckets;
+}
+
 export function formatEUR(value) {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",

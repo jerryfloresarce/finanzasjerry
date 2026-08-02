@@ -9,7 +9,14 @@ import {
 } from "../db.js";
 import { initDashboardAnimations, countUpTo, animateProgressBars } from "../animations.js";
 import { seedInitialData } from "../seed.js";
-import { pendingCorrections, applyAugustCorrections, pendingHistorial, importarJessicaYSilvia } from "../fixes.js";
+import {
+  pendingCorrections,
+  applyAugustCorrections,
+  dismissCorrections,
+  pendingHistorial,
+  importarJessicaYSilvia,
+  dismissHistorial,
+} from "../fixes.js";
 import { icon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js";
 
 let chartInstance = null;
@@ -32,8 +39,10 @@ export function mountDashboard() {
     fixBtn.disabled = true;
     fixBtn.textContent = "Aplicando…";
     try {
-      const results = await applyAugustCorrections();
-      fixBtn.textContent = results.length ? "Hecho ✓" : "No había nada pendiente";
+      await applyAugustCorrections();
+      dismissCorrections();
+      fixBtn.textContent = "Hecho ✓";
+      document.getElementById("fix-banner")?.classList.add("is-hidden");
     } catch (err) {
       fixBtn.textContent = "Error, inténtalo de nuevo";
       fixBtn.disabled = false;
@@ -45,8 +54,10 @@ export function mountDashboard() {
     historialBtn.disabled = true;
     historialBtn.textContent = "Importando…";
     try {
-      const results = await importarJessicaYSilvia();
-      historialBtn.textContent = results.length ? "Hecho ✓" : "No había nada pendiente";
+      await importarJessicaYSilvia();
+      dismissHistorial();
+      historialBtn.textContent = "Hecho ✓";
+      document.getElementById("historial-banner")?.classList.add("is-hidden");
     } catch (err) {
       historialBtn.textContent = "Error, inténtalo de nuevo";
       historialBtn.disabled = false;

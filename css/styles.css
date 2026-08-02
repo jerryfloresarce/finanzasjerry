@@ -412,6 +412,78 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   margin: 0;
 }
 
+/* ---------------- Segmented control (estilo iOS) ---------------- */
+
+.segmented {
+  display: inline-flex;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.segmented__btn {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 7px 18px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.25s var(--ease-lux), color 0.25s var(--ease-lux);
+}
+.segmented__btn:hover { color: var(--text-primary); }
+.segmented__btn.is-active {
+  background: var(--accent-dim);
+  color: #eef3ee;
+}
+
+/* ---------------- KPI tiles ---------------- */
+
+.grid--kpis { grid-template-columns: repeat(4, 1fr); margin-bottom: 20px; }
+
+.kpi-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow-card);
+}
+
+.kpi-tile__label {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kpi-tile__value {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--text-primary);
+}
+.kpi-tile__value--pos { color: var(--success); }
+
+/* ---------------- Gráficos: donuts lado a lado ---------------- */
+
+.grid--graficos-donuts { grid-template-columns: 1fr 1fr; margin-bottom: 20px; }
+
+.filtro-input {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+}
+.filtro-input:focus { outline: none; border-color: var(--accent-dim); }
+
 /* =========================================================
    HERO / PARALLAX
    ========================================================= */
@@ -890,6 +962,8 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
     -webkit-mask-image: none;
   }
   .chart-wrap { min-height: 200px; }
+  .grid--kpis { grid-template-columns: repeat(2, 1fr); }
+  .grid--graficos-donuts { grid-template-columns: 1fr; }
   .hero { height: auto; }
   .hero__content { padding: 18px 20px; flex-wrap: wrap; }
   .hero__greeting { font-size: 0.92rem; }
