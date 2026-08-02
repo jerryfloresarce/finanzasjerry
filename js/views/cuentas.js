@@ -1,4 +1,4 @@
-import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR } from "../db.js";
+import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha } from "../db.js";
 import { openModal, closeModal, todayISO } from "../modal.js";
 import { icon, iconForCuentaTipo } from "../icons.js";
 
@@ -30,7 +30,7 @@ export function renderCuentas(state) {
             <span class="entity-card__tag ${c.activa === false ? "entity-card__tag--pagado" : "entity-card__tag--activo"}">${c.activa === false ? "Inactiva" : c.tipo}</span>
           </div>
           <p class="entity-card__amount">${formatEUR(saldo)}</p>
-          <p class="entity-card__meta">Saldo inicial ${formatEUR(c.saldo_inicial)} · desde ${c.fecha_inicio || "—"}</p>
+          <p class="entity-card__meta">Saldo inicial ${formatEUR(c.saldo_inicial)} · desde ${c.fecha_inicio ? formatFecha(new Date(c.fecha_inicio)) : "—"}</p>
           <div class="entity-card__actions">
             <button class="btn btn--ghost btn--sm" data-edit="${c.id}">Editar</button>
             <button class="btn btn--danger btn--sm" data-delete="${c.id}">Eliminar</button>

@@ -53,7 +53,7 @@ export function renderPrestamos(state) {
             <span class="entity-card__tag ${tagClass}">${p.estado}</span>
           </div>
           <p class="entity-card__amount">${formatEUR(restante)} <span style="font-size:0.9rem;color:var(--text-muted);font-family:var(--font-body)">pendiente de capital</span></p>
-          <p class="entity-card__meta">Prestado ${formatEUR(p.capital_inicial)} el ${p.fecha_inicio || "—"} · ${p.interes_porcentaje}% interés (${formatEUR(totalInteres)})</p>
+          <p class="entity-card__meta">Prestado ${formatEUR(p.capital_inicial)} el ${p.fecha_inicio ? formatFecha(new Date(p.fecha_inicio)) : "—"} · ${p.interes_porcentaje}% interés (${formatEUR(totalInteres)})</p>
           ${p.notas ? `<p class="entity-card__meta">${p.notas}</p>` : ""}
 
           <div class="mini-list" style="margin-top:12px;">

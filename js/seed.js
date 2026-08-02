@@ -33,7 +33,7 @@ const SUSCRIPCIONES = [
   ["Luz", 105.62, "Suministros y facturas"],
   ["Digi", 20, "Suministros y facturas"],
   ["Aquaservice", 36.03, "Suministros y facturas"],
-  ["Pasanaco", 400, "Pasanaco"],
+  ["Pasanaco", 600, "Pasanaco"],
   ["Gimnasio (Jerry, Gaby y Dennys)", 150, "Gimnasio"],
   ["Préstamo Bankinter", 309.26, "Préstamo Bankinter"],
   ["Glovo Prime", 8, "Suscripciones digitales"],
@@ -67,18 +67,18 @@ export async function seedInitialData() {
   }
 
   // Préstamo 1 a Liz colombiana: 600€ capital + 100€ interés,
-  // devuelto en 2 pagos de 350€ (06/07 y 06/08/2026).
+  // devuelto en 2 pagos de 350€ (06/08 y 06/09/2026).
   const liz1 = await addPrestamo({
     persona: "Liz colombiana",
     capital_inicial: 600,
     interes_porcentaje: Number(((100 / 600) * 100).toFixed(2)),
     fecha_inicio: "2026-07-06",
     estado: "Activo",
-    notas: "Pago 1: 350€ el 06/07/2026. Pago 2: 350€ el 06/08/2026. Marca cada uno como pagado cuando lo cobres.",
+    notas: "Pago 1: 350€ el 06/08/2026. Pago 2: 350€ el 06/09/2026. Marca cada uno como pagado cuando lo cobres.",
   });
   await addPagoPrestamo({
     prestamo_id: liz1.id,
-    fecha: toTimestamp("2026-07-06"),
+    fecha: toTimestamp("2026-08-06"),
     tipo: "Ambos",
     importe: 350,
     importe_capital: 300,
@@ -87,7 +87,7 @@ export async function seedInitialData() {
   });
   await addPagoPrestamo({
     prestamo_id: liz1.id,
-    fecha: toTimestamp("2026-08-06"),
+    fecha: toTimestamp("2026-09-06"),
     tipo: "Ambos",
     importe: 350,
     importe_capital: 300,
@@ -133,18 +133,35 @@ export async function seedInitialData() {
     pagado: true,
   });
 
-  // Préstamo sin nombre de persona todavía — necesito que me digas quién es
-  // y cuánto paga cada día para completar el calendario de cobros.
-  await addPrestamo({
-    persona: "(pendiente — dime el nombre)",
+  // Ana (mamá): ciclo de 20 días, 30€/día excepto domingos (500€ capital + 100€ interés).
+  // Se renueva con un préstamo nuevo igual al terminar cada ciclo.
+  const ana = await addPrestamo({
+    persona: "Ana (mamá)",
     capital_inicial: 500,
-    interes_porcentaje: 0,
+    interes_porcentaje: 20,
     fecha_inicio: "2026-07-29",
     estado: "Activo",
     notas:
-      "Calendario de cobro diario del 07/08/2026 al 29/08/2026 (sin cobro los domingos: 09/08, 16/08, 23/08). " +
-      "Falta el nombre de la persona y el importe de cada cuota diaria — dímelos y te los registro como pagos.",
+      "Ciclo de 20 días: devuelve 30€/día (excepto domingos). Al terminar este ciclo se renueva " +
+      "con un préstamo nuevo igual, empezando al día siguiente — cuando lo acabe, crea el siguiente ciclo a mano.",
   });
+  const ANA_FECHAS = [
+    "2026-08-07", "2026-08-08", "2026-08-10", "2026-08-11", "2026-08-12",
+    "2026-08-13", "2026-08-14", "2026-08-15", "2026-08-17", "2026-08-18",
+    "2026-08-19", "2026-08-20", "2026-08-21", "2026-08-22", "2026-08-24",
+    "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-29",
+  ];
+  for (const f of ANA_FECHAS) {
+    await addPagoPrestamo({
+      prestamo_id: ana.id,
+      fecha: toTimestamp(f),
+      tipo: "Ambos",
+      importe: 30,
+      importe_capital: 25,
+      importe_interes: 5,
+      pagado: false,
+    });
+  }
 
   return {
     cuentas: CUENTAS.length,
