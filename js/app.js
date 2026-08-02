@@ -86,7 +86,10 @@ function openMobileNav() {
   clearTimeout(closeNavTimeout);
   mobileNav.classList.remove("is-hidden");
   mobileNavScrim.classList.remove("is-hidden");
-  requestAnimationFrame(() => mobileNav.classList.add("is-open"));
+  requestAnimationFrame(() => {
+    mobileNav.classList.add("is-open");
+    mobileNavScrim.classList.add("is-open");
+  });
 }
 
 // navigate() llama a esto en cada cambio de ruta, incluso cuando el menú no
@@ -96,6 +99,7 @@ function openMobileNav() {
 function closeMobileNav() {
   if (!mobileNav.classList.contains("is-open")) return;
   mobileNav.classList.remove("is-open");
+  mobileNavScrim.classList.remove("is-open");
   closeNavTimeout = setTimeout(() => {
     mobileNav.classList.add("is-hidden");
     mobileNavScrim.classList.add("is-hidden");
