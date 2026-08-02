@@ -9,7 +9,7 @@ import { mountCategorias, renderCategorias } from "./views/categorias.js";
 import { mountPrestamos, renderPrestamos } from "./views/prestamos.js";
 import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js";
 import { mountGraficos, renderGraficos } from "./views/graficos.js";
-import { mountCuenta, renderCuenta } from "./views/cuenta.js";
+import { mountCuentaPanel } from "./views/cuenta.js";
 import { refreshAnimations } from "./animations.js";
 
 const ROUTES = {
@@ -20,7 +20,6 @@ const ROUTES = {
   categorias: renderCategorias,
   prestamos: renderPrestamos,
   suscripciones: renderSuscripciones,
-  cuenta: renderCuenta,
 };
 
 const DEFAULT_ROUTE = "dashboard";
@@ -160,7 +159,7 @@ onAuthReady(() => {
     mountCategorias();
     mountPrestamos();
     mountSuscripciones();
-    mountCuenta();
+    mountCuentaPanel();
   }
 
   if (!window.location.hash) history.replaceState(null, "", "#/dashboard");

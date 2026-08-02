@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=4" />
+<link rel="stylesheet" href="css/styles.css?v=5" />
 <link rel="icon" href="data:,">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
@@ -70,17 +70,18 @@
       <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Suscripciones
       </a>
-      <a href="#/cuenta" class="nav__link" data-route="cuenta">
-        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-user-circle"></i></span> Mi cuenta
-      </a>
     </nav>
     <button id="logout-btn" class="btn btn--ghost btn--block sidebar__logout">Cerrar sesión</button>
   </aside>
 
+  <button id="btn-account-desktop" type="button" class="icon-btn account-fixed-btn" aria-label="Mi cuenta">
+    <i class="ph-thin ph-user-circle" aria-hidden="true"></i>
+  </button>
+
   <header class="topbar">
     <button id="topbar-menu-btn" class="icon-btn" aria-label="Abrir menú"><i class="ph-thin ph-list" aria-hidden="true"></i></button>
     <p class="brand-mark brand-mark--topbar"><i class="ph-thin ph-leaf brand-mark__icon" aria-hidden="true"></i>Finanzas <span>Jerry</span></p>
-    <a href="#/cuenta" class="icon-btn" data-route="cuenta" aria-label="Mi cuenta"><i class="ph-thin ph-user-circle" aria-hidden="true"></i></a>
+    <button id="btn-open-cuenta-topbar" type="button" class="icon-btn" aria-label="Mi cuenta"><i class="ph-thin ph-user-circle" aria-hidden="true"></i></button>
   </header>
 
   <div id="mobile-nav-scrim" class="mobile-nav-scrim is-hidden"></div>
@@ -105,9 +106,6 @@
     </a>
     <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Suscripciones
-    </a>
-    <a href="#/cuenta" class="nav__link" data-route="cuenta">
-      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-user-circle"></i></span> Mi cuenta
     </a>
     <button id="mobile-logout-btn" class="btn btn--ghost btn--block" style="margin-top: 12px;">Cerrar sesión</button>
   </nav>
@@ -329,36 +327,33 @@
       </div>
     </section>
 
-    <!-- ---------- MI CUENTA ---------- -->
-    <section class="view is-hidden" data-view="cuenta" id="view-cuenta">
-      <div class="view-header">
-        <h1 class="view-title">Mi cuenta</h1>
-      </div>
-
-      <article class="card" style="margin-bottom: 20px; max-width: 480px;">
-        <h2 class="card__title">Sesión</h2>
-        <div class="cuenta-row">
-          <span class="icon-badge"><i class="ph-thin ph-user-circle" style="font-size:18px" aria-hidden="true"></i></span>
-          <div>
-            <p class="entity-card__name" id="cuenta-email" style="margin:0;">—</p>
-            <p class="entity-card__meta">Sesión iniciada con Firebase Auth</p>
-          </div>
-        </div>
-        <div class="entity-card__actions" style="margin-top: 18px;">
-          <button class="btn btn--ghost btn--sm" id="btn-reset-password">Cambiar contraseña</button>
-          <button class="btn btn--danger btn--sm" id="btn-cuenta-logout">Cerrar sesión</button>
-        </div>
-        <p class="field-error" id="cuenta-reset-msg" style="color: var(--success); margin-top: 10px;"></p>
-      </article>
-
-      <article class="card" style="max-width: 480px;">
-        <h2 class="card__title">Sobre la app</h2>
-        <p class="entity-card__meta">Finanzas Jerry — control personal de cuentas, gastos, préstamos y suscripciones.</p>
-        <p class="entity-card__meta" style="margin-top: 8px;">Los datos se guardan en Firestore y solo son visibles con esta sesión iniciada.</p>
-      </article>
-    </section>
-
   </main>
+</div>
+
+<!-- ===================== MI CUENTA (panel) ===================== -->
+<div id="cuenta-panel-scrim" class="cuenta-panel-scrim is-hidden"></div>
+<div id="cuenta-panel" class="cuenta-panel" role="dialog" aria-label="Mi cuenta">
+  <div class="cuenta-panel__user">
+    <span class="icon-badge"><i class="ph-thin ph-user-circle" style="font-size:18px" aria-hidden="true"></i></span>
+    <div>
+      <p class="entity-card__name" id="cuenta-panel-email" style="margin:0;">—</p>
+      <p class="entity-card__meta">Sesión iniciada con Firebase Auth</p>
+    </div>
+  </div>
+  <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-reset-password">Cambiar contraseña</button>
+  <p class="field-error" id="cuenta-reset-msg"></p>
+
+  <div class="cuenta-panel__divider"></div>
+
+  <h3 class="cuenta-panel__subtitle">Configuración</h3>
+  <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-exportar-datos">Exportar mis datos</button>
+  <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-importar-datos">Importar desde una copia</button>
+  <input type="file" id="input-importar-datos" accept="application/json" class="is-hidden" />
+  <p class="field-error" id="cuenta-import-msg"></p>
+
+  <div class="cuenta-panel__divider"></div>
+
+  <button type="button" class="btn btn--danger btn--sm btn--block" id="btn-cuenta-logout">Cerrar sesión</button>
 </div>
 
 <!-- ===================== MODAL (formularios) ===================== -->
@@ -371,6 +366,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=4"></script>
+<script type="module" src="js/app.js?v=5"></script>
 </body>
 </html>

@@ -359,6 +359,68 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 }
 .icon-btn:hover { border-color: var(--border-strong); color: var(--accent); }
 
+.account-fixed-btn {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  z-index: 25;
+}
+@media (max-width: 860px) {
+  .account-fixed-btn { display: none; }
+}
+
+/* =========================================================
+   MI CUENTA (panel desplegable, no una página)
+   ========================================================= */
+
+.cuenta-panel-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: transparent;
+}
+
+.cuenta-panel {
+  position: fixed;
+  top: 68px;
+  right: 16px;
+  width: min(88vw, 320px);
+  max-height: calc(100vh - 84px);
+  overflow-y: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-modal);
+  padding: 20px;
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transform-origin: top right;
+  transform: scale(0.96) translateY(-6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.18s var(--ease-lux), opacity 0.18s var(--ease-lux);
+}
+.cuenta-panel.is-open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (min-width: 861px) {
+  .cuenta-panel { top: 68px; }
+}
+
+.cuenta-panel__user { display: flex; align-items: center; gap: 12px; }
+.cuenta-panel__divider { height: 1px; background: var(--border); margin: 4px 0; }
+.cuenta-panel__subtitle {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.95rem;
+  margin: 0;
+  color: var(--text-primary);
+}
+
 /* =========================================================
    APP SHELL
    ========================================================= */
@@ -828,7 +890,6 @@ canvas { max-width: 100%; }
 }
 
 .entity-card__heading { display: flex; align-items: center; gap: 12px; }
-.cuenta-row { display: flex; align-items: center; gap: 12px; }
 .entity-card__name { font-family: var(--font-display); font-size: 1.15rem; margin: 0; }
 .entity-card__tag {
   font-size: 0.7rem;
@@ -1031,7 +1092,12 @@ canvas { max-width: 100%; }
 .mobile-nav .nav__link { font-size: 1rem; padding: 13px 14px; }
 
 @media (max-width: 860px) {
-  .app-shell { grid-template-columns: 1fr; }
+  /* Sin esto, el grid reparte el alto sobrante de min-height:100vh entre
+     TODAS sus filas (topbar incluida) cuando el contenido de la vista es
+     corto — el topbar queda centrado dentro de una fila enorme, con un
+     hueco vacío encima. "auto" fija la fila del topbar a su alto real y
+     "1fr" manda todo el sobrante a la fila del contenido. */
+  .app-shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   .sidebar { display: none; }
   .topbar { display: flex; }
   .view-container { padding: 20px 16px 100px; }

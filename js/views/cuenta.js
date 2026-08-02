@@ -1,7 +1,40 @@
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 import { auth } from "../firebase-init.js";
+import { state } from "../store.js";
+import { exportarDatos, importarDatos } from "../backup.js";
 
-export function mountCuenta() {
+let panel = null;
+let scrim = null;
+
+function openPanel() {
+  const emailEl = document.getElementById("cuenta-panel-email");
+  if (emailEl) emailEl.textContent = auth.currentUser?.email || "—";
+  panel.classList.add("is-open");
+  scrim.classList.remove("is-hidden");
+}
+
+function closePanel() {
+  panel.classList.remove("is-open");
+  scrim.classList.add("is-hidden");
+}
+
+function toggle() {
+  if (panel.classList.contains("is-open")) closePanel();
+  else openPanel();
+}
+
+export function mountCuentaPanel() {
+  panel = document.getElementById("cuenta-panel");
+  scrim = document.getElementById("cuenta-panel-scrim");
+  if (!panel || !scrim) return;
+
+  document.getElementById("btn-open-cuenta-topbar")?.addEventListener("click", toggle);
+  document.getElementById("btn-account-desktop")?.addEventListener("click", toggle);
+  scrim.addEventListener("click", closePanel);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closePanel();
+  });
+
   document.getElementById("btn-cuenta-logout")?.addEventListener("click", () => signOut(auth));
 
   document.getElementById("btn-reset-password")?.addEventListener("click", async (e) => {
@@ -10,8 +43,10 @@ export function mountCuenta() {
     const email = auth.currentUser?.email;
     if (!email) return;
     btn.disabled = true;
+    msg.textContent = "";
     try {
       await sendPasswordResetEmail(auth, email);
+      msg.style.color = "var(--success)";
       msg.textContent = `Te hemos enviado un email a ${email} para cambiar la contraseña.`;
     } catch (err) {
       msg.style.color = "var(--danger)";
@@ -20,9 +55,31 @@ export function mountCuenta() {
       btn.disabled = false;
     }
   });
-}
 
-export function renderCuenta() {
-  const el = document.getElementById("cuenta-email");
-  if (el) el.textContent = auth.currentUser?.email || "—";
+  document.getElementById("btn-exportar-datos")?.addEventListener("click", () => {
+    exportarDatos(state);
+  });
+
+  const fileInput = document.getElementById("input-importar-datos");
+  document.getElementById("btn-importar-datos")?.addEventListener("click", () => fileInput?.click());
+  fileInput?.addEventListener("change", async () => {
+    const file = fileInput.files[0];
+    fileInput.value = "";
+    if (!file) return;
+    const msg = document.getElementById("cuenta-import-msg");
+    msg.style.color = "var(--text-secondary)";
+    if (!confirm("Esto añadirá todo lo que haya en el archivo a tus datos actuales (no borra nada existente). ¿Continuar?")) return;
+    msg.textContent = "Importando…";
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      await importarDatos(data);
+      msg.style.color = "var(--success)";
+      msg.textContent = "Datos importados correctamente.";
+    } catch (err) {
+      console.error("Error al importar datos:", err);
+      msg.style.color = "var(--danger)";
+      msg.textContent = "No se pudo importar el archivo. ¿Es una copia válida exportada desde aquí?";
+    }
+  });
 }
