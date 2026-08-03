@@ -60,7 +60,9 @@ Ninguno de estos datos es "secreto" en el sentido de dar acceso a nadie que no t
 
 ### 3.3 Los 3 pasos comunes a los 3 Atajos
 
-Cada uno de los 3 Atajos (Gasto, Ingreso, Transferencia) empieza igual: pregunta un importe, inicia sesión en Firebase, y saca el token. Solo cambian los pasos del medio (qué preguntas) y el cuerpo de la petición final. Monta cada Atajo por separado desde Atajos → **+**.
+Cada uno de los 3 Atajos (Gasto, Ingreso, Transferencia) empieza igual: pregunta un importe, inicia sesión en Firebase, y saca el token y la fecha. Solo cambian los pasos del medio (qué preguntas) y el cuerpo de la petición final. Monta cada Atajo por separado desde Atajos → **+** (o, más rápido: monta bien uno y duplícalo para los otros dos, cambiando solo lo que corresponda).
+
+> **Nota sobre las "variables mágicas" de Atajos**: en varios puntos de abajo se indica meter el resultado de una acción dentro de una acción **"Texto"** y luego "congelarlo" con **Definir variable**, en vez de usar el resultado directamente. No es capricho: en la práctica, leer el resultado de una acción bastante después de haberla generado (p. ej. el de un "Elegir de menú" tras su "Terminar menú", o el de "Formatear fecha") a veces coge un valor viejo o vacío en vez del real, aunque en el editor la burbuja parezca correcta. Pasarlo primero por un "Texto" y definir una variable con nombre propio justo ahí evita ese lío. Sigue el patrón exactamente como se describe, aunque parezca un paso de más.
 
 **A — Preguntar el importe**
 Añade **Preguntar por entrada** ("Ask for Input"), tipo **Número**, texto "¿Cuánto?". Nombra el resultado `Importe`.
@@ -77,76 +79,83 @@ Nombra el resultado `LoginResponse`.
 **C — Sacar el token**
 Añade **Obtener valor de diccionario**, clave `idToken`, diccionario = `LoginResponse`. Nombra el resultado `Token`.
 
-**D — Fecha de hoy**
-Añade **Fecha actual** y luego **Formatear fecha** con formato personalizado `yyyy-MM-dd'T'HH:mm:ss'Z'`. Nombra el resultado `FechaISO`.
+**D — Fecha de hoy, en el formato exacto que pide Firestore**
+1. Añade **Fecha actual**.
+2. Añade **Formatear fecha**. En "Formato de fecha" elige el desplegable y selecciona **ISO 8601** (no "Corto" ni "Personalizado"), y activa el interruptor **"Hora ISO 8601"**. Comprueba que el "Ejemplo" de abajo sale con pinta de `2026-08-03T15:30:00+02:00` (fecha + hora + desfase horario al final — sin esas tres partes, Firestore rechaza la fecha con un error de "Illegal timestamp format").
+3. Añade una acción **Texto** y mete dentro solo el resultado de "Formatear fecha" (nada más, ni antes ni después).
+4. Añade **Definir variable** → nómbrala `FechaISO` → "a" → el **Texto** del paso anterior (no el resultado de "Formatear fecha" directamente).
 
 A partir de aquí cada Atajo añade sus propias preguntas (categoría/cuenta, o cuenta origen/destino) y termina con la petición a Firestore. Sigue con 3.3.1, 3.3.2 o 3.3.3 según qué Atajo estés montando.
+
+### Cómo montar un menú de elección (categoría o cuenta) — el método que funciona
+
+Tanto para elegir categoría como cuenta (o cuenta origen/destino en la transferencia) se usa el mismo patrón, y es importante montarlo así y no con un "Diccionario" (probamos esa vía primero y falla de forma intermitente e inexplicable):
+
+1. Añade **Elegir de menú**, con una opción por cada categoría/cuenta que uses (el texto de cada opción es solo la etiqueta que ves, da igual cómo se llame).
+2. **Dentro de cada opción** (no después del menú): mantén pulsada la opción para poder pegar dentro, y mete dos acciones:
+   - **Texto**, con el ID real de esa categoría/cuenta (el que copiaste con el botón de copiar ID en la web).
+   - **Definir variable** → mismo nombre en todas las ramas (p. ej. `CategoriaID` o `CuentaID`) → "a" → el **Texto** de arriba.
+
+   Para no repetir esto a mano en cada rama: monta la primera rama entera, mantén pulsada esa "Definir variable" → Copiar, luego mantén pulsada la siguiente opción del menú → Pegar debajo, y solo cambia el texto del ID dentro de la copia.
+3. Fuera del menú (después de "Terminar menú") ya puedes usar `CategoriaID`/`CuentaID` con total confianza — al haberse definido dentro de cada rama con nombre propio, sí se lee bien después, a diferencia de leer el resultado del menú directamente.
 
 ### 3.3.1 Atajo "Registrar un gasto"
 
 Después del paso D:
 
-**E — Elegir categoría**: **Elegir de menú**, una opción por categoría de gasto que uses (Comida a domicilio, Ocio...). En cada opción, acción **Texto** con el ID de esa categoría (el que copiaste en 3.1). Resultado: `CategoriaID`.
+**E — Elegir categoría**: el menú de categorías de gasto (Comida a domicilio, Ocio...) siguiendo el método de arriba. Variable: `CategoriaID`.
 
-**F — Elegir cuenta**: igual, con tus cuentas. Resultado: `CuentaID`.
+**F — Elegir cuenta**: igual, con tus cuentas. Variable: `CuentaID`.
 
 **G — Subcategoría opcional**: **Preguntar por entrada** (Texto), "Permitir omitir" activado, texto "¿Subcategoría? (opcional)". Resultado: `Subcategoria`.
 
-**H — Escribir en Firestore**: **Obtener contenido de URL**:
-- URL: `https://firestore.googleapis.com/v1/projects/finanzas-jerry/databases/(default)/documents/movimientos`
-- Método `POST`, cabeceras `Authorization` = `Bearer ` + `Token`, `Content-Type` = `application/json`
-- Cuerpo JSON (arrastra cada variable desde el teclado de Atajos, no escribas el texto literal):
-  ```json
-  {
-    "fields": {
-      "importe": { "doubleValue": Importe },
-      "tipo": { "stringValue": "Gasto" },
-      "categoria_id": { "stringValue": "CategoriaID" },
-      "cuenta_id": { "stringValue": "CuentaID" },
-      "fecha": { "timestampValue": "FechaISO" },
-      "subcategoria": { "stringValue": "Subcategoria" },
-      "nota": { "stringValue": "" }
-    }
-  }
-  ```
+**H — Escribir en Firestore**: aquí tampoco sirve el editor de filas normal de "Cuerpo JSON" — Firestore necesita cada campo envuelto en `fields` y con su tipo (`stringValue`, `doubleValue`, `timestampValue`), y ese editor de Atajos solo hace pares clave-valor de un nivel. En su lugar:
+
+1. Añade una acción **Texto** y escribe esto letra por letra, insertando cada burbuja donde se indica (usa "Seleccionar variable" para encontrarlas, no escribas el nombre a mano):
+   ```
+   {"fields":{"importe":{"doubleValue":[Importe]},"tipo":{"stringValue":"Gasto"},"categoria_id":{"stringValue":"[CategoriaID]"},"cuenta_id":{"stringValue":"[CuentaID]"},"fecha":{"timestampValue":"[FechaISO]"},"subcategoria":{"stringValue":"[Subcategoria]"},"nota":{"stringValue":""}}}
+   ```
+   (cada `[Nombre]` es la burbuja de esa variable, no texto literal)
+2. Añade **Obtener contenido de URL**:
+   - URL: `https://firestore.googleapis.com/v1/projects/finanzas-jerry/databases/(default)/documents/movimientos`
+   - Método `POST`
+   - Cabeceras: `Authorization` = `Bearer ` + burbuja `Token`, `Content-Type` = `application/json`
+   - **Cuerpo de la solicitud**: cambia el tipo de "JSON" a **Archivo**, y en el campo que aparece mete la burbuja del **Texto** del paso 1.
 
 **I — Confirmación**: **Mostrar notificación**, "Gasto añadido ✓".
 
 ### 3.3.2 Atajo "Registrar un ingreso"
 
-Igual que el de gasto (pasos E-I), pero:
-- En el menú de categorías (paso E), usa tus categorías de ingreso (Nómina, Horas extra...).
-- En el cuerpo JSON (paso H), `"tipo": { "stringValue": "Ingreso" }`.
+Más rápido: duplica el Atajo de Gasto ya terminado y cambia solo:
+- Las opciones y ramas del menú de categoría (paso E) por tus categorías de ingreso (Nómina, Paga extra, Pasanaco, Préstamos...) — puedes reutilizar el mismo ID de una categoría que ya uses en Gasto (p. ej. Pasanaco o Préstamos), la categoría no es exclusiva de un tipo.
+- En el Texto del JSON (paso H), `"tipo":{"stringValue":"Gasto"}` → `"tipo":{"stringValue":"Ingreso"}`.
 - Notificación final: "Ingreso añadido ✓".
+
+Todo lo demás (login, fecha, menú de cuentas, subcategoría, URL/cabeceras de Firestore) se queda igual.
 
 ### 3.3.3 Atajo "Registrar una transferencia"
 
-Este no lleva categoría — es dinero moviéndose entre dos de tus propias cuentas (o un retiro a Efectivo, si tienes esa cuenta creada). Después del paso D:
+También más rápido duplicando uno de los otros dos. Este no lleva categoría — es dinero moviéndose entre dos de tus propias cuentas (o un retiro a Efectivo, si tienes esa cuenta creada).
 
-**E — Elegir cuenta de origen**: **Elegir de menú**, una opción por cada cuenta desde la que sueles mover dinero. En cada opción, **Texto** con su ID. Resultado: `CuentaOrigenID`.
-
-**F — Elegir cuenta de destino**: igual, con las cuentas a las que sueles mandar dinero (incluye "Efectivo" si la tienes, para los retiros). Resultado: `CuentaDestinoID`.
-
-**G — Escribir en Firestore**: **Obtener contenido de URL**, misma URL/método/cabeceras que arriba, cuerpo:
-  ```json
-  {
-    "fields": {
-      "importe": { "doubleValue": Importe },
-      "tipo": { "stringValue": "Transferencia" },
-      "cuenta_id": { "stringValue": "CuentaOrigenID" },
-      "cuenta_destino_id": { "stringValue": "CuentaDestinoID" },
-      "fecha": { "timestampValue": "FechaISO" },
-      "nota": { "stringValue": "" }
-    }
-  }
-  ```
-  (Sin `categoria_id` ni `subcategoria` — una transferencia no lleva categoría.)
-
-**H — Confirmación**: **Mostrar notificación**, "Transferencia registrada ✓".
+1. Borra el bloque de categoría entero (menú + ramas).
+2. Deja el menú de cuentas que ya tienes como "cuenta origen" (cambia el texto de la pregunta a "¿Cuenta origen?" si quieres, y usa `CuentaOrigenID` como nombre de variable en cada rama en vez de `CuentaID`).
+3. Duplica ese mismo bloque de menú completo para la "cuenta destino": pregunta "¿Cuenta destino?", mismas cuentas como opciones, mismo patrón Texto + Definir variable pero llamando a la variable `CuentaDestinoID` en cada rama (incluye "Efectivo" como opción, para los retiros).
+4. Borra la pregunta de subcategoría — una transferencia no lleva.
+5. Cambia el Texto del JSON a:
+   ```
+   {"fields":{"importe":{"doubleValue":[Importe]},"tipo":{"stringValue":"Transferencia"},"cuenta_id":{"stringValue":"[CuentaOrigenID]"},"cuenta_destino_id":{"stringValue":"[CuentaDestinoID]"},"fecha":{"timestampValue":"[FechaISO]"},"nota":{"stringValue":""}}}
+   ```
+   (Sin `categoria_id` ni `subcategoria`.)
+6. Notificación final: "Transferencia registrada ✓".
 
 ### 3.4 Probar
 
-Ejecuta cada Atajo una vez con un importe pequeño de prueba y comprueba que aparece en **Movimientos** en la web (puede tardar 1-2 segundos; una transferencia se ve como "Cuenta A → Cuenta B" sin +/-, y no cuenta en los totales de gasto/ingreso ni en los gráficos). Si algo falla, la petición a Firestore devuelve el error de Google en texto — añade temporalmente un "Mostrar resultado" después de esa acción para leerlo.
+Ejecuta cada Atajo tocándolo directamente desde la lista "Mis Atajos" (no desde el botón ▶ dentro del editor — a veces se comporta distinto) con un importe pequeño de prueba, y comprueba que aparece en **Movimientos** en la web (puede tardar 1-2 segundos; una transferencia se ve como "Cuenta A → Cuenta B" sin +/-, y no cuenta en los totales de gasto/ingreso ni en los gráficos).
+
+Si algo falla, la petición a Firestore devuelve el error de Google en texto — añade temporalmente un **"Mostrar"** después de esa acción, con la respuesta de la petición, para leerlo. Los errores más comunes y su causa:
+- `"Unknown name ... Cannot find field"` → al cuerpo de la petición le falta la capa `fields` (revisa el paso H, el Texto del JSON).
+- `"Illegal timestamp format"` → la fecha no tiene el formato ISO 8601 completo con desfase horario (revisa el paso D).
+- `"No se ha proporcionado ninguna clave"` en un "Obtener valor del diccionario" → normalmente indica que ese enfoque (Diccionario) no es fiable aquí; monta esa parte con el método de menú descrito más arriba en su lugar.
 
 ### 3.5 Añadirlos al Centro de Control (sin abrir Atajos)
 
