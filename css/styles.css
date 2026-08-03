@@ -566,7 +566,7 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 
 /* ---------------- KPI tiles ---------------- */
 
-.grid--kpis { grid-template-columns: repeat(4, 1fr); margin-bottom: 20px; }
+.grid--kpis { grid-template-columns: repeat(3, 1fr); margin-bottom: 20px; }
 
 .kpi-tile {
   background: var(--surface);
@@ -1176,14 +1176,14 @@ canvas { max-width: 100%; }
   .gd-center { order: -1; }
   .grid--dashboard .card { height: auto; max-height: none; }
   .grid--dashboard .card--chart { height: 280px; }
-  .dash-scroll {
+  .grid--dashboard .dash-scroll {
     overflow: visible;
     max-height: none;
     mask-image: none;
     -webkit-mask-image: none;
   }
   .chart-wrap { min-height: 200px; }
-  .grid--kpis { grid-template-columns: repeat(2, 1fr); }
+  .grid--kpis { grid-template-columns: repeat(1, 1fr); }
   .grid--graficos-donuts { grid-template-columns: 1fr; }
   .hero { height: auto; }
   .hero__content { padding: 18px 20px; flex-wrap: wrap; }

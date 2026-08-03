@@ -6,9 +6,11 @@ import {
   interesGeneradoPorPrestamo,
   evolucionMensual,
   formatEUR,
-} from "../db.js";
-import { countUpTo } from "../animations.js";
-import { initials, avatarColor } from "../icons.js";
+  formatFecha,
+  fromTimestamp,
+} from "../db.js?v=8";
+import { countUpTo } from "../animations.js?v=8";
+import { initials, avatarColor } from "../icons.js?v=8";
 
 const GASTO_COLORS = ["#b06a63", "#c48b83", "#9c6a63", "#8a5850", "#a37c74", "#7d5a53"];
 const INGRESO_COLORS = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#6b8778", "#9cae8f"];
@@ -43,7 +45,6 @@ export function renderGraficos(state) {
   const gastos = totalPorTipo(filtrados, "Gasto");
   countUpTo(document.getElementById("kpi-ingresos"), ingresos, formatEUR);
   countUpTo(document.getElementById("kpi-gastos"), gastos, formatEUR);
-  countUpTo(document.getElementById("kpi-balance"), ingresos - gastos, formatEUR);
 
   const datosIntereses = interesGeneradoPorPrestamo(prestamos, pagosPrestamos);
   const totalIntereses = datosIntereses.reduce((acc, x) => acc + x.interes, 0);
@@ -159,10 +160,47 @@ function renderDonut(canvasId, datos, colors) {
 
 function renderListaSubcategorias(movimientos) {
   const el = document.getElementById("lista-subcategorias");
-  const datos = desglosePorSubcategoria(movimientos, "Gasto", filtroTexto);
+
+  // Sin búsqueda: el resumen habitual, un total por sitio. Buscando algo
+  // (p. ej. "Five Guys"), en cambio, se listan todos los gastos que
+  // coinciden uno a uno (con su fecha) y se suman al final — así se ve
+  // el detalle, no solo el número agregado.
+  if (filtroTexto.trim()) {
+    const texto = filtroTexto.trim().toLowerCase();
+    const coincidencias = movimientos
+      .filter((m) => m.tipo === "Gasto" && m.subcategoria && m.subcategoria.toLowerCase().includes(texto))
+      .sort((a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0));
+
+    if (coincidencias.length === 0) {
+      el.innerHTML = `<p class="empty-state">Sin resultados.</p>`;
+      return;
+    }
+
+    const total = coincidencias.reduce((acc, m) => acc + Number(m.importe ?? 0), 0);
+    el.innerHTML =
+      coincidencias
+        .map(
+          (m) => `
+        <div class="mini-row">
+          <div class="mini-row__main">
+            <span class="mini-row__title">${m.subcategoria}</span>
+            <span class="mini-row__sub">${formatFecha(fromTimestamp(m.fecha))}</span>
+          </div>
+          <span class="mini-row__amount">${formatEUR(Number(m.importe))}</span>
+        </div>`
+        )
+        .join("") +
+      `<div class="mini-row" style="border-top: 1px solid var(--border-strong); margin-top: 6px; padding-top: 12px;">
+        <div class="mini-row__main"><span class="mini-row__title">Total (${coincidencias.length})</span></div>
+        <span class="mini-row__amount">${formatEUR(total)}</span>
+      </div>`;
+    return;
+  }
+
+  const datos = desglosePorSubcategoria(movimientos, "Gasto", "");
 
   if (datos.length === 0) {
-    el.innerHTML = `<p class="empty-state">${filtroTexto ? "Sin resultados." : "Añade una subcategoría a tus gastos para verlos aquí."}</p>`;
+    el.innerHTML = `<p class="empty-state">Añade una subcategoría a tus gastos para verlos aquí.</p>`;
     return;
   }
 

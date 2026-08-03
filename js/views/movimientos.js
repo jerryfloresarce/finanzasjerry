@@ -6,9 +6,9 @@ import {
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js";
+} from "../db.js?v=8";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=8";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=8";
 
 export function mountMovimientos() {
   document.getElementById("btn-add-movimiento").addEventListener("click", () => openForm(null, currentState));
@@ -41,7 +41,7 @@ export function renderMovimientos(state) {
         const cat = catMap.get(m.categoria_id);
         const esTransferencia = m.tipo === "Transferencia";
         const catCell = esTransferencia
-          ? `<span class="mini-row__icon">${icon("movimientos", { size: 14 })}</span>Transferencia${m.nota ? " · " + m.nota : ""}`
+          ? `<span class="mini-row__icon">${icon("movimientos", { size: 14 })}</span><strong>Transferencia</strong>${m.nota ? " · " + m.nota : ""}`
           : `<span class="mini-row__icon">${entityIcon(cat, iconForCategoriaTipo(cat?.tipo), { size: 14 })}</span>${m.subcategoria ? "<strong>" + m.subcategoria + "</strong> · " : ""}${cat?.nombre || "—"}${m.nota ? " · " + m.nota : ""}`;
         const cuentaCell = esTransferencia
           ? `${cuentaMap.get(m.cuenta_id) || "—"} → ${cuentaMap.get(m.cuenta_destino_id) || "—"}`

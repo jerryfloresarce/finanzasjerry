@@ -1,6 +1,6 @@
-import { addSuscripcion, updateSuscripcion, deleteSuscripcion, formatEUR, formatFecha } from "../db.js";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js";
-import { icon, iconForSuscripcion } from "../icons.js";
+import { addSuscripcion, updateSuscripcion, deleteSuscripcion, formatEUR, formatFecha } from "../db.js?v=8";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=8";
+import { icon, iconForSuscripcion } from "../icons.js?v=8";
 
 let currentState = null;
 

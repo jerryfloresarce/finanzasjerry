@@ -1,7 +1,7 @@
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js";
-import { state } from "../store.js";
-import { exportarDatos, importarDatos } from "../backup.js";
+import { auth } from "../firebase-init.js?v=8";
+import { state } from "../store.js?v=8";
+import { exportarDatos, importarDatos } from "../backup.js?v=8";
 
 let panel = null;
 let scrim = null;
