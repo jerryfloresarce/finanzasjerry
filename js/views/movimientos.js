@@ -6,9 +6,9 @@ import {
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js?v=10";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=10";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=10";
+} from "../db.js?v=11";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=11";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=11";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.

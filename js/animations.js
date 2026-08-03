@@ -6,11 +6,6 @@ let heroTriggers = [];
 let revealTriggers = [];
 let mouseParallaxBound = false;
 
-function killTriggers(list) {
-  list.forEach((t) => t.kill());
-  list.length = 0;
-}
-
 function initHeroMouseParallax() {
   if (mouseParallaxBound || typeof gsap === "undefined") return;
   mouseParallaxBound = true;
@@ -50,27 +45,32 @@ export function initDashboardAnimations() {
   if (typeof gsap === "undefined") return;
   gsap.registerPlugin(ScrollTrigger);
 
-  killTriggers(heroTriggers);
-  killTriggers(revealTriggers);
+  // Todo lo de aquí abajo (el parallax del scroll ligado a scrub, el fundido
+  // de entrada del hero, la aparición en cascada de las tarjetas) se monta
+  // UNA sola vez. Antes se recreaba en cada actualización de Firestore
+  // (matar y volver a crear el ScrollTrigger con scrub reinicia su
+  // transform de golpe), lo que se veía como un salto repetido cada vez
+  // que llegaba cualquier dato nuevo. Las siguientes veces no se toca nada.
+  if (!dashboardEnterPlayed) {
+    dashboardEnterPlayed = true;
 
-  const heroBg = document.getElementById("hero-bg");
-  const heroContent = document.querySelector("#hero-parallax .hero__content");
-  const hero = document.getElementById("hero-parallax");
+    const heroBg = document.getElementById("hero-bg");
+    const heroContent = document.querySelector("#hero-parallax .hero__content");
+    const hero = document.getElementById("hero-parallax");
 
-  if (hero && heroBg) {
-    const parallax = gsap.to(heroBg, {
-      yPercent: 14,
-      ease: "none",
-      scrollTrigger: {
-        trigger: hero,
-        start: "top top",
-        end: "bottom top",
-        scrub: true,
-      },
-    });
-    heroTriggers.push(parallax.scrollTrigger);
+    if (hero && heroBg) {
+      const parallax = gsap.to(heroBg, {
+        yPercent: 14,
+        ease: "none",
+        scrollTrigger: {
+          trigger: hero,
+          start: "top top",
+          end: "bottom top",
+          scrub: true,
+        },
+      });
+      heroTriggers.push(parallax.scrollTrigger);
 
-    if (!dashboardEnterPlayed) {
       gsap.fromTo(
         heroBg,
         { scale: 1.12, opacity: 0.6 },
@@ -83,39 +83,30 @@ export function initDashboardAnimations() {
           { y: 0, opacity: 1, duration: 1.1, ease: "power3.out", delay: 0.15 }
         );
       }
-    } else {
-      gsap.set(heroBg, { scale: 1.05, opacity: 1 });
-      if (heroContent) gsap.set(heroContent, { y: 0, opacity: 1 });
+
+      initHeroMouseParallax();
     }
 
-    initHeroMouseParallax();
+    document.querySelectorAll("#view-dashboard .reveal").forEach((el, i) => {
+      el.classList.remove("is-visible");
+      const trigger = ScrollTrigger.create({
+        trigger: el,
+        start: "top 88%",
+        once: true,
+        onEnter: () => {
+          gsap.to(el, {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            delay: (i % 3) * 0.06,
+            ease: "power3.out",
+          });
+        },
+      });
+      revealTriggers.push(trigger);
+    });
   }
 
-  document.querySelectorAll("#view-dashboard .reveal").forEach((el, i) => {
-    if (dashboardEnterPlayed) {
-      el.classList.add("is-visible");
-      gsap.set(el, { opacity: 1, y: 0 });
-      return;
-    }
-    el.classList.remove("is-visible");
-    const trigger = ScrollTrigger.create({
-      trigger: el,
-      start: "top 88%",
-      once: true,
-      onEnter: () => {
-        gsap.to(el, {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          delay: (i % 3) * 0.06,
-          ease: "power3.out",
-        });
-      },
-    });
-    revealTriggers.push(trigger);
-  });
-
-  dashboardEnterPlayed = true;
   ScrollTrigger.refresh();
 }
 

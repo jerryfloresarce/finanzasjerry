@@ -1,16 +1,16 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=10";
-import { state, subscribe, initStore } from "./store.js?v=10";
+import { onAuthReady } from "./auth.js?v=11";
+import { state, subscribe, initStore } from "./store.js?v=11";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=10";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=10";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=10";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=10";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=10";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=10";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=10";
-import { mountCuentaPanel } from "./views/cuenta.js?v=10";
-import { refreshAnimations } from "./animations.js?v=10";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=11";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=11";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=11";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=11";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=11";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=11";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=11";
+import { mountCuentaPanel } from "./views/cuenta.js?v=11";
+import { refreshAnimations } from "./animations.js?v=11";
 
 const ROUTES = {
   dashboard: renderDashboard,
@@ -30,7 +30,7 @@ function currentRouteFromHash() {
   return ROUTES[hash] ? hash : DEFAULT_ROUTE;
 }
 
-const MORE_ROUTES = ["categorias", "suscripciones"];
+const MORE_ROUTES = ["categorias", "graficos"];
 
 function setActiveNav(route) {
   document.querySelectorAll(".nav__link").forEach((link) => {
@@ -98,8 +98,18 @@ const topbarMenuBtn = document.getElementById("topbar-menu-btn");
 
 let closeNavTimeout = null;
 
+// El arrastre (más abajo) deja transform/opacity puestos como estilo en
+// línea mientras sigue al dedo; hay que limpiarlos antes de abrir/cerrar
+// por botón para que la transición de la clase no compita con un valor en
+// línea que se quedó de un gesto anterior.
+function clearDragStyles() {
+  mobileNav.style.transform = "";
+  mobileNavScrim.style.opacity = "";
+}
+
 function openMobileNav() {
   clearTimeout(closeNavTimeout);
+  clearDragStyles();
   mobileNav.classList.remove("is-hidden");
   mobileNavScrim.classList.remove("is-hidden");
   requestAnimationFrame(() => {
@@ -114,6 +124,7 @@ function openMobileNav() {
 // menú justo después de haberlo abierto).
 function closeMobileNav() {
   if (!mobileNav.classList.contains("is-open")) return;
+  clearDragStyles();
   mobileNav.classList.remove("is-open");
   mobileNavScrim.classList.remove("is-open");
   closeNavTimeout = setTimeout(() => {
@@ -128,15 +139,64 @@ document.getElementById("mobile-logout-btn")?.addEventListener("click", () => {
   document.getElementById("logout-btn")?.click();
 });
 
-// Gesto táctil: deslizar hacia la derecha abre el menú, hacia la izquierda
-// lo cierra. Solo cuenta si el movimiento es sobre todo horizontal (si no,
-// es un scroll vertical normal y lo dejamos pasar).
-const SWIPE_MIN_DISTANCE = 60;
-const SWIPE_MAX_OFF_AXIS = 60;
+// Gesto táctil: el menú sigue al dedo en tiempo real mientras arrastras
+// (como un cajón nativo), en vez de solo decidir abrir/cerrar de golpe al
+// soltar — así se siente suave y natural en vez de "saltar" al final.
+// Deslizar hacia la derecha abre, hacia la izquierda cierra. Solo cuenta
+// si el gesto es sobre todo horizontal (si no, es scroll vertical normal).
 const SWIPE_LOCK_THRESHOLD = 10;
 let touchStartX = null;
 let touchStartY = null;
 let swipeIsHorizontal = null;
+let navWasOpenAtStart = false;
+let dragNavWidth = 0;
+
+function dragProgressFrom(deltaX) {
+  const raw = navWasOpenAtStart ? 1 + deltaX / dragNavWidth : deltaX / dragNavWidth;
+  return Math.max(0, Math.min(1, raw));
+}
+
+function beginDrag() {
+  navWasOpenAtStart = mobileNav.classList.contains("is-open");
+  dragNavWidth = mobileNav.getBoundingClientRect().width || 300;
+  clearTimeout(closeNavTimeout);
+  mobileNav.classList.remove("is-hidden");
+  mobileNavScrim.classList.remove("is-hidden");
+  mobileNav.classList.add("is-dragging");
+  mobileNavScrim.classList.add("is-dragging");
+}
+
+function applyDragProgress(progress) {
+  mobileNav.style.transform = `translateX(${(progress - 1) * 100}%)`;
+  mobileNavScrim.style.opacity = String(progress);
+}
+
+// Al soltar, en vez de delegar en openMobileNav/closeMobileNav (que usan un
+// requestAnimationFrame pensado para abrir desde cero), fijamos aquí mismo
+// el transform final con la transición ya reactivada — así continúa
+// suavemente desde donde iba el dedo hasta el final, sin el salto que
+// daría pasar primero por el valor base de la clase antes del rAF.
+function endDrag(progress) {
+  mobileNav.classList.remove("is-dragging");
+  mobileNavScrim.classList.remove("is-dragging");
+  clearTimeout(closeNavTimeout);
+
+  const opening = progress > 0.5;
+  mobileNav.style.transform = opening ? "translateX(0)" : "translateX(-100%)";
+  mobileNavScrim.style.opacity = opening ? "1" : "0";
+  mobileNav.classList.toggle("is-open", opening);
+  mobileNavScrim.classList.toggle("is-open", opening);
+
+  if (opening) {
+    closeNavTimeout = setTimeout(clearDragStyles, 320);
+  } else {
+    closeNavTimeout = setTimeout(() => {
+      mobileNav.classList.add("is-hidden");
+      mobileNavScrim.classList.add("is-hidden");
+      clearDragStyles();
+    }, 320);
+  }
+}
 
 document.addEventListener(
   "touchstart",
@@ -164,8 +224,11 @@ document.addEventListener(
     const deltaY = touch.clientY - touchStartY;
     if (swipeIsHorizontal === null && (Math.abs(deltaX) > SWIPE_LOCK_THRESHOLD || Math.abs(deltaY) > SWIPE_LOCK_THRESHOLD)) {
       swipeIsHorizontal = Math.abs(deltaX) > Math.abs(deltaY);
+      if (swipeIsHorizontal) beginDrag();
     }
-    if (swipeIsHorizontal) e.preventDefault();
+    if (!swipeIsHorizontal) return;
+    e.preventDefault();
+    applyDragProgress(dragProgressFrom(deltaX));
   },
   { passive: false }
 );
@@ -176,13 +239,12 @@ document.addEventListener(
     if (touchStartX === null) return;
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStartX;
-    const deltaY = Math.abs(touch.clientY - touchStartY);
+    const wasHorizontal = swipeIsHorizontal;
     touchStartX = null;
     touchStartY = null;
     swipeIsHorizontal = null;
-    if (deltaY > SWIPE_MAX_OFF_AXIS) return;
-    if (deltaX >= SWIPE_MIN_DISTANCE) openMobileNav();
-    else if (deltaX <= -SWIPE_MIN_DISTANCE) closeMobileNav();
+    if (!wasHorizontal) return;
+    endDrag(dragProgressFrom(deltaX));
   },
   { passive: true }
 );

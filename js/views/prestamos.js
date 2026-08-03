@@ -9,10 +9,10 @@ import {
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js?v=10";
-import { openModal, closeModal, todayISO } from "../modal.js?v=10";
-import { capitalActual } from "./dashboard.js?v=10";
-import { initials, avatarColor } from "../icons.js?v=10";
+} from "../db.js?v=11";
+import { openModal, closeModal, todayISO } from "../modal.js?v=11";
+import { capitalActual } from "./dashboard.js?v=11";
+import { initials, avatarColor } from "../icons.js?v=11";
 
 const ESTADOS = ["Activo", "Pagado", "Impago"];
 const TIPOS_PAGO = ["Interes", "Capital", "Ambos", "AumentoCapital"];
@@ -24,9 +24,18 @@ const TIPO_LABELS = {
 };
 
 let currentState = null;
+let ordenPagos = "reciente";
 
 export function mountPrestamos() {
   document.getElementById("btn-add-prestamo").addEventListener("click", () => openPrestamoForm());
+  document.querySelectorAll("#prestamos-orden .segmented__btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("is-active")) return;
+      ordenPagos = btn.dataset.orden;
+      document.querySelectorAll("#prestamos-orden .segmented__btn").forEach((b) => b.classList.toggle("is-active", b === btn));
+      if (currentState) renderPrestamos(currentState);
+    });
+  });
 }
 
 export function renderPrestamos(state) {
@@ -41,9 +50,10 @@ export function renderPrestamos(state) {
 
   el.innerHTML = prestamos
     .map((p) => {
-      const pagos = pagosPrestamos.filter((pg) => pg.prestamo_id === p.id).sort(
-        (a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0)
-      );
+      const pagos = pagosPrestamos.filter((pg) => pg.prestamo_id === p.id).sort((a, b) => {
+        const diff = (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0);
+        return ordenPagos === "antiguo" ? -diff : diff;
+      });
       const restante = capitalActual(p, pagosPrestamos);
       const totalInteres = restante * (Number(p.interes_porcentaje ?? 0) / 100);
       const tagClass =
