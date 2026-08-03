@@ -6,7 +6,7 @@ import {
   listenPrestamos,
   listenPagosPrestamos,
   listenConfig,
-} from "./db.js?v=17";
+} from "./db.js?v=18";
 
 export const state = {
   cuentas: [],
@@ -45,7 +45,7 @@ function notify(key) {
   clearTimeout(notifyTimeout);
   notifyTimeout = setTimeout(() => {
     listeners.forEach((fn) => fn(state));
-  }, 200);
+  }, 500);
 }
 
 let started = false;

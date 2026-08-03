@@ -3,6 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<!-- Al abrirse desde el icono en la pantalla de inicio (modo standalone),
+     iOS puede servir esta misma página desde su caché durante bastante
+     tiempo sin volver a pedirla al servidor, así que una actualización
+     nueva puede tardar en llegar al teléfono aunque ya esté publicada. Esto
+     le pide explícitamente que no la guarde y compruebe siempre la última
+     versión. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>Finanzas Jerry</title>
 <meta name="description" content="Control personal de finanzas — cuentas, gastos, préstamos y suscripciones." />
 <meta name="color-scheme" content="dark" />
@@ -12,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=17" />
+<link rel="stylesheet" href="css/styles.css?v=18" />
 <link rel="icon" href="data:,">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
@@ -421,6 +430,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=17"></script>
+<script type="module" src="js/app.js?v=18"></script>
 </body>
 </html>

@@ -6,9 +6,9 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=17";
-import { initDashboardAnimations, countUpTo, animateProgressBars } from "../animations.js?v=17";
-import { seedInitialData } from "../seed.js?v=17";
+} from "../db.js?v=18";
+import { initDashboardAnimations, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=18";
+import { seedInitialData } from "../seed.js?v=18";
 import {
   pendingCorrections,
   applyAugustCorrections,
@@ -19,8 +19,8 @@ import {
   pendingGastosFijosAgosto,
   applyGastosFijosAgosto,
   dismissGastosFijosAgosto,
-} from "../fixes.js?v=17";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=17";
+} from "../fixes.js?v=18";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=18";
 
 let chartInstance = null;
 
@@ -179,7 +179,10 @@ function renderChart(movimientos, categorias) {
     chartInstance.data.labels = labels;
     chartInstance.data.datasets[0].data = values;
     chartInstance.data.datasets[0].backgroundColor = colors;
-    chartInstance.update();
+    // Mientras los datos se están asentando (ver animations.js), se aplica
+    // sin animar — si no, cada corrección que llega desde Firestore hace
+    // que el donut se redibuje "compitiendo" con la anterior.
+    chartInstance.update(estaAsentando() ? "none" : undefined);
     return;
   }
 
