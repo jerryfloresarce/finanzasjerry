@@ -1,8 +1,8 @@
-import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha, fromTimestamp } from "../db.js?v=9";
-import { openModal, closeModal, todayISO } from "../modal.js?v=9";
-import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo } from "../icons.js?v=9";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=9";
-import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=9";
+import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha, fromTimestamp } from "../db.js?v=10";
+import { openModal, closeModal, todayISO } from "../modal.js?v=10";
+import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo } from "../icons.js?v=10";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=10";
+import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=10";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 

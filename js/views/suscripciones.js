@@ -1,6 +1,6 @@
-import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=9";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=9";
-import { icon, iconForSuscripcion } from "../icons.js?v=9";
+import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=10";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=10";
+import { icon, iconForSuscripcion } from "../icons.js?v=10";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).
