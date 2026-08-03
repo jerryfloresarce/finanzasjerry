@@ -69,6 +69,11 @@ img { max-width: 100%; display: block; }
 a { color: inherit; text-decoration: none; }
 
 button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+/* iOS Safari hace zoom automático al enfocar un campo si su font-size es
+   menor de 16px, y ese zoom se queda "pegado" hasta que el usuario hace
+   pellizco para quitarlo — de ahí el bug de "se me queda con mucho zoom"
+   al tocar cualquier campo de un formulario. */
+input, select, textarea { font-size: 16px; }
 
 .is-hidden { display: none !important; }
 
@@ -315,7 +320,7 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 
 .cal-weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   text-align: center;
   font-size: 0.72rem;
   text-transform: uppercase;
@@ -326,7 +331,11 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 
 .cal-days {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  /* minmax(0, 1fr) en vez de 1fr: sin el mínimo explícito a 0, una columna
+     no se encoge más allá del ancho de su contenido (importes largos como
+     "-1031,04 €"), y el grid entero acaba siendo más ancho que la pantalla
+     — por eso el calendario "se salía" por la derecha en móvil. */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
 }
 
@@ -343,6 +352,8 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   cursor: pointer;
   transition: border-color 0.15s var(--ease-lux), background 0.15s var(--ease-lux);
   padding: 4px 2px;
+  overflow: hidden;
+  min-width: 0;
 }
 .cal-cell:hover { border-color: var(--border-strong); background: var(--surface-hover); }
 .cal-cell--vacia { border: none; background: none; cursor: default; }
@@ -350,8 +361,17 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
 
 .cal-cell__num { font-family: var(--font-display); font-size: 0.95rem; color: var(--text-primary); }
 .cal-cell--hoy .cal-cell__num { color: var(--accent); }
-.cal-cell__gasto { font-size: 0.66rem; color: var(--danger); line-height: 1.2; }
-.cal-cell__ingreso { font-size: 0.66rem; color: var(--success); line-height: 1.2; }
+.cal-cell__gasto,
+.cal-cell__ingreso {
+  font-size: 0.66rem;
+  line-height: 1.2;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cal-cell__gasto { color: var(--danger); }
+.cal-cell__ingreso { color: var(--success); }
 
 @media (max-width: 640px) {
   .cal-cell__gasto, .cal-cell__ingreso { font-size: 0.58rem; }
