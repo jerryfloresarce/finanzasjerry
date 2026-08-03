@@ -134,10 +134,27 @@ export function refreshAnimations() {
 
 // Cuenta un número desde su valor anterior hasta el nuevo, formateando con
 // `format`. Firestore puede disparar varias actualizaciones seguidas nada
-// más abrir la app (primero desde caché local, luego desde el servidor, una
-// vez por cada colección) — sin matar el tween anterior, cada actualización
-// lanzaba una animación nueva que competía con la anterior por el mismo
-// texto, y el número saltaba de un lado a otro rapidísimo ("epilepsia").
+// más abrir la app (primero desde caché local, luego confirmadas por el
+// servidor, una vez por cada colección) — matar el tween anterior antes de
+// lanzar uno nuevo (ver abajo) ya evita que compitan entre sí, pero en un
+// móvil real esas actualizaciones pueden seguir llegando sueltas durante
+// más de un segundo, y aunque no compitan, cada una relanza una animación
+// de un segundo entera — así que el número se sigue viendo "correr" de
+// valor en valor. Por eso, además, durante los primeros segundos tras
+// cargar la página (mientras los datos todavía se están asentando) el
+// número se pone directamente sin animar; solo una vez asentado, los
+// cambios futuros (reales, hechos por el usuario) sí se animan.
+const ARRANQUE = Date.now();
+const VENTANA_ASENTAMIENTO_MS = 2500;
+
+// Compartido con otras animaciones (ej. el redibujado del gráfico de
+// categorías en dashboard.js) que tienen el mismo problema: mientras los
+// datos de Firestore todavía se están asentando, cualquier transición
+// animada se ve "competir" contra la siguiente actualización que llega.
+export function estaAsentando() {
+  return Date.now() - ARRANQUE < VENTANA_ASENTAMIENTO_MS;
+}
+
 const countState = new WeakMap();
 
 export function countUpTo(el, targetValue, format) {
@@ -146,14 +163,19 @@ export function countUpTo(el, targetValue, format) {
   const from = prev?.value ?? 0;
   if (prev?.tween) prev.tween.kill();
 
-  if (typeof gsap === "undefined") {
+  if (estaAsentando() || typeof gsap === "undefined") {
     el.textContent = format(targetValue);
     countState.set(el, { value: targetValue, tween: null });
     return;
   }
 
   const obj = { value: from };
-  const tween = gsap.to(obj, {
+  // `let` en vez de `const` porque onUpdate puede dispararse en el mismo
+  // "tick" (según cómo se comporte el ticker de GSAP), antes de que
+  // gsap.to() termine de devolver el tween — con `const` eso lanzaría un
+  // ReferenceError por leer la variable antes de su inicialización.
+  let tween;
+  tween = gsap.to(obj, {
     value: targetValue,
     duration: 1,
     ease: "power2.out",
