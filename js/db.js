@@ -10,7 +10,7 @@ import {
   orderBy,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=15";
+import { db } from "./firebase-init.js?v=16";
 
 // ---------- Helpers genéricos ----------
 
@@ -236,16 +236,6 @@ export function formatEUR(value) {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
     currency: "EUR",
-  }).format(value ?? 0);
-}
-
-// Sin decimales — para sitios muy estrechos (celdas del calendario) donde
-// "−803,97 €" no cabe pero "−804 €" sí, sin tener que recortar el número.
-export function formatEURCompacto(value) {
-  return new Intl.NumberFormat("es-ES", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
   }).format(value ?? 0);
 }
 

@@ -1,7 +1,7 @@
-import { addPrestamo, updatePrestamo, deletePrestamo, addMovimiento, formatEUR, formatFecha, toTimestamp } from "../db.js?v=15";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=15";
-import { initials, avatarColor, icon } from "../icons.js?v=15";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=15";
+import { addPrestamo, updatePrestamo, deletePrestamo, addMovimiento, formatEUR, formatFecha, toTimestamp } from "../db.js?v=16";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=16";
+import { initials, avatarColor, icon } from "../icons.js?v=16";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=16";
 
 const ESTADOS = ["Activo", "Pagado"];
 
