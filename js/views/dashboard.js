@@ -6,9 +6,9 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js";
-import { initDashboardAnimations, countUpTo, animateProgressBars } from "../animations.js";
-import { seedInitialData } from "../seed.js";
+} from "../db.js?v=8";
+import { initDashboardAnimations, countUpTo, animateProgressBars } from "../animations.js?v=8";
+import { seedInitialData } from "../seed.js?v=8";
 import {
   pendingCorrections,
   applyAugustCorrections,
@@ -16,8 +16,8 @@ import {
   pendingHistorial,
   importarJessicaYSilvia,
   dismissHistorial,
-} from "../fixes.js";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js";
+} from "../fixes.js?v=8";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=8";
 
 let chartInstance = null;
 
