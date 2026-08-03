@@ -516,6 +516,11 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   gap: 12px;
   flex-wrap: wrap;
 }
+@media (min-width: 861px) {
+  /* deja hueco para que el botón flotante de "Mi cuenta" (fixed, arriba a la
+     derecha) no se monte encima de cabeceras anchas, como la de Gráficos */
+  .view-header { padding-right: 56px; }
+}
 
 .view-title {
   font-family: var(--font-display);
