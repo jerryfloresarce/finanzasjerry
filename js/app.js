@@ -1,16 +1,16 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=8";
-import { state, subscribe, initStore } from "./store.js?v=8";
+import { onAuthReady } from "./auth.js?v=9";
+import { state, subscribe, initStore } from "./store.js?v=9";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=8";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=8";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=8";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=8";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=8";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=8";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=8";
-import { mountCuentaPanel } from "./views/cuenta.js?v=8";
-import { refreshAnimations } from "./animations.js?v=8";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=9";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=9";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=9";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=9";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=9";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=9";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=9";
+import { mountCuentaPanel } from "./views/cuenta.js?v=9";
+import { refreshAnimations } from "./animations.js?v=9";
 
 const ROUTES = {
   dashboard: renderDashboard,
@@ -30,11 +30,27 @@ function currentRouteFromHash() {
   return ROUTES[hash] ? hash : DEFAULT_ROUTE;
 }
 
+const MORE_ROUTES = ["categorias", "suscripciones"];
+
 function setActiveNav(route) {
   document.querySelectorAll(".nav__link").forEach((link) => {
     link.classList.toggle("is-active", link.dataset.route === route);
   });
+  // Si entras directamente a Categorías/Suscripciones (o vuelves atrás),
+  // el grupo "Más" se abre solo para que se vea el enlace activo.
+  if (MORE_ROUTES.includes(route)) {
+    document.querySelectorAll(".nav__more").forEach((el) => el.classList.add("is-open"));
+    document.querySelectorAll(".nav__more-toggle").forEach((btn) => btn.setAttribute("aria-expanded", "true"));
+  }
 }
+
+document.querySelectorAll(".nav__more-toggle").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const more = btn.nextElementSibling;
+    const isOpen = more.classList.toggle("is-open");
+    btn.setAttribute("aria-expanded", String(isOpen));
+  });
+});
 
 function showView(route) {
   document.querySelectorAll(".view").forEach((section) => {
