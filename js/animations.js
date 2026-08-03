@@ -114,33 +114,60 @@ export function refreshAnimations() {
   if (typeof ScrollTrigger !== "undefined") ScrollTrigger.refresh();
 }
 
-// Cuenta un número desde su valor anterior hasta el nuevo, formateando con `format`.
+// Cuenta un número desde su valor anterior hasta el nuevo, formateando con
+// `format`. Firestore puede disparar varias actualizaciones seguidas nada
+// más abrir la app (primero desde caché local, luego desde el servidor, una
+// vez por cada colección) — sin matar el tween anterior, cada actualización
+// lanzaba una animación nueva que competía con la anterior por el mismo
+// texto, y el número saltaba de un lado a otro rapidísimo ("epilepsia").
 const countState = new WeakMap();
 
 export function countUpTo(el, targetValue, format) {
   if (!el) return;
-  const from = countState.get(el) ?? 0;
-  countState.set(el, targetValue);
+  const prev = countState.get(el);
+  const from = prev?.value ?? 0;
+  if (prev?.tween) prev.tween.kill();
 
   if (typeof gsap === "undefined") {
     el.textContent = format(targetValue);
+    countState.set(el, { value: targetValue, tween: null });
     return;
   }
 
   const obj = { value: from };
-  gsap.to(obj, {
+  const tween = gsap.to(obj, {
     value: targetValue,
     duration: 1,
     ease: "power2.out",
     onUpdate: () => {
       el.textContent = format(obj.value);
+      countState.set(el, { value: obj.value, tween });
+    },
+    onComplete: () => {
+      countState.set(el, { value: targetValue, tween: null });
     },
   });
+  countState.set(el, { value: from, tween });
 }
 
-// Anima las barras .progress-fill de 0 al ancho final (ya tienen transition en CSS).
+// Anima las barras .progress-fill de 0 al ancho final la primera vez que se
+// pintan; en las siguientes llamadas (el Dashboard se vuelve a renderizar
+// con cada actualización de Firestore, y #limites-list se regenera entero
+// cada vez, así que no hay forma de "recordar" qué barra ya animó por
+// identidad de nodo) se deja el ancho final directamente, sin volver a
+// forzar 0% — eso era lo que hacía que las barras "parpadearan" a 0 y
+// crecieran de nuevo en cada actualización.
+let barrasAnimadasUnaVez = false;
+
 export function animateProgressBars(container) {
   const bars = container.querySelectorAll(".progress-fill[data-target-width]");
+  if (barrasAnimadasUnaVez) {
+    bars.forEach((bar) => {
+      bar.style.width = bar.dataset.targetWidth;
+    });
+    return;
+  }
+  barrasAnimadasUnaVez = true;
   bars.forEach((bar) => {
     bar.style.width = "0%";
   });

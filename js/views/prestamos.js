@@ -1,7 +1,7 @@
-import { addPrestamo, updatePrestamo, deletePrestamo, addMovimiento, formatEUR, formatFecha, toTimestamp } from "../db.js?v=13";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=13";
-import { initials, avatarColor, icon } from "../icons.js?v=13";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=13";
+import { addPrestamo, updatePrestamo, deletePrestamo, addMovimiento, formatEUR, formatFecha, toTimestamp } from "../db.js?v=15";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=15";
+import { initials, avatarColor, icon } from "../icons.js?v=15";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=15";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -20,6 +20,16 @@ function unMesDespues(fechaISO) {
 export function renderPrestamos(state) {
   const el = document.getElementById("prestamos-grid");
   const { prestamos } = state;
+
+  const activos = prestamos.filter((p) => p.estado !== "Pagado");
+  const totalCapital = activos.reduce((acc, p) => acc + Number(p.capital ?? p.capital_inicial ?? 0), 0);
+  const totalInteres = activos.reduce((acc, p) => {
+    const capital = Number(p.capital ?? p.capital_inicial ?? 0);
+    const pct = Number(p.interes_porcentaje ?? 0);
+    return acc + capital * (pct / 100);
+  }, 0);
+  document.getElementById("kpi-prestamos-capital").textContent = formatEUR(totalCapital);
+  document.getElementById("kpi-prestamos-interes").textContent = formatEUR(totalInteres);
 
   if (prestamos.length === 0) {
     el.innerHTML = `<p class="empty-state">Todavía no has registrado ningún préstamo.</p>`;
