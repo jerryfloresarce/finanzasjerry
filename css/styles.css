@@ -340,12 +340,12 @@ input, select, textarea { font-size: 16px; }
 }
 
 .cal-cell {
-  aspect-ratio: 1 / 0.85;
+  aspect-ratio: 1 / 0.95;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: 1px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--surface);
@@ -364,17 +364,19 @@ input, select, textarea { font-size: 16px; }
 .cal-cell__gasto,
 .cal-cell__ingreso {
   font-size: 0.66rem;
-  line-height: 1.2;
+  line-height: 1.15;
   max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  text-align: center;
+  /* En vez de recortar con "…" (que dejaba números ilegibles a medias),
+     se deja que el importe pase a una segunda línea si no cabe entero —
+     así siempre se ven todos los decimales, nunca un número cortado. */
+  overflow-wrap: anywhere;
 }
 .cal-cell__gasto { color: var(--danger); }
 .cal-cell__ingreso { color: var(--success); }
 
 @media (max-width: 640px) {
-  .cal-cell__gasto, .cal-cell__ingreso { font-size: 0.58rem; }
+  .cal-cell__gasto, .cal-cell__ingreso { font-size: 0.56rem; }
   .cal-cell__num { font-size: 0.8rem; }
 }
 

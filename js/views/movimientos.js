@@ -3,14 +3,13 @@ import {
   updateMovimiento,
   deleteMovimiento,
   formatEUR,
-  formatEURCompacto,
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js?v=15";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=15";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=15";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=15";
+} from "../db.js?v=16";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=16";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=16";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=16";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -124,8 +123,8 @@ function renderCalendario(movimientosMes, categorias, cuentas) {
     celdas.push(`
       <button type="button" class="cal-cell ${esHoy ? "cal-cell--hoy" : ""}" data-dia="${dia}">
         <span class="cal-cell__num">${dia}</span>
-        ${totales?.gasto ? `<span class="cal-cell__gasto">−${formatEURCompacto(totales.gasto)}</span>` : ""}
-        ${totales?.ingreso ? `<span class="cal-cell__ingreso">+${formatEURCompacto(totales.ingreso)}</span>` : ""}
+        ${totales?.gasto ? `<span class="cal-cell__gasto">−${formatEUR(totales.gasto)}</span>` : ""}
+        ${totales?.ingreso ? `<span class="cal-cell__ingreso">+${formatEUR(totales.ingreso)}</span>` : ""}
       </button>`);
   }
 

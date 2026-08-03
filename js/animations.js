@@ -107,11 +107,29 @@ export function initDashboardAnimations() {
     });
   }
 
-  ScrollTrigger.refresh();
+  // El refresh se hace fuera de aquí (ver refreshAnimations más abajo): esta
+  // función se llama en CADA renderizado del Dashboard —varias veces
+  // seguidas nada más abrir la app, una por cada colección de Firestore que
+  // llega—, y un refresh() sin más recalcula ahora mismo la posición de
+  // TODOS los ScrollTrigger contra un layout que todavía se está asentando
+  // (el spinner desaparece, entran las tarjetas, cambian alturas...). Con el
+  // parallax del hero ligado a scroll (scrub), cada recálculo lo reajustaba
+  // de golpe a la posición "correcta" del momento — eso era el salto rápido
+  // y repetido que se veía como si la web tuviera un ataque.
+  refreshAnimations();
 }
 
+let refreshTimeout = null;
+
+// Agrupa varias llamadas seguidas en un único ScrollTrigger.refresh() tras
+// una breve pausa, en vez de recalcular en cada una — así una ráfaga de
+// actualizaciones de Firestore (varias en el primer segundo tras abrir la
+// app) no dispara ni de lejos tantos recálculos, y el parallax del hero deja
+// de "saltar" repetidamente mientras los datos todavía están llegando.
 export function refreshAnimations() {
-  if (typeof ScrollTrigger !== "undefined") ScrollTrigger.refresh();
+  if (typeof ScrollTrigger === "undefined") return;
+  clearTimeout(refreshTimeout);
+  refreshTimeout = setTimeout(() => ScrollTrigger.refresh(), 250);
 }
 
 // Cuenta un número desde su valor anterior hasta el nuevo, formateando con
