@@ -1,7 +1,8 @@
-import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha } from "../db.js";
+import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha, fromTimestamp } from "../db.js";
 import { openModal, closeModal, todayISO } from "../modal.js";
-import { icon, iconForCuentaTipo } from "../icons.js";
+import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo } from "../icons.js";
 import { attachCopyId, copyIdButton } from "../copy-id.js";
+import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 
@@ -25,7 +26,7 @@ export function renderCuentas(state) {
         <article class="entity-card">
           <div class="entity-card__top">
             <div class="entity-card__heading">
-              <span class="icon-badge">${icon(iconForCuentaTipo(c.tipo))}</span>
+              <span class="icon-badge">${entityIcon(c, iconForCuentaTipo(c.tipo))}</span>
               <p class="entity-card__name">${c.nombre}</p>
             </div>
             <span class="entity-card__tag ${c.activa === false ? "entity-card__tag--pagado" : "entity-card__tag--activo"}">${c.activa === false ? "Inactiva" : c.tipo}</span>
@@ -34,6 +35,7 @@ export function renderCuentas(state) {
           <p class="entity-card__meta">Saldo inicial ${formatEUR(c.saldo_inicial)} · desde ${c.fecha_inicio ? formatFecha(new Date(c.fecha_inicio)) : "—"}</p>
           <div class="entity-card__actions">
             ${copyIdButton(c.id)}
+            <button class="btn btn--ghost btn--sm" data-historial="${c.id}">Historial</button>
             <button class="btn btn--ghost btn--sm" data-edit="${c.id}">Editar</button>
             <button class="btn btn--danger btn--sm" data-delete="${c.id}">Eliminar</button>
           </div>
@@ -49,7 +51,61 @@ export function renderCuentas(state) {
       if (confirm("¿Eliminar esta cuenta? No se borrarán sus movimientos.")) deleteCuenta(btn.dataset.delete);
     })
   );
+  el.querySelectorAll("[data-historial]").forEach((btn) =>
+    btn.addEventListener("click", () => openHistorial(cuentas.find((c) => c.id === btn.dataset.historial), state))
+  );
   attachCopyId(el);
+}
+
+function openHistorial(cuenta, state) {
+  const { movimientos, categorias, cuentas } = state;
+  const catMap = new Map(categorias.map((c) => [c.id, c]));
+  const cuentaMap = new Map(cuentas.map((c) => [c.id, c.nombre]));
+
+  const relacionados = movimientos
+    .filter((m) => m.cuenta_id === cuenta.id || m.cuenta_destino_id === cuenta.id)
+    .sort((a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0));
+
+  const filas = relacionados
+    .map((m) => {
+      const esTransferencia = m.tipo === "Transferencia";
+      const esOrigen = m.cuenta_id === cuenta.id;
+      let descripcion;
+      let signo;
+      if (esTransferencia) {
+        descripcion = esOrigen
+          ? `Transferencia enviada a ${cuentaMap.get(m.cuenta_destino_id) || "—"}`
+          : `Transferencia recibida de ${cuentaMap.get(m.cuenta_id) || "—"}`;
+        signo = esOrigen ? -1 : 1;
+      } else {
+        const cat = catMap.get(m.categoria_id);
+        descripcion = `${entityIcon(cat, iconForCategoriaTipo(cat?.tipo), { size: 14 })} ${m.subcategoria ? m.subcategoria + " · " : ""}${cat?.nombre || "—"}`;
+        signo = m.tipo === "Ingreso" ? 1 : -1;
+      }
+      return `
+        <div class="data-row data-row--historial">
+          <span>${formatFecha(fromTimestamp(m.fecha))}</span>
+          <span class="data-row__cat">${descripcion}</span>
+          <span class="${signo > 0 ? "data-row__amount--Ingreso" : "data-row__amount--Gasto"}">${signo > 0 ? "+ " : "− "}${formatEUR(Math.abs(Number(m.importe)))}</span>
+        </div>`;
+    })
+    .join("");
+
+  openModal(
+    `
+    <h2 class="modal__title">Historial · ${cuenta.nombre}</h2>
+    ${relacionados.length === 0 ? `<p class="empty-state">Todavía no hay movimientos en esta cuenta.</p>` : `<div class="data-table data-table--historial">${filas}</div>`}
+    <div class="modal__actions">
+      <button type="button" class="btn btn--ghost" id="btn-cerrar-historial">Cerrar</button>
+    </div>
+  `,
+    {
+      wide: true,
+      onMount: (root) => {
+        root.querySelector("#btn-cerrar-historial").addEventListener("click", closeModal);
+      },
+    }
+  );
 }
 
 function openForm(cuenta) {
@@ -80,6 +136,7 @@ function openForm(cuenta) {
         <input type="checkbox" name="activa" ${cuenta?.activa !== false ? "checked" : ""} />
         Cuenta activa
       </label>
+      ${emojiFieldHTML(cuenta?.icono, CUENTA_EMOJIS)}
       <p class="field-error" id="form-cuenta-error"></p>
       <div class="modal__actions field--full">
         <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
@@ -89,6 +146,7 @@ function openForm(cuenta) {
   `,
     {
       onMount: (root) => {
+        attachEmojiPicker(root);
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
         root.querySelector("#form-cuenta").addEventListener("submit", async (e) => {
           e.preventDefault();
@@ -99,6 +157,7 @@ function openForm(cuenta) {
             saldo_inicial: Number(f.saldo_inicial.value),
             fecha_inicio: f.fecha_inicio.value,
             activa: f.activa.checked,
+            icono: f.icono.value.trim() || null,
           };
           try {
             if (isEdit) await updateCuenta(cuenta.id, data);

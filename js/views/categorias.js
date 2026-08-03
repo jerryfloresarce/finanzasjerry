@@ -1,7 +1,8 @@
 import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js";
 import { openModal, closeModal } from "../modal.js";
-import { icon, iconForCategoriaTipo } from "../icons.js";
+import { entityIcon, iconForCategoriaTipo } from "../icons.js";
 import { attachCopyId, copyIdButton } from "../copy-id.js";
+import { emojiFieldHTML, attachEmojiPicker, CATEGORIA_EMOJIS } from "../emoji-picker.js";
 
 const TIPOS = ["Fijo", "Variable", "Ocio", "PrestamoDado"];
 
@@ -28,7 +29,7 @@ export function renderCategorias(state) {
         <article class="entity-card">
           <div class="entity-card__top">
             <div class="entity-card__heading">
-              <span class="icon-badge">${icon(iconForCategoriaTipo(c.tipo))}</span>
+              <span class="icon-badge">${entityIcon(c, iconForCategoriaTipo(c.tipo))}</span>
               <p class="entity-card__name">${c.nombre}</p>
             </div>
             <span class="entity-card__tag">${c.tipo}</span>
@@ -75,6 +76,7 @@ function openForm(categoria) {
         <span class="field__label">Límite mensual (opcional)</span>
         <input type="number" step="0.01" name="limite_mensual" value="${categoria?.limite_mensual ?? ""}" placeholder="0.00" />
       </label>
+      ${emojiFieldHTML(categoria?.icono, CATEGORIA_EMOJIS)}
       <p class="field-error" id="form-categoria-error"></p>
       <div class="modal__actions field--full">
         <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
@@ -84,6 +86,7 @@ function openForm(categoria) {
   `,
     {
       onMount: (root) => {
+        attachEmojiPicker(root);
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
         root.querySelector("#form-categoria").addEventListener("submit", async (e) => {
           e.preventDefault();
@@ -92,6 +95,7 @@ function openForm(categoria) {
             nombre: f.nombre.value.trim(),
             tipo: f.tipo.value,
             limite_mensual: f.limite_mensual.value ? Number(f.limite_mensual.value) : null,
+            icono: f.icono.value.trim() || null,
           };
           try {
             if (isEdit) await updateCategoria(categoria.id, data);

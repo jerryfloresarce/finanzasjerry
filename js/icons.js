@@ -68,6 +68,15 @@ export function icon(name, { size = 18, className = "", weight = "thin" } = {}) 
   return `<i class="icon ph-${weight} ph-${phName} ${className}" style="font-size:${size}px" aria-hidden="true"></i>`;
 }
 
+// Cuentas/categorías pueden tener un emoji propio elegido por el usuario
+// (campo `icono`); si lo tienen, se muestra en vez del icono genérico del tipo.
+export function entityIcon(entity, fallbackName, { size = 18 } = {}) {
+  if (entity?.icono) {
+    return `<span class="icon-emoji" style="font-size:${size + 4}px" aria-hidden="true">${entity.icono}</span>`;
+  }
+  return icon(fallbackName, { size });
+}
+
 export function iconForCategoriaTipo(tipo) {
   return CATEGORIA_TIPO_ICON[tipo] || "categorias";
 }
