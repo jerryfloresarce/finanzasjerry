@@ -42,7 +42,7 @@ export function renderPrestamos(state) {
   el.innerHTML = prestamos
     .map((p) => {
       const pagos = pagosPrestamos.filter((pg) => pg.prestamo_id === p.id).sort(
-        (a, b) => (fromTimestamp(a.fecha) ?? 0) - (fromTimestamp(b.fecha) ?? 0)
+        (a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0)
       );
       const restante = capitalActual(p, pagosPrestamos);
       const totalInteres = restante * (Number(p.interes_porcentaje ?? 0) / 100);
