@@ -9,10 +9,10 @@ import {
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js?v=9";
-import { openModal, closeModal, todayISO } from "../modal.js?v=9";
-import { capitalActual } from "./dashboard.js?v=9";
-import { initials, avatarColor } from "../icons.js?v=9";
+} from "../db.js?v=10";
+import { openModal, closeModal, todayISO } from "../modal.js?v=10";
+import { capitalActual } from "./dashboard.js?v=10";
+import { initials, avatarColor } from "../icons.js?v=10";
 
 const ESTADOS = ["Activo", "Pagado", "Impago"];
 const TIPOS_PAGO = ["Interes", "Capital", "Ambos", "AumentoCapital"];
