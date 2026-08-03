@@ -1,55 +1,171 @@
-import { addSuscripcion, updateSuscripcion, deleteSuscripcion, formatEUR, formatFecha } from "../db.js?v=8";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=8";
-import { icon, iconForSuscripcion } from "../icons.js?v=8";
+import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=9";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=9";
+import { icon, iconForSuscripcion } from "../icons.js?v=9";
 
 let currentState = null;
+// Primer día del mes que se está viendo en el listado (checklist mensual).
+let mesActual = firstOfMonth(new Date());
+
+function firstOfMonth(d) {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
 
 export function mountSuscripciones() {
   document.getElementById("btn-add-suscripcion").addEventListener("click", () => openForm(null, currentState));
+  document.getElementById("susc-mes-prev").addEventListener("click", () => {
+    mesActual = new Date(mesActual.getFullYear(), mesActual.getMonth() - 1, 1);
+    if (currentState) renderSuscripciones(currentState);
+  });
+  document.getElementById("susc-mes-next").addEventListener("click", () => {
+    mesActual = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 1);
+    if (currentState) renderSuscripciones(currentState);
+  });
+}
+
+// Movimientos de tipo Gasto vinculados a una suscripción (campo
+// suscripcion_id) que caen dentro del mes que se está viendo — así se sabe
+// si esa suscripción ya está "pagada" este periodo sin necesitar un estado
+// aparte que se pueda desincronizar del movimiento real.
+function pagosDelMes(movimientos, suscripcionId) {
+  return movimientos.filter((m) => {
+    if (m.suscripcion_id !== suscripcionId) return false;
+    const d = fromTimestamp(m.fecha);
+    return d && d.getFullYear() === mesActual.getFullYear() && d.getMonth() === mesActual.getMonth();
+  });
 }
 
 export function renderSuscripciones(state) {
   currentState = state;
   const el = document.getElementById("suscripciones-grid");
-  const { suscripciones, categorias, cuentas } = state;
+  const { suscripciones, categorias, cuentas, movimientos } = state;
   const catMap = new Map(categorias.map((c) => [c.id, c.nombre]));
   const cuentaMap = new Map(cuentas.map((c) => [c.id, c.nombre]));
 
+  const mesLabel = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(mesActual);
+  document.getElementById("susc-mes-label").textContent = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1);
+
   if (suscripciones.length === 0) {
     el.innerHTML = `<p class="empty-state">Todavía no has añadido ninguna suscripción.</p>`;
+    document.getElementById("susc-resumen").textContent = "";
     return;
   }
 
-  el.innerHTML = suscripciones
+  const ordenadas = [...suscripciones].sort((a, b) => (a.activa === false) - (b.activa === false));
+
+  let pagadoTotal = 0;
+  let pendienteTotal = 0;
+  let pagadasCount = 0;
+
+  el.innerHTML = ordenadas
     .map((s) => {
-      const proximo = s.proximo_pago ? formatFecha(new Date(s.proximo_pago)) : "—";
+      const pagos = pagosDelMes(movimientos, s.id);
+      const pagada = pagos.length > 0;
+      const importeReal = pagada ? pagos.reduce((acc, m) => acc + Number(m.importe ?? 0), 0) : Number(s.precio ?? 0);
+      if (s.activa !== false) {
+        if (pagada) {
+          pagadoTotal += importeReal;
+          pagadasCount++;
+        } else pendienteTotal += importeReal;
+      }
+
       return `
-        <article class="entity-card">
-          <div class="entity-card__top">
-            <div class="entity-card__heading">
-              <span class="icon-badge">${icon(iconForSuscripcion(s.nombre))}</span>
-              <p class="entity-card__name">${s.nombre}</p>
-            </div>
-            <span class="entity-card__tag ${s.activa === false ? "entity-card__tag--pagado" : "entity-card__tag--activo"}">${s.activa === false ? "Inactiva" : s.frecuencia}</span>
-          </div>
-          <p class="entity-card__amount">${formatEUR(s.precio)}</p>
-          <p class="entity-card__meta">${catMap.get(s.categoria_id) || "—"} · ${cuentaMap.get(s.cuenta_id) || "—"}</p>
-          <p class="entity-card__meta">Próximo pago: ${proximo}</p>
-          <div class="entity-card__actions">
+        <div class="mini-row susc-row ${s.activa === false ? "susc-row--inactiva" : ""}">
+          <label class="field-check" style="flex:1; min-width:0;">
+            <input type="checkbox" data-toggle-susc="${s.id}" ${pagada ? "checked" : ""} ${s.activa === false ? "disabled" : ""} />
+            <span class="mini-row__body" style="min-width:0;">
+              <span class="mini-row__icon">${icon(iconForSuscripcion(s.nombre))}</span>
+              <span class="mini-row__main">
+                <span class="mini-row__title">${s.nombre}</span>
+                <span class="mini-row__sub">${catMap.get(s.categoria_id) || "—"} · ${cuentaMap.get(s.cuenta_id) || "—"}${s.activa === false ? " · Inactiva" : ""}</span>
+              </span>
+            </span>
+          </label>
+          <span class="mini-row__amount">${formatEUR(importeReal)}</span>
+          <span class="data-row__actions">
             <button class="btn btn--ghost btn--sm" data-edit="${s.id}">Editar</button>
             <button class="btn btn--danger btn--sm" data-delete="${s.id}">Eliminar</button>
-          </div>
-        </article>`;
+          </span>
+        </div>`;
     })
     .join("");
+
+  const totalActivas = suscripciones.filter((s) => s.activa !== false).length;
+  document.getElementById("susc-resumen").textContent =
+    `Pagado este mes: ${formatEUR(pagadoTotal)} (${pagadasCount}/${totalActivas}) · Pendiente: ${formatEUR(pendienteTotal)}`;
 
   el.querySelectorAll("[data-edit]").forEach((btn) =>
     btn.addEventListener("click", () => openForm(suscripciones.find((s) => s.id === btn.dataset.edit), currentState))
   );
   el.querySelectorAll("[data-delete]").forEach((btn) =>
     btn.addEventListener("click", () => {
-      if (confirm("¿Eliminar esta suscripción?")) deleteSuscripcion(btn.dataset.delete);
+      if (confirm("¿Eliminar esta suscripción? No se borrarán los gastos ya registrados.")) deleteSuscripcion(btn.dataset.delete);
     })
+  );
+  el.querySelectorAll("[data-toggle-susc]").forEach((input) =>
+    input.addEventListener("change", () => {
+      const s = suscripciones.find((x) => x.id === input.dataset.toggleSusc);
+      if (input.checked) openMarcarPagado(s, currentState);
+      else {
+        input.checked = true; // se revierte visualmente hasta que se confirme el borrado
+        const pagos = pagosDelMes(movimientos, s.id);
+        if (pagos.length > 0 && confirm(`¿Deshacer el pago de "${s.nombre}" este mes? Se borrará el gasto registrado.`)) {
+          pagos.forEach((m) => deleteMovimiento(m.id));
+        }
+      }
+    })
+  );
+}
+
+function openMarcarPagado(suscripcion, state) {
+  openModal(
+    `
+    <h2 class="modal__title">Marcar "${suscripcion.nombre}" como pagado</h2>
+    <form id="form-susc-pago" class="form-grid">
+      <label class="field">
+        <span class="field__label">Importe</span>
+        <input type="number" step="0.01" name="importe" required value="${suscripcion.precio ?? ""}" placeholder="0.00" />
+      </label>
+      <label class="field">
+        <span class="field__label">Cuenta</span>
+        <select name="cuenta_id">${optionsFrom(state.cuentas, { selected: suscripcion.cuenta_id })}</select>
+      </label>
+      <label class="field field--full">
+        <span class="field__label">Fecha</span>
+        <input type="date" name="fecha" value="${todayISO()}" required />
+      </label>
+      <p class="field-error" id="form-susc-pago-error"></p>
+      <div class="modal__actions field--full">
+        <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Confirmar</button>
+      </div>
+    </form>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector("#form-susc-pago").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const f = e.target;
+          const data = {
+            tipo: "Gasto",
+            importe: Number(f.importe.value),
+            categoria_id: suscripcion.categoria_id || null,
+            cuenta_id: f.cuenta_id.value,
+            cuenta_destino_id: null,
+            fecha: toTimestamp(f.fecha.value),
+            subcategoria: suscripcion.nombre,
+            nota: "",
+            suscripcion_id: suscripcion.id,
+          };
+          try {
+            await addMovimiento(data);
+            closeModal();
+          } catch (err) {
+            root.querySelector("#form-susc-pago-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
+          }
+        });
+      },
+    }
   );
 }
 
@@ -64,7 +180,7 @@ function openForm(suscripcion, state) {
         <input type="text" name="nombre" required value="${suscripcion?.nombre ?? ""}" placeholder="Glovo Prime" />
       </label>
       <label class="field">
-        <span class="field__label">Precio</span>
+        <span class="field__label">Precio habitual</span>
         <input type="number" step="0.01" name="precio" required value="${suscripcion?.precio ?? ""}" placeholder="0.00" />
       </label>
       <label class="field">
@@ -82,10 +198,6 @@ function openForm(suscripcion, state) {
       <label class="field">
         <span class="field__label">Cuenta</span>
         <select name="cuenta_id">${optionsFrom(state.cuentas, { selected: suscripcion?.cuenta_id })}</select>
-      </label>
-      <label class="field">
-        <span class="field__label">Próximo pago</span>
-        <input type="date" name="proximo_pago" value="${suscripcion?.proximo_pago ?? todayISO()}" />
       </label>
       <label class="field-check field--full">
         <input type="checkbox" name="activa" ${suscripcion?.activa !== false ? "checked" : ""} />
@@ -110,7 +222,6 @@ function openForm(suscripcion, state) {
             frecuencia: f.frecuencia.value,
             categoria_id: f.categoria_id.value,
             cuenta_id: f.cuenta_id.value,
-            proximo_pago: f.proximo_pago.value,
             activa: f.activa.checked,
           };
           try {

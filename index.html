@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=8" />
+<link rel="stylesheet" href="css/styles.css?v=9" />
 <link rel="icon" href="data:,">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
@@ -61,15 +61,21 @@
       <a href="#/cuentas" class="nav__link" data-route="cuentas">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-wallet"></i></span> Cuentas
       </a>
-      <a href="#/categorias" class="nav__link" data-route="categorias">
-        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
-      </a>
       <a href="#/prestamos" class="nav__link" data-route="prestamos">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-hand-coins"></i></span> Préstamos
       </a>
-      <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
-        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Suscripciones
-      </a>
+      <button type="button" class="nav__more-toggle" id="nav-more-toggle" aria-expanded="false">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-dots-three"></i></span> Más
+        <i class="ph-thin ph-caret-down nav__more-caret" aria-hidden="true"></i>
+      </button>
+      <div class="nav__more" id="nav-more">
+        <a href="#/categorias" class="nav__link" data-route="categorias">
+          <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
+        </a>
+        <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
+          <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Suscripciones
+        </a>
+      </div>
     </nav>
     <button id="logout-btn" class="btn btn--ghost btn--block sidebar__logout">Cerrar sesión</button>
   </aside>
@@ -98,15 +104,21 @@
     <a href="#/cuentas" class="nav__link" data-route="cuentas">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-wallet"></i></span> Cuentas
     </a>
-    <a href="#/categorias" class="nav__link" data-route="categorias">
-      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
-    </a>
     <a href="#/prestamos" class="nav__link" data-route="prestamos">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-hand-coins"></i></span> Préstamos
     </a>
-    <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
-      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Suscripciones
-    </a>
+    <button type="button" class="nav__more-toggle" id="nav-more-toggle-mobile" aria-expanded="false">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-dots-three"></i></span> Más
+      <i class="ph-thin ph-caret-down nav__more-caret" aria-hidden="true"></i>
+    </button>
+    <div class="nav__more" id="nav-more-mobile">
+      <a href="#/categorias" class="nav__link" data-route="categorias">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
+      </a>
+      <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Suscripciones
+      </a>
+    </div>
     <button id="mobile-logout-btn" class="btn btn--ghost btn--block" style="margin-top: 12px;">Cerrar sesión</button>
   </nav>
 
@@ -256,7 +268,13 @@
         <h1 class="view-title">Suscripciones</h1>
         <button class="btn btn--primary" id="btn-add-suscripcion">+ Añadir suscripción</button>
       </div>
-      <div id="suscripciones-grid" class="grid grid--cards"></div>
+      <div class="susc-mes-nav">
+        <button type="button" class="btn btn--ghost btn--sm" id="susc-mes-prev" aria-label="Mes anterior">‹</button>
+        <span id="susc-mes-label" class="susc-mes-label"></span>
+        <button type="button" class="btn btn--ghost btn--sm" id="susc-mes-next" aria-label="Mes siguiente">›</button>
+      </div>
+      <p class="entity-card__meta" id="susc-resumen" style="margin-bottom: 16px;"></p>
+      <div id="suscripciones-grid" class="mini-list"></div>
     </section>
 
     <!-- ---------- GRAFICOS ---------- -->
@@ -362,6 +380,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=8"></script>
+<script type="module" src="js/app.js?v=9"></script>
 </body>
 </html>

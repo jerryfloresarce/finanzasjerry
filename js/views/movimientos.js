@@ -6,9 +6,9 @@ import {
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js?v=8";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=8";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=8";
+} from "../db.js?v=9";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=9";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=9";
 
 export function mountMovimientos() {
   document.getElementById("btn-add-movimiento").addEventListener("click", () => openForm(null, currentState));
