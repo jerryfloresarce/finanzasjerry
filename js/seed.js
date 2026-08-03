@@ -2,7 +2,7 @@
 // suscripciones fijas y préstamos dados) tal como me los pasaste.
 // Solo se ofrece cuando no hay ninguna cuenta creada todavía, para no
 // duplicar nada si ya has empezado a usar la app.
-import { addCuenta, addCategoria, addSuscripcion, addPrestamo } from "./db.js?v=16";
+import { addCuenta, addCategoria, addSuscripcion, addPrestamo } from "./db.js?v=17";
 
 const hoy = new Date().toISOString().slice(0, 10);
 
