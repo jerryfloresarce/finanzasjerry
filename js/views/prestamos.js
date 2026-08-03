@@ -103,7 +103,7 @@ export function renderPrestamos(state) {
     })
   );
   el.querySelectorAll("[data-add-pago]").forEach((btn) =>
-    btn.addEventListener("click", () => openPagoForm(btn.dataset.addPago))
+    btn.addEventListener("click", () => openPagoForm(prestamos.find((p) => p.id === btn.dataset.addPago), pagosPrestamos))
   );
   el.querySelectorAll("[data-toggle-pago]").forEach((input) =>
     input.addEventListener("change", () => updatePagoPrestamo(input.dataset.togglePago, { pagado: input.checked }))
@@ -179,7 +179,8 @@ function openPrestamoForm(prestamo) {
   );
 }
 
-function openPagoForm(prestamoId) {
+function openPagoForm(prestamo, pagosPrestamos) {
+  const prestamoId = prestamo.id;
   openModal(
     `
     <h2 class="modal__title">Registrar pago</h2>
@@ -198,6 +199,7 @@ function openPagoForm(prestamoId) {
       <div id="pago-simple" class="field field--full">
         <span class="field__label">Importe</span>
         <input type="number" step="0.01" name="importe" placeholder="0.00" />
+        <p class="field-hint is-hidden" id="pago-aumento-hint"></p>
       </div>
 
       <div id="pago-ambos" class="form-grid field--full is-hidden" style="padding:0;">
@@ -228,6 +230,8 @@ function openPagoForm(prestamoId) {
         const simple = root.querySelector("#pago-simple");
         const ambos = root.querySelector("#pago-ambos");
         const pagadoWrap = root.querySelector("#pago-pagado-wrap");
+        const importeInput = root.querySelector("input[name=importe]");
+        const aumentoHint = root.querySelector("#pago-aumento-hint");
 
         function toggleFields() {
           const esAmbos = tipoSelect.value === "Ambos";
@@ -235,6 +239,13 @@ function openPagoForm(prestamoId) {
           simple.classList.toggle("is-hidden", esAmbos);
           ambos.classList.toggle("is-hidden", !esAmbos);
           pagadoWrap.classList.toggle("is-hidden", esAumento);
+          aumentoHint.classList.toggle("is-hidden", !esAumento);
+          if (esAumento) {
+            const restante = capitalActual(prestamo, pagosPrestamos);
+            const interes = restante * (Number(prestamo.interes_porcentaje ?? 0) / 100);
+            importeInput.value = (restante + interes).toFixed(2);
+            aumentoHint.textContent = `Sugerido: capital pendiente (${formatEUR(restante)}) + interés de este periodo (${formatEUR(interes)}). Ajusta el importe si solo una parte queda impaga.`;
+          }
         }
         tipoSelect.addEventListener("change", toggleFields);
         toggleFields();

@@ -294,6 +294,13 @@ button, input, select, textarea { font-family: inherit; font-size: inherit; colo
   margin: 0;
 }
 
+.field-hint {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin: 6px 0 0;
+  line-height: 1.4;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

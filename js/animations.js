@@ -36,6 +36,16 @@ function initHeroMouseParallax() {
   });
 }
 
+// El Dashboard se vuelve a renderizar cada vez que llega cualquier
+// actualización de Firestore (cuentas, movimientos, préstamos...), no solo
+// al entrar en la vista. Sin esta bandera, cada una de esas actualizaciones
+// relanzaba las animaciones de entrada (fundido del hero, aparición en
+// cascada de las tarjetas) desde cero, dando el efecto de "salto" repetido
+// y rapidísimo. Ahora esas animaciones de entrada solo se reproducen una
+// vez por carga de página; las siguientes veces el contenido se deja
+// directamente en su estado final, sin volver a animar.
+let dashboardEnterPlayed = false;
+
 export function initDashboardAnimations() {
   if (typeof gsap === "undefined") return;
   gsap.registerPlugin(ScrollTrigger);
@@ -60,24 +70,33 @@ export function initDashboardAnimations() {
     });
     heroTriggers.push(parallax.scrollTrigger);
 
-    gsap.fromTo(
-      heroBg,
-      { scale: 1.12, opacity: 0.6 },
-      { scale: 1.05, opacity: 1, duration: 1.4, ease: "power2.out" }
-    );
-
-    if (heroContent) {
+    if (!dashboardEnterPlayed) {
       gsap.fromTo(
-        heroContent,
-        { y: 28, opacity: 0 },
-        { y: 0, opacity: 1, duration: 1.1, ease: "power3.out", delay: 0.15 }
+        heroBg,
+        { scale: 1.12, opacity: 0.6 },
+        { scale: 1.05, opacity: 1, duration: 1.4, ease: "power2.out" }
       );
+      if (heroContent) {
+        gsap.fromTo(
+          heroContent,
+          { y: 28, opacity: 0 },
+          { y: 0, opacity: 1, duration: 1.1, ease: "power3.out", delay: 0.15 }
+        );
+      }
+    } else {
+      gsap.set(heroBg, { scale: 1.05, opacity: 1 });
+      if (heroContent) gsap.set(heroContent, { y: 0, opacity: 1 });
     }
 
     initHeroMouseParallax();
   }
 
   document.querySelectorAll("#view-dashboard .reveal").forEach((el, i) => {
+    if (dashboardEnterPlayed) {
+      el.classList.add("is-visible");
+      gsap.set(el, { opacity: 1, y: 0 });
+      return;
+    }
     el.classList.remove("is-visible");
     const trigger = ScrollTrigger.create({
       trigger: el,
@@ -96,6 +115,7 @@ export function initDashboardAnimations() {
     revealTriggers.push(trigger);
   });
 
+  dashboardEnterPlayed = true;
   ScrollTrigger.refresh();
 }
 
