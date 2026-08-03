@@ -977,6 +977,56 @@ canvas { max-width: 100%; }
 }
 
 .entity-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.entity-card__top-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.row-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease-lux), color 0.15s var(--ease-lux);
+}
+.row-edit-btn:hover { border-color: var(--border-strong); color: var(--accent); }
+
+/* ---------------- Deslizar para eliminar ---------------- */
+
+.swipe-row { position: relative; overflow: hidden; border-radius: var(--radius-md); }
+.swipe-row + .swipe-row { margin-top: 0; }
+
+.swipe-row__action {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 88px;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.swipe-row__content {
+  position: relative;
+  background: inherit;
+  transition: transform 0.25s var(--ease-lux);
+  touch-action: pan-y;
+}
+.swipe-row__content--dragging { transition: none; }
+
+/* Dentro de una lista (mini-row), el fondo lo pone la tarjeta contenedora,
+   no la propia fila — hace falta un fondo opaco aquí para que al deslizar
+   se vea la fila tapando el botón rojo, en vez de verse ambos a la vez. */
+.mini-list .swipe-row__content { background: var(--surface); }
+.mini-list .swipe-row { border-radius: var(--radius-sm); }
 
 .icon-badge {
   display: inline-flex;

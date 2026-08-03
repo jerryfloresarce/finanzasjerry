@@ -6,9 +6,10 @@ import {
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js?v=11";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=11";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=11";
+} from "../db.js?v=12";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=12";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=12";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=12";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -168,7 +169,8 @@ function openDiaDetalle(fecha, state) {
         amountClass = m.tipo === "Ingreso" ? "mini-row__amount--pos" : "mini-row__amount--neg";
         amountSign = m.tipo === "Ingreso" ? "+ " : "− ";
       }
-      return `
+      return wrapSwipe(
+        `
         <div class="mini-row">
           <div class="mini-row__body" style="flex:1; min-width:0;">
             <span class="mini-row__icon">${iconHTML}</span>
@@ -178,11 +180,10 @@ function openDiaDetalle(fecha, state) {
             </span>
           </div>
           <span class="mini-row__amount ${amountClass}">${amountSign}${formatEUR(Math.abs(Number(m.importe)))}</span>
-          <span class="data-row__actions">
-            <button class="btn btn--ghost btn--sm" data-edit="${m.id}">Editar</button>
-            <button class="btn btn--danger btn--sm" data-delete="${m.id}">Eliminar</button>
-          </span>
-        </div>`;
+          <button type="button" class="row-edit-btn" data-edit="${m.id}" title="Editar">${icon("edit", { size: 15 })}</button>
+        </div>`,
+        m.id
+      );
     })
     .join("");
 
@@ -203,11 +204,12 @@ function openDiaDetalle(fecha, state) {
         root.querySelectorAll("[data-edit]").forEach((btn) =>
           btn.addEventListener("click", () => openForm(movimientos.find((m) => m.id === btn.dataset.edit), state))
         );
-        root.querySelectorAll("[data-delete]").forEach((btn) =>
-          btn.addEventListener("click", () => {
-            if (confirm("¿Eliminar este movimiento?")) deleteMovimiento(btn.dataset.delete);
-          })
-        );
+        const lista = root.querySelector(".mini-list");
+        if (lista) {
+          attachSwipe(lista, (id) => {
+            if (confirm("¿Eliminar este movimiento?")) deleteMovimiento(id);
+          });
+        }
       },
     }
   );
