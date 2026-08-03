@@ -17,7 +17,7 @@ import {
   importarJessicaYSilvia,
   dismissHistorial,
 } from "../fixes.js";
-import { icon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js";
 
 let chartInstance = null;
 
@@ -274,7 +274,7 @@ function renderRecientes(movimientos, categorias, cuentas) {
       return `
         <div class="mini-row">
           <div class="mini-row__body">
-            <span class="mini-row__icon">${icon(iconForCategoriaTipo(cat?.tipo))}</span>
+            <span class="mini-row__icon">${entityIcon(cat, iconForCategoriaTipo(cat?.tipo))}</span>
             <div class="mini-row__main">
               <span class="mini-row__title">${m.subcategoria || m.nota || cat?.nombre || "Movimiento"}</span>
               <span class="mini-row__sub">${cat?.nombre || ""} · ${formatFecha(fromTimestamp(m.fecha))}</span>
@@ -354,7 +354,7 @@ function renderCuentasResumen(cuentas, movimientos) {
       return `
         <div class="mini-row">
           <div class="mini-row__body">
-            <span class="mini-row__icon">${icon(iconForCuentaTipo(c.tipo))}</span>
+            <span class="mini-row__icon">${entityIcon(c, iconForCuentaTipo(c.tipo))}</span>
             <div class="mini-row__main">
               <span class="mini-row__title">${c.nombre}</span>
               <span class="mini-row__sub">${c.tipo}</span>

@@ -5,9 +5,10 @@ const modalContent = document.getElementById("modal-content");
 const MODAL_TRANSITION_MS = 220;
 let modalCloseTimeout = null;
 
-export function openModal(html, { onMount } = {}) {
+export function openModal(html, { onMount, wide } = {}) {
   clearTimeout(modalCloseTimeout);
   modalContent.innerHTML = html;
+  modalContent.classList.toggle("modal--wide", Boolean(wide));
   modalRoot.classList.remove("is-hidden");
   requestAnimationFrame(() => modalRoot.classList.add("is-open"));
   document.body.style.overflow = "hidden";
