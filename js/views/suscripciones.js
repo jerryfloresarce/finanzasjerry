@@ -1,6 +1,7 @@
-import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=11";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=11";
-import { icon, iconForSuscripcion } from "../icons.js?v=11";
+import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=12";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=12";
+import { icon, iconForSuscripcion } from "../icons.js?v=12";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=12";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).
@@ -68,7 +69,8 @@ export function renderSuscripciones(state) {
         } else pendienteTotal += importeReal;
       }
 
-      return `
+      return wrapSwipe(
+        `
         <div class="mini-row susc-row ${s.activa === false ? "susc-row--inactiva" : ""}">
           <label class="field-check" style="flex:1; min-width:0;">
             <input type="checkbox" data-toggle-susc="${s.id}" ${pagada ? "checked" : ""} ${s.activa === false ? "disabled" : ""} />
@@ -81,11 +83,10 @@ export function renderSuscripciones(state) {
             </span>
           </label>
           <span class="mini-row__amount">${formatEUR(importeReal)}</span>
-          <span class="data-row__actions">
-            <button class="btn btn--ghost btn--sm" data-edit="${s.id}">Editar</button>
-            <button class="btn btn--danger btn--sm" data-delete="${s.id}">Eliminar</button>
-          </span>
-        </div>`;
+          <button type="button" class="row-edit-btn" data-edit="${s.id}" title="Editar">${icon("edit", { size: 15 })}</button>
+        </div>`,
+        s.id
+      );
     })
     .join("");
 

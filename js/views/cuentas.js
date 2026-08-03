@@ -1,8 +1,9 @@
-import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha, fromTimestamp } from "../db.js?v=11";
-import { openModal, closeModal, todayISO } from "../modal.js?v=11";
-import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo } from "../icons.js?v=11";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=11";
-import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=11";
+import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha, fromTimestamp } from "../db.js?v=12";
+import { openModal, closeModal, todayISO } from "../modal.js?v=12";
+import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=12";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=12";
+import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=12";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=12";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 
@@ -22,38 +23,40 @@ export function renderCuentas(state) {
   el.innerHTML = cuentas
     .map((c) => {
       const saldo = calcularSaldoCuenta(c, movimientos);
-      return `
+      return wrapSwipe(
+        `
         <article class="entity-card">
           <div class="entity-card__top">
             <div class="entity-card__heading">
               <span class="icon-badge">${entityIcon(c, iconForCuentaTipo(c.tipo))}</span>
               <p class="entity-card__name">${c.nombre}</p>
             </div>
-            <span class="entity-card__tag ${c.activa === false ? "entity-card__tag--pagado" : "entity-card__tag--activo"}">${c.activa === false ? "Inactiva" : c.tipo}</span>
+            <div class="entity-card__top-actions">
+              <span class="entity-card__tag ${c.activa === false ? "entity-card__tag--pagado" : "entity-card__tag--activo"}">${c.activa === false ? "Inactiva" : c.tipo}</span>
+              <button type="button" class="row-edit-btn" data-edit="${c.id}" title="Editar">${icon("edit", { size: 15 })}</button>
+            </div>
           </div>
           <p class="entity-card__amount">${formatEUR(saldo)}</p>
           <p class="entity-card__meta">Saldo inicial ${formatEUR(c.saldo_inicial)} · desde ${c.fecha_inicio ? formatFecha(new Date(c.fecha_inicio)) : "—"}</p>
           <div class="entity-card__actions">
             ${copyIdButton(c.id)}
             <button class="btn btn--ghost btn--sm" data-historial="${c.id}">Historial</button>
-            <button class="btn btn--ghost btn--sm" data-edit="${c.id}">Editar</button>
-            <button class="btn btn--danger btn--sm" data-delete="${c.id}">Eliminar</button>
           </div>
-        </article>`;
+        </article>`,
+        c.id
+      );
     })
     .join("");
 
   el.querySelectorAll("[data-edit]").forEach((btn) =>
     btn.addEventListener("click", () => openForm(cuentas.find((c) => c.id === btn.dataset.edit)))
   );
-  el.querySelectorAll("[data-delete]").forEach((btn) =>
-    btn.addEventListener("click", () => {
-      if (confirm("¿Eliminar esta cuenta? No se borrarán sus movimientos.")) deleteCuenta(btn.dataset.delete);
-    })
-  );
   el.querySelectorAll("[data-historial]").forEach((btn) =>
     btn.addEventListener("click", () => openHistorial(cuentas.find((c) => c.id === btn.dataset.historial), state))
   );
+  attachSwipe(el, (id) => {
+    if (confirm("¿Eliminar esta cuenta? No se borrarán sus movimientos.")) deleteCuenta(id);
+  });
   attachCopyId(el);
 }
 

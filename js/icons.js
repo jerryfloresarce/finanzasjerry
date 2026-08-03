@@ -31,6 +31,7 @@ const PH = {
   plus: "plus",
   check: "check",
   copy: "copy",
+  edit: "pencil-simple",
   logout: "sign-out",
   logo: "leaf",
 };

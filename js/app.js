@@ -1,16 +1,16 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=11";
-import { state, subscribe, initStore } from "./store.js?v=11";
+import { onAuthReady } from "./auth.js?v=12";
+import { state, subscribe, initStore } from "./store.js?v=12";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=11";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=11";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=11";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=11";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=11";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=11";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=11";
-import { mountCuentaPanel } from "./views/cuenta.js?v=11";
-import { refreshAnimations } from "./animations.js?v=11";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=12";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=12";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=12";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=12";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=12";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=12";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=12";
+import { mountCuentaPanel } from "./views/cuenta.js?v=12";
+import { refreshAnimations } from "./animations.js?v=12";
 
 const ROUTES = {
   dashboard: renderDashboard,

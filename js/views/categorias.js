@@ -1,8 +1,9 @@
-import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js?v=11";
-import { openModal, closeModal } from "../modal.js?v=11";
-import { entityIcon, iconForCategoriaTipo } from "../icons.js?v=11";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=11";
-import { emojiFieldHTML, attachEmojiPicker, CATEGORIA_EMOJIS } from "../emoji-picker.js?v=11";
+import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js?v=12";
+import { openModal, closeModal } from "../modal.js?v=12";
+import { entityIcon, iconForCategoriaTipo, icon } from "../icons.js?v=12";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=12";
+import { emojiFieldHTML, attachEmojiPicker, CATEGORIA_EMOJIS } from "../emoji-picker.js?v=12";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=12";
 
 const TIPOS = ["Fijo", "Variable", "Ocio", "PrestamoDado"];
 
@@ -25,34 +26,36 @@ export function renderCategorias(state) {
   el.innerHTML = categorias
     .map((c) => {
       const gastado = totalByCat.get(c.id) || 0;
-      return `
+      return wrapSwipe(
+        `
         <article class="entity-card">
           <div class="entity-card__top">
             <div class="entity-card__heading">
               <span class="icon-badge">${entityIcon(c, iconForCategoriaTipo(c.tipo))}</span>
               <p class="entity-card__name">${c.nombre}</p>
             </div>
-            <span class="entity-card__tag">${c.tipo}</span>
+            <div class="entity-card__top-actions">
+              <span class="entity-card__tag">${c.tipo}</span>
+              <button type="button" class="row-edit-btn" data-edit="${c.id}" title="Editar">${icon("edit", { size: 15 })}</button>
+            </div>
           </div>
           <p class="entity-card__amount">${formatEUR(gastado)}</p>
           <p class="entity-card__meta">${c.limite_mensual ? `Límite mensual ${formatEUR(c.limite_mensual)}` : "Sin límite mensual"}</p>
           <div class="entity-card__actions">
             ${copyIdButton(c.id)}
-            <button class="btn btn--ghost btn--sm" data-edit="${c.id}">Editar</button>
-            <button class="btn btn--danger btn--sm" data-delete="${c.id}">Eliminar</button>
           </div>
-        </article>`;
+        </article>`,
+        c.id
+      );
     })
     .join("");
 
   el.querySelectorAll("[data-edit]").forEach((btn) =>
     btn.addEventListener("click", () => openForm(categorias.find((c) => c.id === btn.dataset.edit)))
   );
-  el.querySelectorAll("[data-delete]").forEach((btn) =>
-    btn.addEventListener("click", () => {
-      if (confirm("¿Eliminar esta categoría?")) deleteCategoria(btn.dataset.delete);
-    })
-  );
+  attachSwipe(el, (id) => {
+    if (confirm("¿Eliminar esta categoría?")) deleteCategoria(id);
+  });
   attachCopyId(el);
 }
 

@@ -9,10 +9,11 @@ import {
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js?v=11";
-import { openModal, closeModal, todayISO } from "../modal.js?v=11";
-import { capitalActual } from "./dashboard.js?v=11";
-import { initials, avatarColor } from "../icons.js?v=11";
+} from "../db.js?v=12";
+import { openModal, closeModal, todayISO } from "../modal.js?v=12";
+import { capitalActual } from "./dashboard.js?v=12";
+import { initials, avatarColor, icon } from "../icons.js?v=12";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=12";
 
 const ESTADOS = ["Activo", "Pagado", "Impago"];
 const TIPOS_PAGO = ["Interes", "Capital", "Ambos", "AumentoCapital"];
@@ -59,14 +60,18 @@ export function renderPrestamos(state) {
       const tagClass =
         p.estado === "Pagado" ? "entity-card__tag--pagado" : p.estado === "Impago" ? "entity-card__tag--impago" : "entity-card__tag--activo";
 
-      return `
+      return wrapSwipe(
+        `
         <article class="entity-card">
           <div class="entity-card__top">
             <div class="entity-card__heading">
               <span class="avatar" style="background:${avatarColor(p.persona)}">${initials(p.persona)}</span>
               <p class="entity-card__name">${p.persona}</p>
             </div>
-            <span class="entity-card__tag ${tagClass}">${p.estado}</span>
+            <div class="entity-card__top-actions">
+              <span class="entity-card__tag ${tagClass}">${p.estado}</span>
+              <button type="button" class="row-edit-btn" data-edit="${p.id}" title="Editar">${icon("edit", { size: 15 })}</button>
+            </div>
           </div>
           <p class="entity-card__amount">${formatEUR(restante)} <span style="font-size:0.9rem;color:var(--text-muted);font-family:var(--font-body)">pendiente de capital</span></p>
           <p class="entity-card__meta">Prestado ${formatEUR(p.capital_inicial)} el ${p.fecha_inicio ? formatFecha(new Date(p.fecha_inicio)) : "—"} · ${p.interes_porcentaje}% interés (${formatEUR(totalInteres)})</p>
@@ -77,8 +82,9 @@ export function renderPrestamos(state) {
               pagos.length === 0
                 ? `<p class="empty-state" style="padding:8px 0;">Sin pagos registrados</p>`
                 : pagos
-                    .map(
-                      (pg) => `
+                    .map((pg) =>
+                      wrapSwipe(
+                        `
                 <div class="mini-row">
                   <label class="field-check" style="flex:1;">
                     <input type="checkbox" data-toggle-pago="${pg.id}" ${pg.pagado ? "checked" : ""} />
@@ -88,8 +94,9 @@ export function renderPrestamos(state) {
                     </span>
                   </label>
                   <span class="mini-row__amount">${formatEUR(pg.importe)}</span>
-                  <button class="btn btn--ghost btn--sm" data-delete-pago="${pg.id}" title="Eliminar pago">✕</button>
-                </div>`
+                </div>`,
+                        pg.id
+                      )
                     )
                     .join("")
             }
@@ -97,20 +104,15 @@ export function renderPrestamos(state) {
 
           <div class="entity-card__actions">
             <button class="btn btn--ghost btn--sm" data-add-pago="${p.id}">+ Pago</button>
-            <button class="btn btn--ghost btn--sm" data-edit="${p.id}">Editar</button>
-            <button class="btn btn--danger btn--sm" data-delete="${p.id}">Eliminar</button>
           </div>
-        </article>`;
+        </article>`,
+        p.id
+      );
     })
     .join("");
 
   el.querySelectorAll("[data-edit]").forEach((btn) =>
     btn.addEventListener("click", () => openPrestamoForm(prestamos.find((p) => p.id === btn.dataset.edit)))
-  );
-  el.querySelectorAll("[data-delete]").forEach((btn) =>
-    btn.addEventListener("click", () => {
-      if (confirm("¿Eliminar este préstamo? No se borrarán sus pagos.")) deletePrestamo(btn.dataset.delete);
-    })
   );
   el.querySelectorAll("[data-add-pago]").forEach((btn) =>
     btn.addEventListener("click", () => openPagoForm(prestamos.find((p) => p.id === btn.dataset.addPago), pagosPrestamos))
@@ -118,9 +120,12 @@ export function renderPrestamos(state) {
   el.querySelectorAll("[data-toggle-pago]").forEach((input) =>
     input.addEventListener("change", () => updatePagoPrestamo(input.dataset.togglePago, { pagado: input.checked }))
   );
-  el.querySelectorAll("[data-delete-pago]").forEach((btn) =>
-    btn.addEventListener("click", () => {
-      if (confirm("¿Eliminar este pago?")) deletePagoPrestamo(btn.dataset.deletePago);
+  attachSwipe(el, (id) => {
+    if (confirm("¿Eliminar este préstamo? No se borrarán sus pagos.")) deletePrestamo(id);
+  });
+  el.querySelectorAll(".pago-list").forEach((listEl) =>
+    attachSwipe(listEl, (id) => {
+      if (confirm("¿Eliminar este pago?")) deletePagoPrestamo(id);
     })
   );
 }
