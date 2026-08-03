@@ -4,14 +4,22 @@ const modalContent = document.getElementById("modal-content");
 
 const MODAL_TRANSITION_MS = 220;
 let modalCloseTimeout = null;
+let activeOnClose = null;
 
-export function openModal(html, { onMount, wide } = {}) {
+// onClose: se llama SIEMPRE que el modal se cierra (Cancelar, click en el
+// scrim, Escape, o un cierre tras guardar con éxito) — quien lo pasa es
+// responsable de distinguir "se guardó" de "se canceló" (normalmente con
+// una variable local `saved` que solo se pone a true justo antes de su
+// propio closeModal() en el submit). Sirve para revertir un cambio óptimo
+// en la fila que abrió el modal (p. ej. un checkbox) si al final no se guardó.
+export function openModal(html, { onMount, wide, onClose } = {}) {
   clearTimeout(modalCloseTimeout);
   modalContent.innerHTML = html;
   modalContent.classList.toggle("modal--wide", Boolean(wide));
   modalRoot.classList.remove("is-hidden");
   requestAnimationFrame(() => modalRoot.classList.add("is-open"));
   document.body.style.overflow = "hidden";
+  activeOnClose = onClose || null;
   if (onMount) onMount(modalContent);
 }
 
@@ -22,6 +30,11 @@ export function closeModal() {
     modalRoot.classList.add("is-hidden");
     modalContent.innerHTML = "";
   }, MODAL_TRANSITION_MS);
+  if (activeOnClose) {
+    const cb = activeOnClose;
+    activeOnClose = null;
+    cb();
+  }
 }
 
 modalScrim.addEventListener("click", closeModal);

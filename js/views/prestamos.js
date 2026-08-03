@@ -1,48 +1,25 @@
-import {
-  addPrestamo,
-  updatePrestamo,
-  deletePrestamo,
-  addPagoPrestamo,
-  updatePagoPrestamo,
-  deletePagoPrestamo,
-  formatEUR,
-  formatFecha,
-  fromTimestamp,
-  toTimestamp,
-} from "../db.js?v=12";
-import { openModal, closeModal, todayISO } from "../modal.js?v=12";
-import { capitalActual } from "./dashboard.js?v=12";
-import { initials, avatarColor, icon } from "../icons.js?v=12";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=12";
+import { addPrestamo, updatePrestamo, deletePrestamo, addMovimiento, formatEUR, formatFecha, toTimestamp } from "../db.js?v=13";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=13";
+import { initials, avatarColor, icon } from "../icons.js?v=13";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=13";
 
-const ESTADOS = ["Activo", "Pagado", "Impago"];
-const TIPOS_PAGO = ["Interes", "Capital", "Ambos", "AumentoCapital"];
-const TIPO_LABELS = {
-  Interes: "Interés",
-  Capital: "Capital",
-  Ambos: "Ambos",
-  AumentoCapital: "Capitalización de interés",
-};
-
-let currentState = null;
-let ordenPagos = "reciente";
+const ESTADOS = ["Activo", "Pagado"];
 
 export function mountPrestamos() {
   document.getElementById("btn-add-prestamo").addEventListener("click", () => openPrestamoForm());
-  document.querySelectorAll("#prestamos-orden .segmented__btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (btn.classList.contains("is-active")) return;
-      ordenPagos = btn.dataset.orden;
-      document.querySelectorAll("#prestamos-orden .segmented__btn").forEach((b) => b.classList.toggle("is-active", b === btn));
-      if (currentState) renderPrestamos(currentState);
-    });
-  });
+}
+
+// Un mes exacto después de una fecha ISO ("2026-09-01" → "2026-10-01"),
+// para avanzar la fecha de interés cada vez que se marca pagado o impago.
+function unMesDespues(fechaISO) {
+  const d = new Date(fechaISO + "T00:00:00");
+  d.setMonth(d.getMonth() + 1);
+  return d.toISOString().slice(0, 10);
 }
 
 export function renderPrestamos(state) {
-  currentState = state;
   const el = document.getElementById("prestamos-grid");
-  const { prestamos, pagosPrestamos } = state;
+  const { prestamos } = state;
 
   if (prestamos.length === 0) {
     el.innerHTML = `<p class="empty-state">Todavía no has registrado ningún préstamo.</p>`;
@@ -51,14 +28,13 @@ export function renderPrestamos(state) {
 
   el.innerHTML = prestamos
     .map((p) => {
-      const pagos = pagosPrestamos.filter((pg) => pg.prestamo_id === p.id).sort((a, b) => {
-        const diff = (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0);
-        return ordenPagos === "antiguo" ? -diff : diff;
-      });
-      const restante = capitalActual(p, pagosPrestamos);
-      const totalInteres = restante * (Number(p.interes_porcentaje ?? 0) / 100);
-      const tagClass =
-        p.estado === "Pagado" ? "entity-card__tag--pagado" : p.estado === "Impago" ? "entity-card__tag--impago" : "entity-card__tag--activo";
+      // capital_inicial es el campo antiguo (de antes de simplificar
+      // préstamos): si un préstamo todavía no tiene `capital` fijado, se
+      // usa como respaldo temporal para no mostrar NaN/vacío.
+      const capital = Number(p.capital ?? p.capital_inicial ?? 0);
+      const pct = Number(p.interes_porcentaje ?? 0);
+      const interesActual = capital * (pct / 100);
+      const tagClass = p.estado === "Pagado" ? "entity-card__tag--pagado" : "entity-card__tag--activo";
 
       return wrapSwipe(
         `
@@ -69,42 +45,29 @@ export function renderPrestamos(state) {
               <p class="entity-card__name">${p.persona}</p>
             </div>
             <div class="entity-card__top-actions">
-              <span class="entity-card__tag ${tagClass}">${p.estado}</span>
+              <span class="entity-card__tag ${tagClass}">${p.estado || "Activo"}</span>
               <button type="button" class="row-edit-btn" data-edit="${p.id}" title="Editar">${icon("edit", { size: 15 })}</button>
             </div>
           </div>
-          <p class="entity-card__amount">${formatEUR(restante)} <span style="font-size:0.9rem;color:var(--text-muted);font-family:var(--font-body)">pendiente de capital</span></p>
-          <p class="entity-card__meta">Prestado ${formatEUR(p.capital_inicial)} el ${p.fecha_inicio ? formatFecha(new Date(p.fecha_inicio)) : "—"} · ${p.interes_porcentaje}% interés (${formatEUR(totalInteres)})</p>
+          <p class="entity-card__amount">${formatEUR(capital)} <span style="font-size:0.9rem;color:var(--text-muted);font-family:var(--font-body)">de capital</span></p>
           ${p.notas ? `<p class="entity-card__meta">${p.notas}</p>` : ""}
 
-          <div class="mini-list pago-list">
-            ${
-              pagos.length === 0
-                ? `<p class="empty-state" style="padding:8px 0;">Sin pagos registrados</p>`
-                : pagos
-                    .map((pg) =>
-                      wrapSwipe(
-                        `
-                <div class="mini-row">
-                  <label class="field-check" style="flex:1;">
-                    <input type="checkbox" data-toggle-pago="${pg.id}" ${pg.pagado ? "checked" : ""} />
-                    <span class="mini-row__main">
-                      <span class="mini-row__title">${TIPO_LABELS[pg.tipo] || pg.tipo}</span>
-                      <span class="mini-row__sub">${formatFecha(fromTimestamp(pg.fecha))}${pg.tipo === "Ambos" ? ` · ${formatEUR(pg.importe_capital)} cap + ${formatEUR(pg.importe_interes)} int` : ""}</span>
-                    </span>
-                  </label>
-                  <span class="mini-row__amount">${formatEUR(pg.importe)}</span>
-                </div>`,
-                        pg.id
-                      )
-                    )
-                    .join("")
-            }
-          </div>
-
-          <div class="entity-card__actions">
-            <button class="btn btn--ghost btn--sm" data-add-pago="${p.id}">+ Pago</button>
-          </div>
+          ${
+            p.fecha_interes
+              ? `
+          <div class="prestamo-interes">
+            <div class="prestamo-interes__info">
+              <span class="prestamo-interes__label">Interés (${pct}%)</span>
+              <span class="prestamo-interes__amount">${formatEUR(interesActual)}</span>
+              <span class="prestamo-interes__fecha">vence ${formatFecha(new Date(p.fecha_interes + "T00:00:00"))}</span>
+            </div>
+            <div class="prestamo-interes__actions">
+              <button type="button" class="btn btn--primary btn--sm" data-pago-ok="${p.id}">✓ Pagó</button>
+              <button type="button" class="btn btn--ghost btn--sm" data-pago-no="${p.id}">✕ No pagó</button>
+            </div>
+          </div>`
+              : `<p class="entity-card__meta">Sin fecha de interés configurada — edita el préstamo para añadirla.</p>`
+          }
         </article>`,
         p.id
       );
@@ -114,24 +77,95 @@ export function renderPrestamos(state) {
   el.querySelectorAll("[data-edit]").forEach((btn) =>
     btn.addEventListener("click", () => openPrestamoForm(prestamos.find((p) => p.id === btn.dataset.edit)))
   );
-  el.querySelectorAll("[data-add-pago]").forEach((btn) =>
-    btn.addEventListener("click", () => openPagoForm(prestamos.find((p) => p.id === btn.dataset.addPago), pagosPrestamos))
+  el.querySelectorAll("[data-pago-ok]").forEach((btn) =>
+    btn.addEventListener("click", () => openInteresPagadoForm(prestamos.find((p) => p.id === btn.dataset.pagoOk), state))
   );
-  el.querySelectorAll("[data-toggle-pago]").forEach((input) =>
-    input.addEventListener("change", () => updatePagoPrestamo(input.dataset.togglePago, { pagado: input.checked }))
+  el.querySelectorAll("[data-pago-no]").forEach((btn) =>
+    btn.addEventListener("click", () => marcarInteresImpago(prestamos.find((p) => p.id === btn.dataset.pagoNo)))
   );
   attachSwipe(el, (id) => {
-    if (confirm("¿Eliminar este préstamo? No se borrarán sus pagos.")) deletePrestamo(id);
+    if (confirm("¿Eliminar este préstamo?")) deletePrestamo(id);
   });
-  el.querySelectorAll(".pago-list").forEach((listEl) =>
-    attachSwipe(listEl, (id) => {
-      if (confirm("¿Eliminar este pago?")) deletePagoPrestamo(id);
-    })
+}
+
+async function marcarInteresImpago(prestamo) {
+  const capital = Number(prestamo.capital ?? prestamo.capital_inicial ?? 0);
+  const pct = Number(prestamo.interes_porcentaje ?? 0);
+  const interesActual = capital * (pct / 100);
+  const nuevoCapital = capital + interesActual;
+  if (
+    !confirm(
+      `${prestamo.persona} no pagó el interés de ${formatEUR(interesActual)}.\n\nSe sumará al capital: ${formatEUR(capital)} + ${formatEUR(
+        interesActual
+      )} = ${formatEUR(nuevoCapital)}.\n\n¿Confirmas?`
+    )
+  )
+    return;
+  await updatePrestamo(prestamo.id, {
+    capital: nuevoCapital,
+    fecha_interes: unMesDespues(prestamo.fecha_interes),
+  });
+}
+
+function openInteresPagadoForm(prestamo, state) {
+  const capital = Number(prestamo.capital ?? prestamo.capital_inicial ?? 0);
+  const pct = Number(prestamo.interes_porcentaje ?? 0);
+  const interesActual = capital * (pct / 100);
+
+  openModal(
+    `
+    <h2 class="modal__title">Interés pagado · ${prestamo.persona}</h2>
+    <form id="form-interes-pago" class="form-grid">
+      <label class="field">
+        <span class="field__label">Importe</span>
+        <input type="number" step="0.01" name="importe" required value="${interesActual.toFixed(2)}" placeholder="0.00" />
+      </label>
+      <label class="field">
+        <span class="field__label">Cuenta</span>
+        <select name="cuenta_id">${optionsFrom(state.cuentas, { selected: prestamo.cuenta_id })}</select>
+      </label>
+      <label class="field field--full">
+        <span class="field__label">Fecha</span>
+        <input type="date" name="fecha" value="${todayISO()}" required />
+      </label>
+      <p class="field-error" id="form-interes-pago-error"></p>
+      <div class="modal__actions field--full">
+        <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Confirmar</button>
+      </div>
+    </form>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector("#form-interes-pago").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const f = e.target;
+          try {
+            await addMovimiento({
+              tipo: "Ingreso",
+              importe: Number(f.importe.value),
+              categoria_id: null,
+              cuenta_id: f.cuenta_id.value,
+              cuenta_destino_id: null,
+              fecha: toTimestamp(f.fecha.value),
+              subcategoria: `Interés préstamo · ${prestamo.persona}`,
+              nota: "",
+            });
+            await updatePrestamo(prestamo.id, { fecha_interes: unMesDespues(prestamo.fecha_interes) });
+            closeModal();
+          } catch (err) {
+            root.querySelector("#form-interes-pago-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
+          }
+        });
+      },
+    }
   );
 }
 
 function openPrestamoForm(prestamo) {
   const isEdit = Boolean(prestamo);
+  const capital = prestamo ? Number(prestamo.capital ?? prestamo.capital_inicial ?? 0) : "";
   openModal(
     `
     <h2 class="modal__title">${isEdit ? "Editar préstamo" : "Nuevo préstamo"}</h2>
@@ -141,16 +175,16 @@ function openPrestamoForm(prestamo) {
         <input type="text" name="persona" required value="${prestamo?.persona ?? ""}" placeholder="Liz colombiana" />
       </label>
       <label class="field">
-        <span class="field__label">Capital prestado</span>
-        <input type="number" step="0.01" name="capital_inicial" required value="${prestamo?.capital_inicial ?? ""}" placeholder="500.00" />
+        <span class="field__label">Capital pendiente</span>
+        <input type="number" step="0.01" name="capital" required value="${capital}" placeholder="500.00" />
       </label>
       <label class="field">
         <span class="field__label">Interés (%)</span>
         <input type="number" step="0.01" name="interes_porcentaje" value="${prestamo?.interes_porcentaje ?? 0}" placeholder="20" />
       </label>
       <label class="field">
-        <span class="field__label">Fecha de inicio</span>
-        <input type="date" name="fecha_inicio" value="${prestamo?.fecha_inicio ?? todayISO()}" />
+        <span class="field__label">Fecha del próximo interés</span>
+        <input type="date" name="fecha_interes" value="${prestamo?.fecha_interes ?? ""}" />
       </label>
       <label class="field">
         <span class="field__label">Estado</span>
@@ -158,7 +192,7 @@ function openPrestamoForm(prestamo) {
       </label>
       <label class="field field--full">
         <span class="field__label">Notas (opcional)</span>
-        <textarea name="notas" rows="2" placeholder="Máximo 05/09/2026, 300€…">${prestamo?.notas ?? ""}</textarea>
+        <textarea name="notas" rows="2" placeholder="Notas breves…">${prestamo?.notas ?? ""}</textarea>
       </label>
       <p class="field-error" id="form-prestamo-error"></p>
       <div class="modal__actions field--full">
@@ -175,9 +209,9 @@ function openPrestamoForm(prestamo) {
           const f = e.target;
           const data = {
             persona: f.persona.value.trim(),
-            capital_inicial: Number(f.capital_inicial.value),
+            capital: Number(f.capital.value),
             interes_porcentaje: Number(f.interes_porcentaje.value || 0),
-            fecha_inicio: f.fecha_inicio.value,
+            fecha_interes: f.fecha_interes.value || null,
             estado: f.estado.value,
             notas: f.notas.value.trim(),
           };
@@ -187,115 +221,6 @@ function openPrestamoForm(prestamo) {
             closeModal();
           } catch (err) {
             root.querySelector("#form-prestamo-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
-          }
-        });
-      },
-    }
-  );
-}
-
-function openPagoForm(prestamo, pagosPrestamos) {
-  const prestamoId = prestamo.id;
-  openModal(
-    `
-    <h2 class="modal__title">Registrar pago</h2>
-    <form id="form-pago" class="form-grid">
-      <label class="field">
-        <span class="field__label">Tipo</span>
-        <select name="tipo" id="pago-tipo">
-          ${TIPOS_PAGO.map((t) => `<option value="${t}">${TIPO_LABELS[t]}</option>`).join("")}
-        </select>
-      </label>
-      <label class="field">
-        <span class="field__label">Fecha</span>
-        <input type="date" name="fecha" value="${todayISO()}" required />
-      </label>
-
-      <div id="pago-simple" class="field field--full">
-        <span class="field__label">Importe</span>
-        <input type="number" step="0.01" name="importe" placeholder="0.00" />
-        <p class="field-hint is-hidden" id="pago-aumento-hint"></p>
-      </div>
-
-      <div id="pago-ambos" class="form-grid field--full is-hidden" style="padding:0;">
-        <label class="field">
-          <span class="field__label">Parte de capital</span>
-          <input type="number" step="0.01" name="importe_capital" placeholder="0.00" />
-        </label>
-        <label class="field">
-          <span class="field__label">Parte de interés</span>
-          <input type="number" step="0.01" name="importe_interes" placeholder="0.00" />
-        </label>
-      </div>
-
-      <label class="field-check field--full" id="pago-pagado-wrap">
-        <input type="checkbox" name="pagado" checked />
-        Ya pagado
-      </label>
-      <p class="field-error" id="form-pago-error"></p>
-      <div class="modal__actions field--full">
-        <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
-        <button type="submit" class="btn btn--primary">Registrar</button>
-      </div>
-    </form>
-  `,
-    {
-      onMount: (root) => {
-        const tipoSelect = root.querySelector("#pago-tipo");
-        const simple = root.querySelector("#pago-simple");
-        const ambos = root.querySelector("#pago-ambos");
-        const pagadoWrap = root.querySelector("#pago-pagado-wrap");
-        const importeInput = root.querySelector("input[name=importe]");
-        const aumentoHint = root.querySelector("#pago-aumento-hint");
-
-        function toggleFields() {
-          const esAmbos = tipoSelect.value === "Ambos";
-          const esAumento = tipoSelect.value === "AumentoCapital";
-          simple.classList.toggle("is-hidden", esAmbos);
-          ambos.classList.toggle("is-hidden", !esAmbos);
-          pagadoWrap.classList.toggle("is-hidden", esAumento);
-          aumentoHint.classList.toggle("is-hidden", !esAumento);
-          if (esAumento) {
-            const restante = capitalActual(prestamo, pagosPrestamos);
-            const interes = restante * (Number(prestamo.interes_porcentaje ?? 0) / 100);
-            importeInput.value = (restante + interes).toFixed(2);
-            aumentoHint.textContent = `Sugerido: capital pendiente (${formatEUR(restante)}) + interés de este periodo (${formatEUR(interes)}). Ajusta el importe si solo una parte queda impaga.`;
-          }
-        }
-        tipoSelect.addEventListener("change", toggleFields);
-        toggleFields();
-
-        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
-        root.querySelector("#form-pago").addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const f = e.target;
-          const tipo = f.tipo.value;
-
-          let importe, importe_capital, importe_interes;
-          if (tipo === "Ambos") {
-            importe_capital = Number(f.importe_capital.value || 0);
-            importe_interes = Number(f.importe_interes.value || 0);
-            importe = importe_capital + importe_interes;
-          } else {
-            importe = Number(f.importe.value || 0);
-            importe_capital = tipo === "Capital" ? importe : 0;
-            importe_interes = tipo === "Interes" ? importe : 0;
-          }
-
-          const data = {
-            prestamo_id: prestamoId,
-            fecha: toTimestamp(f.fecha.value),
-            tipo,
-            importe,
-            importe_capital,
-            importe_interes,
-            pagado: tipo === "AumentoCapital" ? true : f.pagado.checked,
-          };
-          try {
-            await addPagoPrestamo(data);
-            closeModal();
-          } catch (err) {
-            root.querySelector("#form-pago-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
           }
         });
       },

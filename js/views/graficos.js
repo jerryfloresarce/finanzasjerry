@@ -3,14 +3,12 @@ import {
   totalPorTipo,
   desglosePorCategoria,
   desglosePorSubcategoria,
-  interesGeneradoPorPrestamo,
   evolucionMensual,
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=12";
-import { countUpTo } from "../animations.js?v=12";
-import { initials, avatarColor } from "../icons.js?v=12";
+} from "../db.js?v=13";
+import { countUpTo } from "../animations.js?v=13";
 
 const GASTO_COLORS = ["#b06a63", "#c48b83", "#9c6a63", "#8a5850", "#a37c74", "#7d5a53"];
 const INGRESO_COLORS = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#6b8778", "#9cae8f"];
@@ -38,7 +36,7 @@ export function mountGraficos() {
 
 export function renderGraficos(state) {
   currentState = state;
-  const { movimientos, categorias, prestamos, pagosPrestamos } = state;
+  const { movimientos, categorias } = state;
   const filtrados = movimientosEnRango(movimientos, rango);
 
   const ingresos = totalPorTipo(filtrados, "Ingreso");
@@ -46,15 +44,10 @@ export function renderGraficos(state) {
   countUpTo(document.getElementById("kpi-ingresos"), ingresos, formatEUR);
   countUpTo(document.getElementById("kpi-gastos"), gastos, formatEUR);
 
-  const datosIntereses = interesGeneradoPorPrestamo(prestamos, pagosPrestamos);
-  const totalIntereses = datosIntereses.reduce((acc, x) => acc + x.interes, 0);
-  countUpTo(document.getElementById("kpi-intereses"), totalIntereses, formatEUR);
-
   renderEvolucion(movimientos);
   renderDonut("chart-gastos-cat", desglosePorCategoria(filtrados, categorias, "Gasto"), GASTO_COLORS);
   renderDonut("chart-ingresos-cat", desglosePorCategoria(filtrados, categorias, "Ingreso"), INGRESO_COLORS);
   renderListaSubcategorias(filtrados);
-  renderListaPrestamos(datosIntereses, totalIntereses);
 }
 
 function renderEvolucion(movimientos) {
@@ -213,31 +206,4 @@ function renderListaSubcategorias(movimientos) {
         </div>`
     )
     .join("");
-}
-
-function renderListaPrestamos(datos, total) {
-  const el = document.getElementById("lista-prestamos-interes");
-
-  if (datos.length === 0) {
-    el.innerHTML = `<p class="empty-state">Todavía no hay intereses cobrados.</p>`;
-    return;
-  }
-
-  el.innerHTML =
-    datos
-      .map(
-        ({ prestamo, interes }) => `
-        <div class="mini-row">
-          <div class="mini-row__body">
-            <span class="avatar" style="background:${avatarColor(prestamo.persona)}">${initials(prestamo.persona)}</span>
-            <div class="mini-row__main"><span class="mini-row__title">${prestamo.persona}</span></div>
-          </div>
-          <span class="mini-row__amount mini-row__amount--pos">${formatEUR(interes)}</span>
-        </div>`
-      )
-      .join("") +
-    `<div class="mini-row" style="border-top: 1px solid var(--border-strong); margin-top: 6px; padding-top: 12px;">
-        <div class="mini-row__main"><span class="mini-row__title">Total</span></div>
-        <span class="mini-row__amount mini-row__amount--pos">${formatEUR(total)}</span>
-      </div>`;
 }
