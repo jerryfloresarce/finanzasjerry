@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=12" />
+<link rel="stylesheet" href="css/styles.css?v=13" />
 <link rel="icon" href="data:,">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
@@ -149,13 +149,25 @@
         <p class="field-error" id="fix-banner-error" style="margin-top: 10px;"></p>
       </div>
 
-      <div id="historial-banner" class="card is-hidden" style="margin-bottom: 20px;">
-        <h2 class="card__title">Historial de Jessica y Silvia</h2>
+      <div id="reset-prestamos-banner" class="card is-hidden" style="margin-bottom: 20px;">
+        <h2 class="card__title">Reiniciar préstamos</h2>
         <p class="entity-card__meta" style="margin-bottom: 16px;">
-          Voy a añadir los dos préstamos con todo su historial de pagos y capitalizaciones de interés tal como me los pasaste.
+          Voy a borrar el historial de pagos de todos los préstamos y dejar cada uno con su capital pendiente e interés
+          actuales — Silvia con 1.600€ de capital y 320€ de interés (vence 01/09/2026), Jessica con 7.464,96€ de capital
+          y 1.492,99€ de interés (vence 03/09/2026), y el resto con su capital pendiente actual congelado.
         </p>
-        <button class="btn btn--primary" id="btn-import-historial">Importar historial</button>
-        <p class="field-error" id="historial-banner-error" style="margin-top: 10px;"></p>
+        <button class="btn btn--primary" id="btn-reset-prestamos">Reiniciar préstamos</button>
+        <p class="field-error" id="reset-prestamos-banner-error" style="margin-top: 10px;"></p>
+      </div>
+
+      <div id="gastos-fijos-agosto-banner" class="card is-hidden" style="margin-bottom: 20px;">
+        <h2 class="card__title">Gastos fijos ya pagados en agosto</h2>
+        <p class="entity-card__meta" style="margin-bottom: 16px;">
+          Voy a marcar Digi, Aquaservice, Pasanaco y el gimnasio como pagados este agosto, sin descontarlo de ninguna
+          cuenta (ese dinero ya salió y tu saldo actual ya lo refleja).
+        </p>
+        <button class="btn btn--primary" id="btn-gastos-fijos-agosto">Marcar como pagados</button>
+        <p class="field-error" id="gastos-fijos-agosto-banner-error" style="margin-top: 10px;"></p>
       </div>
 
       <div class="hero" id="hero-parallax">
@@ -289,10 +301,6 @@
         <h1 class="view-title">Préstamos</h1>
         <button class="btn btn--primary" id="btn-add-prestamo">+ Nuevo préstamo</button>
       </div>
-      <div class="segmented" id="prestamos-orden" style="margin-bottom: 16px;">
-        <button class="segmented__btn is-active" data-orden="reciente">Más reciente primero</button>
-        <button class="segmented__btn" data-orden="antiguo">Más antiguo primero</button>
-      </div>
       <div id="prestamos-grid" class="grid grid--cards grid--prestamos"></div>
     </section>
 
@@ -322,7 +330,7 @@
         </div>
       </div>
 
-      <div class="grid grid--kpis">
+      <div class="grid grid--kpis grid--kpis-2">
         <div class="kpi-tile">
           <span class="kpi-tile__label">Ingresos</span>
           <span class="kpi-tile__value kpi-tile__value--pos" id="kpi-ingresos">—</span>
@@ -330,10 +338,6 @@
         <div class="kpi-tile">
           <span class="kpi-tile__label">Gastos</span>
           <span class="kpi-tile__value" id="kpi-gastos">—</span>
-        </div>
-        <div class="kpi-tile">
-          <span class="kpi-tile__label">Interés generado en préstamos</span>
-          <span class="kpi-tile__value kpi-tile__value--pos" id="kpi-intereses">—</span>
         </div>
       </div>
 
@@ -359,20 +363,13 @@
         </article>
       </div>
 
-      <div class="grid grid--graficos-donuts">
-        <article class="card">
-          <div class="card__header">
-            <h2 class="card__title">Gastos por lugar</h2>
-          </div>
-          <input type="text" id="filtro-subcategoria" class="filtro-input" placeholder="Buscar: Five Guys, KFC, Taco Bell…" />
-          <div id="lista-subcategorias" class="mini-list dash-scroll" style="height: 220px; margin-top: 12px;"></div>
-        </article>
-
-        <article class="card">
-          <h2 class="card__title">Generado con préstamos</h2>
-          <div id="lista-prestamos-interes" class="mini-list dash-scroll" style="height: 220px; margin-top: 4px;"></div>
-        </article>
-      </div>
+      <article class="card">
+        <div class="card__header">
+          <h2 class="card__title">Gastos por lugar</h2>
+        </div>
+        <input type="text" id="filtro-subcategoria" class="filtro-input" placeholder="Buscar: Five Guys, KFC, Taco Bell…" />
+        <div id="lista-subcategorias" class="mini-list dash-scroll" style="height: 220px; margin-top: 12px;"></div>
+      </article>
     </section>
 
   </main>
@@ -414,6 +411,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=12"></script>
+<script type="module" src="js/app.js?v=13"></script>
 </body>
 </html>

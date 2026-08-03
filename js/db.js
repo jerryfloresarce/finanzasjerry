@@ -10,7 +10,7 @@ import {
   orderBy,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=12";
+import { db } from "./firebase-init.js?v=13";
 
 // ---------- Helpers genéricos ----------
 
@@ -102,6 +102,11 @@ export const updateConfig = (data) => setDoc(doc(db, "configuracion", "app"), da
 export function calcularSaldoCuenta(cuenta, movimientos) {
   const inicial = Number(cuenta.saldo_inicial ?? 0);
   const delta = movimientos.reduce((acc, m) => {
+    // Un movimiento marcado "no afecta saldo" (ej. un gasto fijo que ya
+    // estaba pagado y descontado antes de usar la app) sigue contando en
+    // gráficos e historial, pero no se resta/suma aquí para no descuadrar
+    // un saldo que ya es correcto.
+    if (m.afecta_saldo === false) return acc;
     const importe = Number(m.importe ?? 0);
     // Una transferencia mueve dinero entre dos cuentas propias (o un
     // retiro a "Efectivo") — no es gasto ni ingreso, así que resta en la
@@ -202,22 +207,6 @@ export function desglosePorSubcategoria(movimientos, tipo, filtroTexto = "") {
   return [...totales.entries()]
     .map(([subcategoria, total]) => ({ subcategoria, total }))
     .sort((a, b) => b.total - a.total);
-}
-
-export function interesGeneradoPorPrestamo(prestamos, pagosPrestamos) {
-  return prestamos
-    .map((prestamo) => {
-      const interes = pagosPrestamos
-        .filter((pg) => pg.prestamo_id === prestamo.id && pg.pagado)
-        .reduce((acc, pg) => {
-          if (pg.tipo === "Interes") return acc + Number(pg.importe ?? 0);
-          if (pg.tipo === "Ambos") return acc + Number(pg.importe_interes ?? 0);
-          return acc;
-        }, 0);
-      return { prestamo, interes };
-    })
-    .filter((x) => x.interes > 0)
-    .sort((a, b) => b.interes - a.interes);
 }
 
 export function evolucionMensual(movimientos, meses = 12, fecha = new Date()) {

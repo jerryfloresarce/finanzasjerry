@@ -1,7 +1,7 @@
-import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=12";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=12";
-import { icon, iconForSuscripcion } from "../icons.js?v=12";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=12";
+import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=13";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=13";
+import { icon, iconForSuscripcion } from "../icons.js?v=13";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=13";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).
@@ -105,7 +105,7 @@ export function renderSuscripciones(state) {
   el.querySelectorAll("[data-toggle-susc]").forEach((input) =>
     input.addEventListener("change", () => {
       const s = suscripciones.find((x) => x.id === input.dataset.toggleSusc);
-      if (input.checked) openMarcarPagado(s, currentState);
+      if (input.checked) openMarcarPagado(s, currentState, input);
       else {
         input.checked = true; // se revierte visualmente hasta que se confirme el borrado
         const pagos = pagosDelMes(movimientos, s.id);
@@ -117,7 +117,16 @@ export function renderSuscripciones(state) {
   );
 }
 
-function openMarcarPagado(suscripcion, state) {
+// checkboxInput: la casilla que el usuario acaba de marcar para abrir este
+// modal. El navegador ya la puso "checked" antes de que este código se
+// ejecute (comportamiento normal de un <input type="checkbox">) — si el
+// usuario cierra el modal sin guardar (Cancelar, click fuera, Escape), no
+// se crea ningún movimiento y por tanto "pagada" seguiría siendo falso en
+// los datos reales, pero la casilla se quedaría marcada visualmente hasta
+// el próximo render. onClose la revierte en ese caso (y no hace nada si
+// se guardó con éxito, gracias a la bandera `saved`).
+function openMarcarPagado(suscripcion, state, checkboxInput) {
+  let saved = false;
   openModal(
     `
     <h2 class="modal__title">Marcar "${suscripcion.nombre}" como pagado</h2>
@@ -134,6 +143,10 @@ function openMarcarPagado(suscripcion, state) {
         <span class="field__label">Fecha</span>
         <input type="date" name="fecha" value="${todayISO()}" required />
       </label>
+      <label class="field-check field--full">
+        <input type="checkbox" name="no_afecta_saldo" />
+        Ya estaba pagado — no descontar de la cuenta (solo registrarlo)
+      </label>
       <p class="field-error" id="form-susc-pago-error"></p>
       <div class="modal__actions field--full">
         <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
@@ -142,6 +155,9 @@ function openMarcarPagado(suscripcion, state) {
     </form>
   `,
     {
+      onClose: () => {
+        if (!saved && checkboxInput) checkboxInput.checked = false;
+      },
       onMount: (root) => {
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
         root.querySelector("#form-susc-pago").addEventListener("submit", async (e) => {
@@ -157,9 +173,11 @@ function openMarcarPagado(suscripcion, state) {
             subcategoria: suscripcion.nombre,
             nota: "",
             suscripcion_id: suscripcion.id,
+            afecta_saldo: !f.no_afecta_saldo.checked,
           };
           try {
             await addMovimiento(data);
+            saved = true;
             closeModal();
           } catch (err) {
             root.querySelector("#form-susc-pago-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";

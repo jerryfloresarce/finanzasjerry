@@ -6,18 +6,21 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=12";
-import { initDashboardAnimations, countUpTo, animateProgressBars } from "../animations.js?v=12";
-import { seedInitialData } from "../seed.js?v=12";
+} from "../db.js?v=13";
+import { initDashboardAnimations, countUpTo, animateProgressBars } from "../animations.js?v=13";
+import { seedInitialData } from "../seed.js?v=13";
 import {
   pendingCorrections,
   applyAugustCorrections,
   dismissCorrections,
-  pendingHistorial,
-  importarJessicaYSilvia,
-  dismissHistorial,
-} from "../fixes.js?v=12";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=12";
+  pendingPrestamosReset,
+  resetPrestamos,
+  dismissPrestamosReset,
+  pendingGastosFijosAgosto,
+  applyGastosFijosAgosto,
+  dismissGastosFijosAgosto,
+} from "../fixes.js?v=13";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=13";
 
 let chartInstance = null;
 
@@ -62,40 +65,44 @@ export function mountDashboard() {
     }
   });
 
-  const historialBtn = document.getElementById("btn-import-historial");
-  historialBtn?.addEventListener("click", async () => {
-    historialBtn.disabled = true;
-    historialBtn.textContent = "Importando…";
-    document.getElementById("historial-banner-error").textContent = "";
+  const resetBtn = document.getElementById("btn-reset-prestamos");
+  resetBtn?.addEventListener("click", async () => {
+    resetBtn.disabled = true;
+    resetBtn.textContent = "Aplicando…";
+    document.getElementById("reset-prestamos-banner-error").textContent = "";
     try {
-      await importarJessicaYSilvia();
-      await dismissHistorial();
-      historialBtn.textContent = "Hecho ✓";
-      document.getElementById("historial-banner")?.classList.add("is-hidden");
+      await resetPrestamos();
+      await dismissPrestamosReset();
+      resetBtn.textContent = "Hecho ✓";
+      document.getElementById("reset-prestamos-banner")?.classList.add("is-hidden");
     } catch (err) {
-      console.error("Error al importar historial:", err);
-      historialBtn.textContent = "Reintentar";
-      historialBtn.disabled = false;
-      document.getElementById("historial-banner-error").textContent = mensajeError(err);
+      console.error("Error al reiniciar préstamos:", err);
+      resetBtn.textContent = "Reintentar";
+      resetBtn.disabled = false;
+      document.getElementById("reset-prestamos-banner-error").textContent = mensajeError(err);
+    }
+  });
+
+  const gastosFijosBtn = document.getElementById("btn-gastos-fijos-agosto");
+  gastosFijosBtn?.addEventListener("click", async () => {
+    gastosFijosBtn.disabled = true;
+    gastosFijosBtn.textContent = "Aplicando…";
+    document.getElementById("gastos-fijos-agosto-banner-error").textContent = "";
+    try {
+      await applyGastosFijosAgosto();
+      await dismissGastosFijosAgosto();
+      gastosFijosBtn.textContent = "Hecho ✓";
+      document.getElementById("gastos-fijos-agosto-banner")?.classList.add("is-hidden");
+    } catch (err) {
+      console.error("Error al marcar gastos fijos:", err);
+      gastosFijosBtn.textContent = "Reintentar";
+      gastosFijosBtn.disabled = false;
+      document.getElementById("gastos-fijos-agosto-banner-error").textContent = mensajeError(err);
     }
   });
 }
 
 const CATEGORY_COLORS = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#b6975f", "#7d8f8a", "#9c8a6f", "#6b8778"];
-
-function capitalActual(prestamo, pagos) {
-  const ajuste = pagos
-    .filter((p) => p.prestamo_id === prestamo.id)
-    .reduce((acc, p) => {
-      // AumentoCapital: interés no pagado (u otro préstamo nuevo) que se suma al capital.
-      if (p.tipo === "AumentoCapital") return acc + Number(p.importe ?? 0);
-      if (!p.pagado) return acc;
-      if (p.tipo === "Capital") return acc - Number(p.importe ?? 0);
-      if (p.tipo === "Ambos") return acc - Number(p.importe_capital ?? 0);
-      return acc;
-    }, 0);
-  return Number(prestamo.capital_inicial ?? 0) + ajuste;
-}
 
 export function renderDashboard(state) {
   const loadingEl = document.getElementById("dashboard-loading");
@@ -109,7 +116,7 @@ export function renderDashboard(state) {
   loadingEl?.classList.add("is-hidden");
   contentEl?.classList.remove("is-hidden");
 
-  const { cuentas, categorias, movimientos, suscripciones, prestamos, pagosPrestamos } = state;
+  const { cuentas, categorias, movimientos, suscripciones, prestamos } = state;
 
   const seedBanner = document.getElementById("seed-banner");
   if (seedBanner) seedBanner.classList.toggle("is-hidden", !(state.ready && cuentas.length === 0));
@@ -117,8 +124,11 @@ export function renderDashboard(state) {
   const fixBanner = document.getElementById("fix-banner");
   if (fixBanner) fixBanner.classList.toggle("is-hidden", !(state.ready && pendingCorrections()));
 
-  const historialBanner = document.getElementById("historial-banner");
-  if (historialBanner) historialBanner.classList.toggle("is-hidden", !(state.ready && pendingHistorial()));
+  const resetBanner = document.getElementById("reset-prestamos-banner");
+  if (resetBanner) resetBanner.classList.toggle("is-hidden", !(state.ready && pendingPrestamosReset()));
+
+  const gastosFijosBanner = document.getElementById("gastos-fijos-agosto-banner");
+  if (gastosFijosBanner) gastosFijosBanner.classList.toggle("is-hidden", !(state.ready && pendingGastosFijosAgosto()));
 
   document.getElementById("hero-fecha").textContent = new Intl.DateTimeFormat("es-ES", {
     weekday: "long",
@@ -133,7 +143,7 @@ export function renderDashboard(state) {
   renderLimites(movimientos, categorias);
   renderTopLugares(movimientos);
   renderRecientes(movimientos, categorias, cuentas);
-  renderPrestamos(prestamos, pagosPrestamos);
+  renderPrestamos(prestamos);
   renderSuscripciones(suscripciones, cuentas);
   renderCuentasResumen(cuentas, movimientos);
 
@@ -286,9 +296,9 @@ function renderRecientes(movimientos, categorias, cuentas) {
     .join("");
 }
 
-function renderPrestamos(prestamos, pagosPrestamos) {
+function renderPrestamos(prestamos) {
   const el = document.getElementById("prestamos-activos");
-  const activos = prestamos.filter((p) => p.estado === "Activo");
+  const activos = prestamos.filter((p) => p.estado !== "Pagado");
 
   if (activos.length === 0) {
     el.innerHTML = `<p class="empty-state">No hay préstamos activos.</p>`;
@@ -297,17 +307,17 @@ function renderPrestamos(prestamos, pagosPrestamos) {
 
   el.innerHTML = activos
     .map((p) => {
-      const restante = capitalActual(p, pagosPrestamos);
+      const capital = Number(p.capital ?? p.capital_inicial ?? 0);
       return `
         <div class="mini-row">
           <div class="mini-row__body">
             <span class="avatar" style="background:${avatarColor(p.persona)}">${initials(p.persona)}</span>
             <div class="mini-row__main">
               <span class="mini-row__title">${p.persona}</span>
-              <span class="mini-row__sub">Prestado ${formatEUR(p.capital_inicial)} · ${p.interes_porcentaje}% interés</span>
+              <span class="mini-row__sub">${p.interes_porcentaje ?? 0}% interés</span>
             </div>
           </div>
-          <span class="mini-row__amount">${formatEUR(restante)}</span>
+          <span class="mini-row__amount">${formatEUR(capital)}</span>
         </div>`;
     })
     .join("");
@@ -365,5 +375,3 @@ function renderCuentasResumen(cuentas, movimientos) {
     })
     .join("");
 }
-
-export { capitalActual };

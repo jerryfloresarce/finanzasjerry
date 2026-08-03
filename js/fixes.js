@@ -2,17 +2,19 @@
 // ya cargado en memoria (state) y llaman a los mismos helpers de db.js
 // que usa el resto de la app. Pensado para ejecutarse una vez desde un
 // botón temporal y luego poder borrarse.
-import { state } from "./store.js?v=12";
+import { state } from "./store.js?v=13";
 import {
   addPrestamo,
   updatePrestamo,
   addPagoPrestamo,
   updatePagoPrestamo,
+  deletePagoPrestamo,
+  addMovimiento,
   updateSuscripcion,
   updateConfig,
   toTimestamp,
   fromTimestamp,
-} from "./db.js?v=12";
+} from "./db.js?v=13";
 
 const ANA_FECHAS = [
   "2026-08-07", "2026-08-08", "2026-08-10", "2026-08-11", "2026-08-12",
@@ -96,116 +98,122 @@ export async function applyAugustCorrections() {
 }
 
 // ---------------------------------------------------------------------
-// Historial completo de Jessica y Silvia. "AumentoCapital" = el interés
-// que no se pagó a tiempo y se sumó al capital (así queda registrado
-// como hecho, no como pago pendiente).
+// Reinicio de préstamos: se abandona el modelo de historial de pagos
+// (pagos_prestamos), que había ido acumulando pequeños desajustes con la
+// realidad (ej. Silvia mostraba 2.800€ cuando en realidad debía 1.600€).
+// A partir de ahora cada préstamo guarda directamente su capital pendiente
+// y la fecha del próximo interés — sin historial que se pueda desincronizar.
 // ---------------------------------------------------------------------
 
-function pago(fecha, tipo, importe, pagado) {
-  const importe_capital = tipo === "Capital" || tipo === "AumentoCapital" ? importe : 0;
-  const importe_interes = tipo === "Interes" ? importe : 0;
-  return { fecha: toTimestamp(fecha), tipo, importe, importe_capital, importe_interes, pagado };
+// Fórmula antigua, usada solo aquí una vez para "congelar" el capital
+// pendiente real de cualquier préstamo que no sea Jessica/Silvia (para los
+// que sí tenemos la cifra correcta a mano) antes de borrar su historial.
+function capitalActualLegacy(prestamo, pagos) {
+  const ajuste = pagos
+    .filter((p) => p.prestamo_id === prestamo.id)
+    .reduce((acc, p) => {
+      if (p.tipo === "AumentoCapital") return acc + Number(p.importe ?? 0);
+      if (!p.pagado) return acc;
+      if (p.tipo === "Capital") return acc - Number(p.importe ?? 0);
+      if (p.tipo === "Ambos") return acc - Number(p.importe_capital ?? 0);
+      return acc;
+    }, 0);
+  return Number(prestamo.capital_inicial ?? 0) + ajuste;
 }
 
-const JESSICA_PAGOS = [
-  pago("2025-09-03", "AumentoCapital", 500, true),
-  pago("2025-09-27", "Capital", 500, true),
-  pago("2025-10-02", "Interes", 500, true),
-  pago("2025-10-02", "Interes", 100, true),
-  pago("2025-11-03", "Interes", 500, true),
-  pago("2025-12-03", "Interes", 500, false),
-  pago("2025-12-03", "AumentoCapital", 500, true),
-  pago("2026-01-03", "Interes", 600, true),
-  pago("2026-02-03", "Interes", 600, false),
-  pago("2026-02-03", "AumentoCapital", 600, true),
-  pago("2026-03-03", "Interes", 610, true),
-  pago("2026-04-03", "Interes", 110, true),
-  pago("2026-04-03", "Interes", 720, true),
-  pago("2026-05-03", "Interes", 720, false),
-  pago("2026-05-03", "AumentoCapital", 720, true),
-  pago("2026-06-03", "Interes", 864, false),
-  pago("2026-06-03", "AumentoCapital", 864, true),
-  pago("2026-07-03", "Interes", 1036.8, false),
-  pago("2026-07-03", "AumentoCapital", 1036.8, true),
-  pago("2026-08-03", "Interes", 1244.16, false),
-  pago("2026-08-03", "AumentoCapital", 1244.16, true),
-  pago("2026-09-03", "Interes", 1492.99, false),
-];
-
-const SILVIA_PAGOS = [
-  pago("2025-09-05", "Capital", 400, true),
-  pago("2025-09-05", "Interes", 140, true),
-  pago("2025-09-14", "AumentoCapital", 200, true),
-  pago("2025-09-22", "AumentoCapital", 200, true),
-  pago("2025-11-01", "Interes", 70, true),
-  pago("2025-11-01", "AumentoCapital", 100, true),
-  pago("2025-12-01", "Interes", 160, true),
-  pago("2026-01-01", "Interes", 160, true),
-  pago("2026-01-02", "AumentoCapital", 200, true),
-  pago("2026-02-01", "Interes", 200, true),
-  pago("2026-03-01", "Interes", 200, false),
-  pago("2026-03-01", "AumentoCapital", 200, true),
-  pago("2026-04-01", "Interes", 240, true),
-  pago("2026-05-01", "Interes", 240, true),
-  pago("2026-06-01", "Interes", 240, true),
-  pago("2026-07-01", "Interes", 240, true),
-  pago("2026-08-01", "Interes", 240, false),
-];
-
-export function pendingHistorial() {
-  if (state.config?.historialJessicaSilviaOk) return false;
-  return !state.prestamos.some((p) => p.persona === "Jessica" || p.persona === "Silvia");
+function unMesDesdeHoy() {
+  const d = new Date();
+  d.setMonth(d.getMonth() + 1);
+  return d.toISOString().slice(0, 10);
 }
 
-export function dismissHistorial() {
-  return updateConfig({ historialJessicaSilviaOk: true });
+export function pendingPrestamosReset() {
+  if (state.config?.prestamosResetOk) return false;
+  return true;
 }
 
-export async function importarJessicaYSilvia() {
+export function dismissPrestamosReset() {
+  return updateConfig({ prestamosResetOk: true });
+}
+
+export async function resetPrestamos() {
   const results = [];
 
-  // Si el préstamo ya existe pero (por un fallo a mitad en un intento
-  // anterior) todavía no tiene sus pagos, esto los completa en vez de
-  // saltárselo por existir ya — y si ya tiene pagos, no los duplica.
-  let jessica = state.prestamos.find((p) => p.persona === "Jessica");
-  if (!jessica) {
-    jessica = await addPrestamo({
-      persona: "Jessica",
-      capital_inicial: 2500,
-      interes_porcentaje: 20,
-      fecha_inicio: "2025-08-03",
-      estado: "Activo",
-      notas:
-        "El interés no pagado se capitaliza (se suma al capital) cada mes. " +
-        "Pago mensual el día 3. Capital y cuota suben cuando no paga a tiempo.",
-    });
-  }
-  if (!state.pagosPrestamos.some((p) => p.prestamo_id === jessica.id)) {
-    for (const p of JESSICA_PAGOS) {
-      await addPagoPrestamo({ prestamo_id: jessica.id, ...p });
+  for (const p of state.prestamos) {
+    const esJessica = p.persona === "Jessica";
+    const esSilvia = p.persona === "Silvia";
+    const capital = esJessica ? 7464.96 : esSilvia ? 1600 : capitalActualLegacy(p, state.pagosPrestamos);
+    const fecha_interes = esJessica ? "2026-09-03" : esSilvia ? "2026-09-01" : p.fecha_interes || unMesDesdeHoy();
+
+    await updatePrestamo(p.id, { capital, fecha_interes, estado: "Activo" });
+
+    const pagosDelPrestamo = state.pagosPrestamos.filter((pg) => pg.prestamo_id === p.id);
+    for (const pg of pagosDelPrestamo) {
+      await deletePagoPrestamo(pg.id);
     }
-    results.push(`Jessica: préstamo creado con ${JESSICA_PAGOS.length} movimientos.`);
+    results.push(`${p.persona}: capital ${capital.toFixed(2)}€, ${pagosDelPrestamo.length} pagos antiguos borrados.`);
   }
 
-  let silvia = state.prestamos.find((p) => p.persona === "Silvia");
-  if (!silvia) {
-    silvia = await addPrestamo({
-      persona: "Silvia",
-      capital_inicial: 700,
-      interes_porcentaje: 20,
-      fecha_inicio: "2025-08-04",
-      estado: "Activo",
-      notas:
-        "Incluye 3 préstamos adicionales (14/09/2025, 22/09/2025 y 02/01/2026) sumados al mismo capital. " +
-        "El interés no pagado se capitaliza. Pago mensual el día 1.",
-    });
+  if (!state.prestamos.some((p) => p.persona === "Jessica")) {
+    await addPrestamo({ persona: "Jessica", capital: 7464.96, interes_porcentaje: 20, fecha_interes: "2026-09-03", estado: "Activo", notas: "" });
+    results.push("Jessica: préstamo creado.");
   }
-  if (!state.pagosPrestamos.some((p) => p.prestamo_id === silvia.id)) {
-    for (const p of SILVIA_PAGOS) {
-      await addPagoPrestamo({ prestamo_id: silvia.id, ...p });
-    }
-    results.push(`Silvia: préstamo creado con ${SILVIA_PAGOS.length} movimientos.`);
+  if (!state.prestamos.some((p) => p.persona === "Silvia")) {
+    await addPrestamo({ persona: "Silvia", capital: 1600, interes_porcentaje: 20, fecha_interes: "2026-09-01", estado: "Activo", notas: "" });
+    results.push("Silvia: préstamo creado.");
   }
 
+  return results;
+}
+
+// ---------------------------------------------------------------------
+// Gastos fijos de agosto 2026 que ya estaban pagados antes de tener este
+// control mensual: se marcan como pagados sin afectar el saldo de ninguna
+// cuenta (afecta_saldo: false), porque ese dinero ya salió y el saldo
+// actual de las cuentas ya lo refleja.
+// ---------------------------------------------------------------------
+
+const GASTOS_FIJOS_AGOSTO = [
+  { match: /digi/i, importe: 20 },
+  { match: /aquaservice/i, importe: 36.03 },
+  { match: /pasanaco/i, importe: 600 },
+  { match: /gym|gimnasio/i, importe: 147.94 },
+];
+
+function enAgosto2026(ts) {
+  const d = fromTimestamp(ts);
+  return Boolean(d && d.getFullYear() === 2026 && d.getMonth() === 7);
+}
+
+export function pendingGastosFijosAgosto() {
+  if (state.config?.gastosFijosAgostoOk) return false;
+  return state.suscripciones.length > 0;
+}
+
+export function dismissGastosFijosAgosto() {
+  return updateConfig({ gastosFijosAgostoOk: true });
+}
+
+export async function applyGastosFijosAgosto() {
+  const results = [];
+  for (const { match, importe } of GASTOS_FIJOS_AGOSTO) {
+    const s = state.suscripciones.find((x) => match.test(x.nombre));
+    if (!s) continue;
+    const yaPagado = state.movimientos.some((m) => m.suscripcion_id === s.id && enAgosto2026(m.fecha));
+    if (yaPagado) continue;
+    await addMovimiento({
+      tipo: "Gasto",
+      importe,
+      categoria_id: s.categoria_id || null,
+      cuenta_id: s.cuenta_id || null,
+      cuenta_destino_id: null,
+      fecha: toTimestamp("2026-08-01"),
+      subcategoria: s.nombre,
+      nota: "",
+      suscripcion_id: s.id,
+      afecta_saldo: false,
+    });
+    results.push(`${s.nombre}: marcado como pagado en agosto (no se descontó de ninguna cuenta).`);
+  }
   return results;
 }
