@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=10" />
+<link rel="stylesheet" href="css/styles.css?v=11" />
 <link rel="icon" href="data:,">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
@@ -52,8 +52,8 @@
       <a href="#/dashboard" class="nav__link" data-route="dashboard">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-squares-four"></i></span> Dashboard
       </a>
-      <a href="#/graficos" class="nav__link" data-route="graficos">
-        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
+      <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Gastos fijos
       </a>
       <a href="#/movimientos" class="nav__link" data-route="movimientos">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-left-right"></i></span> Movimientos
@@ -69,11 +69,11 @@
         <i class="ph-thin ph-caret-down nav__more-caret" aria-hidden="true"></i>
       </button>
       <div class="nav__more" id="nav-more">
+        <a href="#/graficos" class="nav__link" data-route="graficos">
+          <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
+        </a>
         <a href="#/categorias" class="nav__link" data-route="categorias">
           <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
-        </a>
-        <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
-          <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Suscripciones
         </a>
       </div>
     </nav>
@@ -95,8 +95,8 @@
     <a href="#/dashboard" class="nav__link" data-route="dashboard">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-squares-four"></i></span> Dashboard
     </a>
-    <a href="#/graficos" class="nav__link" data-route="graficos">
-      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
+    <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Gastos fijos
     </a>
     <a href="#/movimientos" class="nav__link" data-route="movimientos">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-left-right"></i></span> Movimientos
@@ -112,11 +112,11 @@
       <i class="ph-thin ph-caret-down nav__more-caret" aria-hidden="true"></i>
     </button>
     <div class="nav__more" id="nav-more-mobile">
+      <a href="#/graficos" class="nav__link" data-route="graficos">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
+      </a>
       <a href="#/categorias" class="nav__link" data-route="categorias">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
-      </a>
-      <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
-        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Suscripciones
       </a>
     </div>
     <button id="mobile-logout-btn" class="btn btn--ghost btn--block" style="margin-top: 12px;">Cerrar sesión</button>
@@ -233,7 +233,7 @@
         <button class="btn btn--primary" id="btn-add-movimiento">+ Añadir movimiento</button>
       </div>
 
-      <div class="grid grid--kpis" style="grid-template-columns: repeat(3, 1fr);">
+      <div class="grid grid--kpis">
         <div class="kpi-tile">
           <span class="kpi-tile__label">Ingresos del mes</span>
           <span class="kpi-tile__value kpi-tile__value--pos" id="mov-kpi-ingresos">—</span>
@@ -289,14 +289,18 @@
         <h1 class="view-title">Préstamos</h1>
         <button class="btn btn--primary" id="btn-add-prestamo">+ Nuevo préstamo</button>
       </div>
+      <div class="segmented" id="prestamos-orden" style="margin-bottom: 16px;">
+        <button class="segmented__btn is-active" data-orden="reciente">Más reciente primero</button>
+        <button class="segmented__btn" data-orden="antiguo">Más antiguo primero</button>
+      </div>
       <div id="prestamos-grid" class="grid grid--cards grid--prestamos"></div>
     </section>
 
     <!-- ---------- SUSCRIPCIONES ---------- -->
     <section class="view is-hidden" data-view="suscripciones" id="view-suscripciones">
       <div class="view-header">
-        <h1 class="view-title">Suscripciones</h1>
-        <button class="btn btn--primary" id="btn-add-suscripcion">+ Añadir suscripción</button>
+        <h1 class="view-title">Gastos fijos</h1>
+        <button class="btn btn--primary" id="btn-add-suscripcion">+ Añadir gasto fijo</button>
       </div>
       <div class="susc-mes-nav">
         <button type="button" class="btn btn--ghost btn--sm" id="susc-mes-prev" aria-label="Mes anterior">‹</button>
@@ -410,6 +414,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=10"></script>
+<script type="module" src="js/app.js?v=11"></script>
 </body>
 </html>

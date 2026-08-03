@@ -1,6 +1,6 @@
-import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=10";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=10";
-import { icon, iconForSuscripcion } from "../icons.js?v=10";
+import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=11";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=11";
+import { icon, iconForSuscripcion } from "../icons.js?v=11";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).
@@ -45,7 +45,7 @@ export function renderSuscripciones(state) {
   document.getElementById("susc-mes-label").textContent = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1);
 
   if (suscripciones.length === 0) {
-    el.innerHTML = `<p class="empty-state">Todavía no has añadido ninguna suscripción.</p>`;
+    el.innerHTML = `<p class="empty-state">Todavía no has añadido ningún gasto fijo.</p>`;
     document.getElementById("susc-resumen").textContent = "";
     return;
   }
@@ -98,7 +98,7 @@ export function renderSuscripciones(state) {
   );
   el.querySelectorAll("[data-delete]").forEach((btn) =>
     btn.addEventListener("click", () => {
-      if (confirm("¿Eliminar esta suscripción? No se borrarán los gastos ya registrados.")) deleteSuscripcion(btn.dataset.delete);
+      if (confirm("¿Eliminar este gasto fijo? No se borrarán los gastos ya registrados.")) deleteSuscripcion(btn.dataset.delete);
     })
   );
   el.querySelectorAll("[data-toggle-susc]").forEach((input) =>
@@ -173,11 +173,11 @@ function openForm(suscripcion, state) {
   const isEdit = Boolean(suscripcion);
   openModal(
     `
-    <h2 class="modal__title">${isEdit ? "Editar suscripción" : "Nueva suscripción"}</h2>
+    <h2 class="modal__title">${isEdit ? "Editar gasto fijo" : "Nuevo gasto fijo"}</h2>
     <form id="form-suscripcion" class="form-grid">
       <label class="field field--full">
         <span class="field__label">Nombre</span>
-        <input type="text" name="nombre" required value="${suscripcion?.nombre ?? ""}" placeholder="Glovo Prime" />
+        <input type="text" name="nombre" required value="${suscripcion?.nombre ?? ""}" placeholder="Glovo Prime, Préstamo Bankinter, Luz…" />
       </label>
       <label class="field">
         <span class="field__label">Precio habitual</span>
@@ -201,7 +201,7 @@ function openForm(suscripcion, state) {
       </label>
       <label class="field-check field--full">
         <input type="checkbox" name="activa" ${suscripcion?.activa !== false ? "checked" : ""} />
-        Suscripción activa
+        Gasto fijo activo
       </label>
       <p class="field-error" id="form-suscripcion-error"></p>
       <div class="modal__actions field--full">
