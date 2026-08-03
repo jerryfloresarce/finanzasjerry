@@ -6,9 +6,9 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=13";
-import { initDashboardAnimations, countUpTo, animateProgressBars } from "../animations.js?v=13";
-import { seedInitialData } from "../seed.js?v=13";
+} from "../db.js?v=15";
+import { initDashboardAnimations, countUpTo, animateProgressBars } from "../animations.js?v=15";
+import { seedInitialData } from "../seed.js?v=15";
 import {
   pendingCorrections,
   applyAugustCorrections,
@@ -19,8 +19,8 @@ import {
   pendingGastosFijosAgosto,
   applyGastosFijosAgosto,
   dismissGastosFijosAgosto,
-} from "../fixes.js?v=13";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=13";
+} from "../fixes.js?v=15";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=15";
 
 let chartInstance = null;
 
@@ -156,21 +156,41 @@ function renderChart(movimientos, categorias) {
 
   const datos = gastosPorCategoriaDelMes(movimientos, categorias).filter((d) => d.total > 0);
 
-  if (chartInstance) chartInstance.destroy();
-
   if (datos.length === 0) {
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
     canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+
+  const labels = datos.map((d) => d.categoria.nombre);
+  const values = datos.map((d) => d.total);
+  const colors = datos.map((_, i) => CATEGORY_COLORS[i % CATEGORY_COLORS.length]);
+
+  // El Dashboard se vuelve a renderizar con cada actualización de Firestore
+  // (no solo al entrar en la vista) — destruir y recrear el gráfico cada vez
+  // hacía que se viera "parpadear"/rehacerse de golpe repetidamente. Si ya
+  // existe, se actualizan sus datos en el sitio (Chart.js anima la
+  // transición entre valores por su cuenta); solo se crea desde cero la
+  // primera vez.
+  if (chartInstance) {
+    chartInstance.data.labels = labels;
+    chartInstance.data.datasets[0].data = values;
+    chartInstance.data.datasets[0].backgroundColor = colors;
+    chartInstance.update();
     return;
   }
 
   chartInstance = new Chart(canvas, {
     type: "doughnut",
     data: {
-      labels: datos.map((d) => d.categoria.nombre),
+      labels,
       datasets: [
         {
-          data: datos.map((d) => d.total),
-          backgroundColor: datos.map((_, i) => CATEGORY_COLORS[i % CATEGORY_COLORS.length]),
+          data: values,
+          backgroundColor: colors,
           borderColor: "#131a16",
           borderWidth: 2,
         },
