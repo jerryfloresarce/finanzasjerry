@@ -2,7 +2,7 @@
 // ya cargado en memoria (state) y llaman a los mismos helpers de db.js
 // que usa el resto de la app. Pensado para ejecutarse una vez desde un
 // botón temporal y luego poder borrarse.
-import { state } from "./store.js?v=26";
+import { state } from "./store.js?v=27";
 import {
   addPrestamo,
   updatePrestamo,
@@ -14,7 +14,7 @@ import {
   updateConfig,
   toTimestamp,
   fromTimestamp,
-} from "./db.js?v=26";
+} from "./db.js?v=27";
 
 const ANA_FECHAS = [
   "2026-08-07", "2026-08-08", "2026-08-10", "2026-08-11", "2026-08-12",
@@ -192,6 +192,25 @@ export function pendingGastosFijosAgosto() {
 
 export function dismissGastosFijosAgosto() {
   return updateConfig({ gastosFijosAgostoOk: true });
+}
+
+// ---------------------------------------------------------------------
+// Liz colombiana: el próximo pago de interés es el 02/09/2026, no el
+// 02/10/2026 que quedó guardado.
+// ---------------------------------------------------------------------
+
+export function pendingLizFecha() {
+  if (state.config?.lizFechaOk) return false;
+  return state.prestamos.some((p) => p.persona === "Liz colombiana" && p.fecha_interes === "2026-10-02");
+}
+
+export function dismissLizFecha() {
+  return updateConfig({ lizFechaOk: true });
+}
+
+export async function fixLizFecha() {
+  const liz = state.prestamos.find((p) => p.persona === "Liz colombiana");
+  if (liz) await updatePrestamo(liz.id, { fecha_interes: "2026-09-02" });
 }
 
 export async function applyGastosFijosAgosto() {

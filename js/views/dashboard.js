@@ -6,9 +6,9 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=26";
-import { initDashboardAnimations, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=26";
-import { seedInitialData } from "../seed.js?v=26";
+} from "../db.js?v=27";
+import { initDashboardAnimations, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=27";
+import { seedInitialData } from "../seed.js?v=27";
 import {
   pendingCorrections,
   applyAugustCorrections,
@@ -19,8 +19,11 @@ import {
   pendingGastosFijosAgosto,
   applyGastosFijosAgosto,
   dismissGastosFijosAgosto,
-} from "../fixes.js?v=26";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=26";
+  pendingLizFecha,
+  fixLizFecha,
+  dismissLizFecha,
+} from "../fixes.js?v=27";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=27";
 
 let chartInstance = null;
 
@@ -100,6 +103,24 @@ export function mountDashboard() {
       document.getElementById("gastos-fijos-agosto-banner-error").textContent = mensajeError(err);
     }
   });
+
+  const lizFechaBtn = document.getElementById("btn-fix-liz-fecha");
+  lizFechaBtn?.addEventListener("click", async () => {
+    lizFechaBtn.disabled = true;
+    lizFechaBtn.textContent = "Aplicando…";
+    document.getElementById("liz-fecha-banner-error").textContent = "";
+    try {
+      await fixLizFecha();
+      await dismissLizFecha();
+      lizFechaBtn.textContent = "Hecho ✓";
+      document.getElementById("liz-fecha-banner")?.classList.add("is-hidden");
+    } catch (err) {
+      console.error("Error al corregir la fecha de Liz colombiana:", err);
+      lizFechaBtn.textContent = "Reintentar";
+      lizFechaBtn.disabled = false;
+      document.getElementById("liz-fecha-banner-error").textContent = mensajeError(err);
+    }
+  });
 }
 
 const CATEGORY_COLORS = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#b6975f", "#7d8f8a", "#9c8a6f", "#6b8778"];
@@ -129,6 +150,9 @@ export function renderDashboard(state) {
 
   const gastosFijosBanner = document.getElementById("gastos-fijos-agosto-banner");
   if (gastosFijosBanner) gastosFijosBanner.classList.toggle("is-hidden", !(state.ready && pendingGastosFijosAgosto()));
+
+  const lizFechaBanner = document.getElementById("liz-fecha-banner");
+  if (lizFechaBanner) lizFechaBanner.classList.toggle("is-hidden", !(state.ready && pendingLizFecha()));
 
   document.getElementById("hero-fecha").textContent = new Intl.DateTimeFormat("es-ES", {
     weekday: "long",
