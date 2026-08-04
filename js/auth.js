@@ -3,8 +3,8 @@ import {
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "./firebase-init.js?v=22";
-import { hasPasskey, verifyPasskey, passkeySupported } from "./passkey.js?v=22";
+import { auth } from "./firebase-init.js?v=23";
+import { hasPasskey, verifyPasskey, passkeySupported } from "./passkey.js?v=23";
 
 const loginScreen = document.getElementById("login-screen");
 const lockScreen = document.getElementById("lock-screen");
@@ -60,10 +60,8 @@ async function intentarDesbloqueo() {
   if (!lockUnlockBtn) return;
   lockError.textContent = "";
   lockUnlockBtn.disabled = true;
-  lockUnlockBtn.textContent = "Verificando…";
   const ok = await verifyPasskey();
   lockUnlockBtn.disabled = false;
-  lockUnlockBtn.textContent = "Desbloquear con Face ID";
   if (ok) {
     unlockedThisSession = true;
     showApp();
@@ -89,10 +87,8 @@ btnMostrarForm?.addEventListener("click", mostrarFormulario);
 loginFaceIdBtn?.addEventListener("click", async () => {
   loginFaceIdMsg.textContent = "";
   loginFaceIdBtn.disabled = true;
-  loginFaceIdBtn.textContent = "Verificando…";
   const ok = await verifyPasskey();
   loginFaceIdBtn.disabled = false;
-  loginFaceIdBtn.innerHTML = '<i class="ph-thin ph-lock-key" aria-hidden="true"></i> Entrar con Face ID';
   if (!ok) {
     loginFaceIdMsg.textContent = "No se pudo verificar tu identidad. Inténtalo de nuevo.";
     return;
