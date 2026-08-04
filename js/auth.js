@@ -3,8 +3,8 @@ import {
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "./firebase-init.js?v=21";
-import { hasPasskey, verifyPasskey, passkeySupported } from "./passkey.js?v=21";
+import { auth } from "./firebase-init.js?v=22";
+import { hasPasskey, verifyPasskey, passkeySupported } from "./passkey.js?v=22";
 
 const loginScreen = document.getElementById("login-screen");
 const lockScreen = document.getElementById("lock-screen");

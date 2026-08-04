@@ -55,6 +55,16 @@ export async function registerPasskey(email) {
       authenticatorSelection: {
         authenticatorAttachment: "platform",
         userVerification: "required",
+        // "discouraged": sin esto, iOS crea un passkey "detectable" y lo
+        // sincroniza como una llave de acceso normal del sistema — por eso
+        // aparecía la hoja nativa "Iniciar sesión en github.io con tu llave
+        // de acceso" por su cuenta, sin que nadie tocara el botón de la
+        // app (confuso, porque "github.io" es solo el dominio donde está
+        // alojada la web, no tiene nada que ver con una cuenta de GitHub).
+        // Con "discouraged" el credential sigue funcionando exactamente
+        // igual con verifyPasskey() (que siempre indica qué credential usar
+        // con allowCredentials), pero deja de sugerirse solo.
+        residentKey: "discouraged",
       },
       timeout: 60000,
       attestation: "none",
