@@ -1,7 +1,7 @@
-import { addPrestamo, updatePrestamo, deletePrestamo, addMovimiento, formatEUR, formatFecha, toTimestamp } from "../db.js?v=26";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=26";
-import { initials, avatarColor, icon } from "../icons.js?v=26";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=26";
+import { addPrestamo, updatePrestamo, deletePrestamo, addMovimiento, formatEUR, formatFecha, toTimestamp } from "../db.js?v=27";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=27";
+import { initials, avatarColor, icon } from "../icons.js?v=27";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=27";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -90,6 +90,11 @@ export function renderPrestamos(state) {
           </div>`
               : `<p class="entity-card__meta">Sin fecha de interés configurada — edita el préstamo para añadirla.</p>`
           }
+          ${
+            p.estado !== "Pagado"
+              ? `<button type="button" class="btn btn--ghost btn--sm btn--block prestamo-liquidar-btn" data-liquidar="${p.id}">💰 Ha pagado capital + interés (liquidar deuda)</button>`
+              : ""
+          }
         </article>`,
         p.id
       );
@@ -104,6 +109,9 @@ export function renderPrestamos(state) {
   );
   el.querySelectorAll("[data-pago-no]").forEach((btn) =>
     btn.addEventListener("click", () => marcarInteresImpago(prestamos.find((p) => p.id === btn.dataset.pagoNo)))
+  );
+  el.querySelectorAll("[data-liquidar]").forEach((btn) =>
+    btn.addEventListener("click", () => openLiquidarForm(prestamos.find((p) => p.id === btn.dataset.liquidar), state))
   );
   attachSwipe(el, (id) => {
     if (confirm("¿Eliminar este préstamo?")) deletePrestamo(id);
@@ -175,6 +183,71 @@ function openInteresPagadoForm(prestamo, state) {
             closeModal();
           } catch (err) {
             root.querySelector("#form-interes-pago-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
+          }
+        });
+      },
+    }
+  );
+}
+
+// Cuando la persona paga TODO de golpe (el capital pendiente + el interés
+// actual), no basta con marcar el interés como pagado (eso solo mueve la
+// fecha y deja el capital intacto): aquí se registra un único ingreso por
+// la suma de ambos y el préstamo se cierra del todo (capital a 0, estado
+// Pagado), en vez de seguir esperando el próximo interés.
+function openLiquidarForm(prestamo, state) {
+  const capital = Number(prestamo.capital ?? prestamo.capital_inicial ?? 0);
+  const interesActual = interesActualDe(prestamo);
+  const total = capital + interesActual;
+
+  openModal(
+    `
+    <h2 class="modal__title">Liquidar deuda · ${prestamo.persona}</h2>
+    <p class="entity-card__meta" style="margin-bottom:16px;">
+      Capital (${formatEUR(capital)}) + interés (${formatEUR(interesActual)}) = <strong>${formatEUR(total)}</strong>.
+      Esto registra un ingreso por el total y cierra el préstamo como Pagado.
+    </p>
+    <form id="form-liquidar" class="form-grid">
+      <label class="field">
+        <span class="field__label">Importe total</span>
+        <input type="number" step="0.01" name="importe" required value="${total.toFixed(2)}" placeholder="0.00" />
+      </label>
+      <label class="field">
+        <span class="field__label">Cuenta</span>
+        <select name="cuenta_id">${optionsFrom(state.cuentas, { selected: prestamo.cuenta_id })}</select>
+      </label>
+      <label class="field field--full">
+        <span class="field__label">Fecha</span>
+        <input type="date" name="fecha" value="${todayISO()}" required />
+      </label>
+      <p class="field-error" id="form-liquidar-error"></p>
+      <div class="modal__actions field--full">
+        <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Liquidar y cerrar préstamo</button>
+      </div>
+    </form>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector("#form-liquidar").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const f = e.target;
+          try {
+            await addMovimiento({
+              tipo: "Ingreso",
+              importe: Number(f.importe.value),
+              categoria_id: null,
+              cuenta_id: f.cuenta_id.value,
+              cuenta_destino_id: null,
+              fecha: toTimestamp(f.fecha.value),
+              subcategoria: `Préstamo liquidado · ${prestamo.persona}`,
+              nota: "",
+            });
+            await updatePrestamo(prestamo.id, { capital: 0, estado: "Pagado" });
+            closeModal();
+          } catch (err) {
+            root.querySelector("#form-liquidar-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
           }
         });
       },
