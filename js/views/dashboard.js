@@ -6,9 +6,9 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=24";
-import { initDashboardAnimations, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=24";
-import { seedInitialData } from "../seed.js?v=24";
+} from "../db.js?v=25";
+import { initDashboardAnimations, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=25";
+import { seedInitialData } from "../seed.js?v=25";
 import {
   pendingCorrections,
   applyAugustCorrections,
@@ -19,8 +19,8 @@ import {
   pendingGastosFijosAgosto,
   applyGastosFijosAgosto,
   dismissGastosFijosAgosto,
-} from "../fixes.js?v=24";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=24";
+} from "../fixes.js?v=25";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=25";
 
 let chartInstance = null;
 
@@ -337,7 +337,7 @@ function renderPrestamos(prestamos) {
             <span class="avatar" style="background:${avatarColor(p.persona)}">${initials(p.persona)}</span>
             <div class="mini-row__main">
               <span class="mini-row__title">${p.persona}</span>
-              <span class="mini-row__sub">${p.interes_porcentaje ?? 0}% interés</span>
+              <span class="mini-row__sub">${p.interes_manual != null && p.interes_manual !== "" ? "interés fijo" : `${p.interes_porcentaje ?? 0}% interés`}</span>
             </div>
           </div>
           <span class="mini-row__amount">${formatEUR(capital)}</span>

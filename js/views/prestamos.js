@@ -1,7 +1,7 @@
-import { addPrestamo, updatePrestamo, deletePrestamo, addMovimiento, formatEUR, formatFecha, toTimestamp } from "../db.js?v=24";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=24";
-import { initials, avatarColor, icon } from "../icons.js?v=24";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=24";
+import { addPrestamo, updatePrestamo, deletePrestamo, addMovimiento, formatEUR, formatFecha, toTimestamp } from "../db.js?v=25";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=25";
+import { initials, avatarColor, icon } from "../icons.js?v=25";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=25";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -17,17 +17,28 @@ function unMesDespues(fechaISO) {
   return d.toISOString().slice(0, 10);
 }
 
+// El interés se puede fijar a mano (para préstamos como el de Liz
+// colombiana, donde no es un % fijo del capital) o calcularse solo con el
+// % configurado (Silvia, Jessica...). Si hay un importe manual guardado, ese
+// gana siempre sobre el %.
+function tieneInteresManual(p) {
+  return p.interes_manual !== undefined && p.interes_manual !== null && p.interes_manual !== "";
+}
+
+function interesActualDe(p) {
+  if (tieneInteresManual(p)) return Number(p.interes_manual);
+  const capital = Number(p.capital ?? p.capital_inicial ?? 0);
+  const pct = Number(p.interes_porcentaje ?? 0);
+  return capital * (pct / 100);
+}
+
 export function renderPrestamos(state) {
   const el = document.getElementById("prestamos-grid");
   const { prestamos } = state;
 
   const activos = prestamos.filter((p) => p.estado !== "Pagado");
   const totalCapital = activos.reduce((acc, p) => acc + Number(p.capital ?? p.capital_inicial ?? 0), 0);
-  const totalInteres = activos.reduce((acc, p) => {
-    const capital = Number(p.capital ?? p.capital_inicial ?? 0);
-    const pct = Number(p.interes_porcentaje ?? 0);
-    return acc + capital * (pct / 100);
-  }, 0);
+  const totalInteres = activos.reduce((acc, p) => acc + interesActualDe(p), 0);
   document.getElementById("kpi-prestamos-capital").textContent = formatEUR(totalCapital);
   document.getElementById("kpi-prestamos-interes").textContent = formatEUR(totalInteres);
 
@@ -43,7 +54,8 @@ export function renderPrestamos(state) {
       // usa como respaldo temporal para no mostrar NaN/vacío.
       const capital = Number(p.capital ?? p.capital_inicial ?? 0);
       const pct = Number(p.interes_porcentaje ?? 0);
-      const interesActual = capital * (pct / 100);
+      const interesActual = interesActualDe(p);
+      const etiquetaInteres = tieneInteresManual(p) ? "Interés (fijo)" : `Interés (${pct}%)`;
       const tagClass = p.estado === "Pagado" ? "entity-card__tag--pagado" : "entity-card__tag--activo";
 
       return wrapSwipe(
@@ -67,7 +79,7 @@ export function renderPrestamos(state) {
               ? `
           <div class="prestamo-interes">
             <div class="prestamo-interes__info">
-              <span class="prestamo-interes__label">Interés (${pct}%)</span>
+              <span class="prestamo-interes__label">${etiquetaInteres}</span>
               <span class="prestamo-interes__amount">${formatEUR(interesActual)}</span>
               <span class="prestamo-interes__fecha">vence ${formatFecha(new Date(p.fecha_interes + "T00:00:00"))}</span>
             </div>
@@ -100,8 +112,7 @@ export function renderPrestamos(state) {
 
 async function marcarInteresImpago(prestamo) {
   const capital = Number(prestamo.capital ?? prestamo.capital_inicial ?? 0);
-  const pct = Number(prestamo.interes_porcentaje ?? 0);
-  const interesActual = capital * (pct / 100);
+  const interesActual = interesActualDe(prestamo);
   const nuevoCapital = capital + interesActual;
   if (
     !confirm(
@@ -118,9 +129,7 @@ async function marcarInteresImpago(prestamo) {
 }
 
 function openInteresPagadoForm(prestamo, state) {
-  const capital = Number(prestamo.capital ?? prestamo.capital_inicial ?? 0);
-  const pct = Number(prestamo.interes_porcentaje ?? 0);
-  const interesActual = capital * (pct / 100);
+  const interesActual = interesActualDe(prestamo);
 
   openModal(
     `
@@ -193,6 +202,10 @@ function openPrestamoForm(prestamo) {
         <input type="number" step="0.01" name="interes_porcentaje" value="${prestamo?.interes_porcentaje ?? 0}" placeholder="20" />
       </label>
       <label class="field">
+        <span class="field__label">Interés manual (€, opcional)</span>
+        <input type="number" step="0.01" name="interes_manual" value="${prestamo?.interes_manual ?? ""}" placeholder="Vacío = se calcula con el %" />
+      </label>
+      <label class="field">
         <span class="field__label">Fecha del próximo interés</span>
         <input type="date" name="fecha_interes" value="${prestamo?.fecha_interes ?? ""}" />
       </label>
@@ -221,6 +234,7 @@ function openPrestamoForm(prestamo) {
             persona: f.persona.value.trim(),
             capital: Number(f.capital.value),
             interes_porcentaje: Number(f.interes_porcentaje.value || 0),
+            interes_manual: f.interes_manual.value !== "" ? Number(f.interes_manual.value) : null,
             fecha_interes: f.fecha_interes.value || null,
             estado: f.estado.value,
             notas: f.notas.value.trim(),

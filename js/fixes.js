@@ -2,7 +2,7 @@
 // ya cargado en memoria (state) y llaman a los mismos helpers de db.js
 // que usa el resto de la app. Pensado para ejecutarse una vez desde un
 // botón temporal y luego poder borrarse.
-import { state } from "./store.js?v=24";
+import { state } from "./store.js?v=25";
 import {
   addPrestamo,
   updatePrestamo,
@@ -14,7 +14,7 @@ import {
   updateConfig,
   toTimestamp,
   fromTimestamp,
-} from "./db.js?v=24";
+} from "./db.js?v=25";
 
 const ANA_FECHAS = [
   "2026-08-07", "2026-08-08", "2026-08-10", "2026-08-11", "2026-08-12",
