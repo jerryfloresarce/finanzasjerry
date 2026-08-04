@@ -3,8 +3,8 @@ import {
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "./firebase-init.js?v=20";
-import { hasPasskey, verifyPasskey, passkeySupported } from "./passkey.js?v=20";
+import { auth } from "./firebase-init.js?v=21";
+import { hasPasskey, verifyPasskey, passkeySupported } from "./passkey.js?v=21";
 
 const loginScreen = document.getElementById("login-screen");
 const lockScreen = document.getElementById("lock-screen");
@@ -13,7 +13,8 @@ const loginForm = document.getElementById("login-form");
 const loginError = document.getElementById("login-error");
 const logoutBtn = document.getElementById("logout-btn");
 const loginFaceIdBtn = document.getElementById("btn-login-faceid");
-const loginDivider = document.getElementById("login-divider");
+const loginFaceIdMsg = document.getElementById("login-faceid-msg");
+const btnMostrarForm = document.getElementById("btn-login-mostrar-form");
 const lockUnlockBtn = document.getElementById("btn-lock-unlock");
 const lockError = document.getElementById("lock-screen-error");
 const lockLogoutBtn = document.getElementById("btn-lock-logout");
@@ -34,6 +35,12 @@ function showApp() {
   appShell.classList.remove("is-hidden");
 }
 
+function mostrarFormulario() {
+  loginForm.classList.remove("is-hidden");
+  loginFaceIdBtn?.classList.add("is-hidden");
+  btnMostrarForm?.classList.add("is-hidden");
+}
+
 const LOGIN_ERROR_MESSAGES = {
   "auth/invalid-email": "Ese email no tiene un formato válido.",
   "auth/user-not-found": "No existe ningún usuario con ese email en Firebase.",
@@ -46,6 +53,9 @@ const LOGIN_ERROR_MESSAGES = {
   "auth/unauthorized-domain": "Este dominio no está autorizado en Firebase Authentication → Configuración → Dominios autorizados.",
 };
 
+// Caso "ya hay sesión de Firebase activa" (persistida de una vez anterior):
+// Face ID solo tiene que decidir si se muestra el contenido ya cargado, no
+// necesita ninguna credencial nueva.
 async function intentarDesbloqueo() {
   if (!lockUnlockBtn) return;
   lockError.textContent = "";
@@ -65,37 +75,50 @@ async function intentarDesbloqueo() {
 lockUnlockBtn?.addEventListener("click", intentarDesbloqueo);
 lockLogoutBtn?.addEventListener("click", () => signOut(auth));
 
-// Face ID directamente en la pantalla de login: si el navegador ya tiene
-// el email/contraseña autocompletados (guardados en el llavero), verificar
-// primero Face ID y usarlos para entrar de verdad — así solo hace falta un
-// paso (Face ID) en vez de dos (Face ID después de escribir/autocompletar
-// la contraseña por separado). Si no hay nada autocompletado todavía, se
-// pide rellenar el formulario de abajo esta vez.
+btnMostrarForm?.addEventListener("click", mostrarFormulario);
+
+// Caso "sin sesión de Firebase todavía" pero con Face ID activado en este
+// dispositivo (pantalla de login). Face ID por sí solo NO puede iniciar
+// sesión en Firebase — esta app no tiene servidor propio que pueda
+// intercambiar "Face ID correcto" por acceso, así que solo sirve para
+// confirmar que de verdad eres tú cuando SÍ hay algo que desbloquear
+// (sesión ya persistida, o credenciales ya escritas en el formulario). Si
+// ninguna de las dos existe, no queda otra que pedir la contraseña esta
+// vez — igual que hacen las apps de banco cuando la sesión guardada
+// caduca.
 loginFaceIdBtn?.addEventListener("click", async () => {
-  loginError.textContent = "";
+  loginFaceIdMsg.textContent = "";
   loginFaceIdBtn.disabled = true;
   loginFaceIdBtn.textContent = "Verificando…";
   const ok = await verifyPasskey();
   loginFaceIdBtn.disabled = false;
   loginFaceIdBtn.innerHTML = '<i class="ph-thin ph-lock-key" aria-hidden="true"></i> Entrar con Face ID';
   if (!ok) {
-    loginError.textContent = "No se pudo verificar tu identidad. Inténtalo de nuevo.";
+    loginFaceIdMsg.textContent = "No se pudo verificar tu identidad. Inténtalo de nuevo.";
     return;
   }
+
+  if (auth.currentUser) {
+    unlockedThisSession = true;
+    showApp();
+    return;
+  }
+
   const email = loginForm.email.value.trim();
   const password = loginForm.password.value;
-  if (!email || !password) {
-    loginError.textContent = "Verificado, pero no encuentro tus credenciales guardadas — escríbelas abajo esta vez.";
-    return;
+  if (email && password) {
+    unlockedThisSession = true;
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      return;
+    } catch (err) {
+      unlockedThisSession = false;
+      console.error("Error de login tras Face ID:", err.code, err.message);
+    }
   }
-  unlockedThisSession = true;
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-  } catch (err) {
-    unlockedThisSession = false;
-    console.error("Error de login tras Face ID:", err.code, err.message);
-    loginError.textContent = LOGIN_ERROR_MESSAGES[err.code] || `Error inesperado (${err.code || err.message}).`;
-  }
+
+  loginFaceIdMsg.textContent = "Identidad verificada ✓ — tu sesión anterior caducó, escribe tu contraseña una vez más.";
+  mostrarFormulario();
 });
 
 onAuthStateChanged(auth, (user) => {
@@ -120,7 +143,12 @@ onAuthStateChanged(auth, (user) => {
     loginScreen.classList.remove("is-hidden");
     if (passkeySupported() && hasPasskey()) {
       loginFaceIdBtn?.classList.remove("is-hidden");
-      loginDivider?.classList.remove("is-hidden");
+      btnMostrarForm?.classList.remove("is-hidden");
+      loginForm.classList.add("is-hidden");
+    } else {
+      loginFaceIdBtn?.classList.add("is-hidden");
+      btnMostrarForm?.classList.add("is-hidden");
+      loginForm.classList.remove("is-hidden");
     }
   }
 });

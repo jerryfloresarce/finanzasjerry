@@ -257,6 +257,20 @@ input, select, textarea { font-size: 16px; }
 
 #btn-login-faceid { margin-bottom: 4px; }
 
+.link-button {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.86rem;
+  text-decoration: underline;
+  cursor: pointer;
+  margin: 14px 0 4px;
+  padding: 4px;
+}
+.link-button:hover { color: var(--accent-hover, var(--accent)); }
+
 .login-card__subtitle {
   color: var(--text-secondary);
   font-size: 0.9rem;
