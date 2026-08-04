@@ -7,8 +7,8 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=24";
-import { countUpTo } from "../animations.js?v=24";
+} from "../db.js?v=25";
+import { countUpTo } from "../animations.js?v=25";
 
 const GASTO_COLORS = ["#b06a63", "#c48b83", "#9c6a63", "#8a5850", "#a37c74", "#7d5a53"];
 const INGRESO_COLORS = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#6b8778", "#9cae8f"];
