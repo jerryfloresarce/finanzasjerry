@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=23" />
+<link rel="stylesheet" href="css/styles.css?v=24" />
 <link rel="icon" href="data:,">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
@@ -37,12 +37,6 @@
     <h1 class="login-card__title">Acceso privado</h1>
     <p class="login-card__subtitle">Tus finanzas, en un solo lugar.</p>
 
-    <button type="button" class="faceid-btn is-hidden" id="btn-login-faceid" aria-label="Entrar con Face ID">
-      <i class="ph-bold ph-scan-smiley" aria-hidden="true"></i>
-    </button>
-    <p class="field-hint" id="login-faceid-msg"></p>
-    <button type="button" class="link-button is-hidden" id="btn-login-mostrar-form">Accede con tu contraseña</button>
-
     <form id="login-form" class="login-form" autocomplete="on">
       <label class="field">
         <span class="field__label">Email</span>
@@ -55,26 +49,6 @@
       <p id="login-error" class="field-error" role="alert"></p>
       <button type="submit" class="btn btn--primary btn--block">Entrar</button>
     </form>
-  </div>
-</div>
-
-<!-- ===================== BLOQUEO CON FACE ID ===================== -->
-<div id="lock-screen" class="login-screen is-hidden">
-  <div class="login-screen__bg" aria-hidden="true"></div>
-  <div class="login-screen__scrim" aria-hidden="true"></div>
-
-  <div class="login-card">
-    <p class="brand-mark"><i class="ph-thin ph-leaf brand-mark__icon" aria-hidden="true"></i>Finanzas <span>Jerry</span></p>
-    <h1 class="login-card__title">Bloqueado</h1>
-    <p class="login-card__subtitle">Verifica tu identidad para continuar.</p>
-
-    <button type="button" class="faceid-btn" id="btn-lock-unlock" aria-label="Desbloquear con Face ID">
-      <i class="ph-bold ph-scan-smiley" aria-hidden="true"></i>
-    </button>
-    <p class="field-error" id="lock-screen-error"></p>
-    <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-lock-logout" style="margin-top:10px;">
-      ¿No funciona? Cerrar sesión
-    </button>
   </div>
 </div>
 
@@ -435,14 +409,6 @@
 
   <div class="cuenta-panel__divider"></div>
 
-  <h3 class="cuenta-panel__subtitle">Seguridad</h3>
-  <p class="entity-card__meta" id="cuenta-faceid-estado" style="margin-bottom:10px;">Comprobando…</p>
-  <button type="button" class="btn btn--ghost btn--sm btn--block is-hidden" id="btn-faceid-activar">Activar Face ID al abrir la app</button>
-  <button type="button" class="btn btn--ghost btn--sm btn--block is-hidden" id="btn-faceid-desactivar">Desactivar Face ID</button>
-  <p class="field-error" id="cuenta-faceid-msg"></p>
-
-  <div class="cuenta-panel__divider"></div>
-
   <h3 class="cuenta-panel__subtitle">Configuración</h3>
   <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-exportar-datos">Exportar mis datos</button>
   <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-importar-datos">Importar desde una copia</button>
@@ -464,6 +430,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=23"></script>
+<script type="module" src="js/app.js?v=24"></script>
 </body>
 </html>

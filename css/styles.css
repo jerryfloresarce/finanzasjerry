@@ -237,39 +237,6 @@ input, select, textarea { font-size: 16px; }
   margin: 20px 0 4px;
 }
 
-.faceid-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 76px;
-  height: 76px;
-  margin: 22px auto 18px;
-  border-radius: 50%;
-  background: var(--accent);
-  border: none;
-  color: #10160f;
-  font-size: 36px;
-  line-height: 1;
-  cursor: pointer;
-  transition: transform 0.15s var(--ease-lux), opacity 0.15s var(--ease-lux);
-}
-.faceid-btn:hover { transform: scale(1.05); }
-.faceid-btn:disabled { opacity: 0.55; cursor: default; transform: none; }
-
-.link-button {
-  display: block;
-  width: 100%;
-  background: none;
-  border: none;
-  color: var(--accent);
-  font-size: 0.86rem;
-  text-decoration: underline;
-  cursor: pointer;
-  margin: 14px 0 4px;
-  padding: 4px;
-}
-.link-button:hover { color: var(--accent-hover, var(--accent)); }
-
 .login-card__subtitle {
   color: var(--text-secondary);
   font-size: 0.9rem;
@@ -411,13 +378,6 @@ input, select, textarea { font-size: 16px; }
 @media (max-width: 640px) {
   .cal-cell__gasto, .cal-cell__ingreso { font-size: 0.56rem; }
   .cal-cell__num { font-size: 0.8rem; }
-}
-
-.field-hint {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  margin: 6px 0 0;
-  line-height: 1.4;
 }
 
 .form-grid {
