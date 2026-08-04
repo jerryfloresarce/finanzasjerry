@@ -280,6 +280,16 @@ input, select, textarea { font-size: 16px; }
   background: var(--surface-hover);
 }
 
+/* En iOS, input[type=date] a veces ignora el width/max-width del autor y se
+   pinta con su propio ancho mínimo nativo, saliéndose del recuadro por la
+   derecha (se ve el borde redondeado pegado al borde del modal). Quitar el
+   "appearance" nativo hace que respete el box model normal sin perder el
+   selector de fecha nativo al tocarlo. */
+.field input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 .field--row { flex-direction: row; gap: 12px; align-items: center; }
 
 .field-check {
