@@ -1,40 +1,14 @@
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=23";
-import { state } from "../store.js?v=23";
-import { exportarDatos, importarDatos } from "../backup.js?v=23";
-import { passkeySupported, hasPasskey, registerPasskey, disablePasskey } from "../passkey.js?v=23";
+import { auth } from "../firebase-init.js?v=24";
+import { state } from "../store.js?v=24";
+import { exportarDatos, importarDatos } from "../backup.js?v=24";
 
 let panel = null;
 let scrim = null;
 
-function renderFaceIdEstado() {
-  const estadoEl = document.getElementById("cuenta-faceid-estado");
-  const activarBtn = document.getElementById("btn-faceid-activar");
-  const desactivarBtn = document.getElementById("btn-faceid-desactivar");
-  if (!estadoEl) return;
-
-  if (!passkeySupported()) {
-    estadoEl.textContent = "Este dispositivo/navegador no admite Face ID/Touch ID en la web.";
-    activarBtn.classList.add("is-hidden");
-    desactivarBtn.classList.add("is-hidden");
-    return;
-  }
-
-  if (hasPasskey()) {
-    estadoEl.textContent = "Face ID activado en este dispositivo — se pedirá cada vez que abras la app.";
-    activarBtn.classList.add("is-hidden");
-    desactivarBtn.classList.remove("is-hidden");
-  } else {
-    estadoEl.textContent = "Face ID desactivado en este dispositivo.";
-    activarBtn.classList.remove("is-hidden");
-    desactivarBtn.classList.add("is-hidden");
-  }
-}
-
 function openPanel() {
   const emailEl = document.getElementById("cuenta-panel-email");
   if (emailEl) emailEl.textContent = auth.currentUser?.email || "—";
-  renderFaceIdEstado();
   panel.classList.add("is-open");
   scrim.classList.remove("is-hidden");
 }
@@ -80,33 +54,6 @@ export function mountCuentaPanel() {
     } finally {
       btn.disabled = false;
     }
-  });
-
-  document.getElementById("btn-faceid-activar")?.addEventListener("click", async (e) => {
-    const btn = e.currentTarget;
-    const msg = document.getElementById("cuenta-faceid-msg");
-    const email = auth.currentUser?.email;
-    if (!email) return;
-    btn.disabled = true;
-    msg.textContent = "";
-    try {
-      await registerPasskey(email);
-      msg.style.color = "var(--success)";
-      msg.textContent = "Face ID activado. La próxima vez que abras la app te lo pedirá.";
-      renderFaceIdEstado();
-    } catch (err) {
-      console.error("Error al activar Face ID:", err);
-      msg.style.color = "var(--danger)";
-      msg.textContent = "No se pudo activar. Puede que tu navegador no permita Face ID aquí, o cancelaste la verificación.";
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
-  document.getElementById("btn-faceid-desactivar")?.addEventListener("click", () => {
-    if (!confirm("¿Desactivar Face ID? La app se abrirá sin pedir verificación adicional en este dispositivo.")) return;
-    disablePasskey();
-    renderFaceIdEstado();
   });
 
   document.getElementById("btn-exportar-datos")?.addEventListener("click", () => {

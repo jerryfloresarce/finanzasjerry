@@ -6,9 +6,9 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=23";
-import { initDashboardAnimations, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=23";
-import { seedInitialData } from "../seed.js?v=23";
+} from "../db.js?v=24";
+import { initDashboardAnimations, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=24";
+import { seedInitialData } from "../seed.js?v=24";
 import {
   pendingCorrections,
   applyAugustCorrections,
@@ -19,8 +19,8 @@ import {
   pendingGastosFijosAgosto,
   applyGastosFijosAgosto,
   dismissGastosFijosAgosto,
-} from "../fixes.js?v=23";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=23";
+} from "../fixes.js?v=24";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=24";
 
 let chartInstance = null;
 
