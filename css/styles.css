@@ -328,6 +328,14 @@ input, select, textarea { font-size: 16px; }
 
 .calendar { display: flex; flex-direction: column; gap: 8px; }
 
+/* En móvil, el padding normal de .card (24px) le resta a las celdas justo
+   el ancho que más falta hace en una tira de 7 columnas — se reduce solo
+   en esta tarjeta para ganar unos px por celda sin tocar el resto de la
+   app. */
+@media (max-width: 640px) {
+  .card--calendario { padding: 20px 10px; }
+}
+
 .cal-weekdays {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -350,18 +358,23 @@ input, select, textarea { font-size: 16px; }
 }
 
 .cal-cell {
-  aspect-ratio: 1 / 0.95;
+  /* El ancho de cada celda está topado por el ancho de la pantalla (7
+     columnas siempre), así que la única forma real de "hacerlo más grande"
+     es dar más alto: con un ratio casi cuadrado (1/0.95, el de antes) el
+     número del día y los dos importes se apretujaban en muy poca altura.
+     1/1.4 da casi la mitad más de alto sin tocar el ancho. */
+  aspect-ratio: 1 / 1.4;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
+  gap: 3px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   background: var(--surface);
   cursor: pointer;
   transition: border-color 0.15s var(--ease-lux), background 0.15s var(--ease-lux);
-  padding: 4px 2px;
+  padding: 6px 2px;
   overflow: hidden;
   min-width: 0;
 }
@@ -369,12 +382,12 @@ input, select, textarea { font-size: 16px; }
 .cal-cell--vacia { border: none; background: none; cursor: default; }
 .cal-cell--hoy { border-color: var(--accent); }
 
-.cal-cell__num { font-family: var(--font-display); font-size: 0.95rem; color: var(--text-primary); }
+.cal-cell__num { font-family: var(--font-display); font-size: 1.05rem; color: var(--text-primary); }
 .cal-cell--hoy .cal-cell__num { color: var(--accent); }
 .cal-cell__gasto,
 .cal-cell__ingreso {
-  font-size: 0.66rem;
-  line-height: 1.15;
+  font-size: 0.72rem;
+  line-height: 1.2;
   max-width: 100%;
   text-align: center;
   /* En vez de recortar con "…" (que dejaba números ilegibles a medias),
@@ -386,8 +399,8 @@ input, select, textarea { font-size: 16px; }
 .cal-cell__ingreso { color: var(--success); }
 
 @media (max-width: 640px) {
-  .cal-cell__gasto, .cal-cell__ingreso { font-size: 0.56rem; }
-  .cal-cell__num { font-size: 0.8rem; }
+  .cal-cell__gasto, .cal-cell__ingreso { font-size: 0.66rem; }
+  .cal-cell__num { font-size: 0.92rem; }
 }
 
 .form-grid {
