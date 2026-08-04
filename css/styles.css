@@ -237,25 +237,24 @@ input, select, textarea { font-size: 16px; }
   margin: 20px 0 4px;
 }
 
-.lock-screen__icon { margin-top: 18px; }
-
-.login-divider {
+.faceid-btn {
   display: flex;
   align-items: center;
-  color: var(--text-muted);
-  font-size: 0.78rem;
-  margin: 16px 0;
+  justify-content: center;
+  width: 76px;
+  height: 76px;
+  margin: 22px auto 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: none;
+  color: #10160f;
+  font-size: 36px;
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-lux), opacity 0.15s var(--ease-lux);
 }
-.login-divider::before,
-.login-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-.login-divider span { padding: 0 10px; }
-
-#btn-login-faceid { margin-bottom: 4px; }
+.faceid-btn:hover { transform: scale(1.05); }
+.faceid-btn:disabled { opacity: 0.55; cursor: default; transform: none; }
 
 .link-button {
   display: block;

@@ -1,9 +1,9 @@
-import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js?v=22";
-import { openModal, closeModal } from "../modal.js?v=22";
-import { entityIcon, iconForCategoriaTipo, icon } from "../icons.js?v=22";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=22";
-import { emojiFieldHTML, attachEmojiPicker, CATEGORIA_EMOJIS } from "../emoji-picker.js?v=22";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=22";
+import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js?v=23";
+import { openModal, closeModal } from "../modal.js?v=23";
+import { entityIcon, iconForCategoriaTipo, icon } from "../icons.js?v=23";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=23";
+import { emojiFieldHTML, attachEmojiPicker, CATEGORIA_EMOJIS } from "../emoji-picker.js?v=23";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=23";
 
 const TIPOS = ["Fijo", "Variable", "Ocio", "PrestamoDado"];
 
