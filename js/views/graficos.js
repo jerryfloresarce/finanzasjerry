@@ -7,9 +7,10 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=34";
-import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=34";
-import { icon, entityIcon, iconForCuentaTipo } from "../icons.js?v=34";
+} from "../db.js?v=35";
+import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=35";
+import { icon, entityIcon, iconForCuentaTipo, iconForSuscripcion } from "../icons.js?v=35";
+import { openModal, closeModal } from "../modal.js?v=35";
 
 const GASTO_COLORS = ["#b06a63", "#c48b83", "#9c6a63", "#8a5850", "#a37c74", "#7d5a53"];
 const INGRESO_COLORS = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#6b8778", "#9cae8f"];
@@ -106,22 +107,25 @@ function renderGastosFijosPorCuenta(state) {
       if (importe > 0) totales.set(s.cuenta_id, (totales.get(s.cuenta_id) || 0) + importe);
     });
 
-  const mesLabel = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(mesGastosFijos);
-  document.getElementById("gf-mes-label").textContent = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1);
-
-  const hoy = new Date();
-  const esFuturo = mesGastosFijos > new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-  document.getElementById("gf-mes-nota").textContent = esFuturo
-    ? "Estimación: se asume que cada gasto fijo cobrará su precio habitual. Para cambiarla, edita el gasto fijo (precio o cuenta) en Gastos fijos."
-    : "Total de gastos fijos de cada cuenta este mes, contando lo ya pagado y lo que queda pendiente.";
+  document.getElementById("gf-mes-label").textContent = etiquetaMes();
 
   const entradas = [...totales.entries()].sort((a, b) => b[1] - a[1]);
   renderChartGastosFijosCuenta(
     entradas.map(([id]) => cuentaMap.get(id)?.nombre ?? "Sin cuenta"),
     entradas.map(([, total]) => total),
-    esFuturo
+    esMesFuturo()
   );
   renderTotalesPorCuenta(entradas, cuentaMap);
+}
+
+function etiquetaMes() {
+  const label = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(mesGastosFijos);
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function esMesFuturo() {
+  const hoy = new Date();
+  return mesGastosFijos > new Date(hoy.getFullYear(), hoy.getMonth(), 1);
 }
 
 function renderChartGastosFijosCuenta(labels, valores, esFuturo) {
@@ -191,7 +195,7 @@ function renderTotalesPorCuenta(entradas, cuentaMap) {
       .map(([cuentaId, valor]) => {
         const cuenta = cuentaMap.get(cuentaId);
         return `
-        <div class="mini-row">
+        <button type="button" class="mini-row" data-gf-cuenta="${cuentaId}">
           <div class="mini-row__body">
             <span class="mini-row__icon">${cuenta ? entityIcon(cuenta, iconForCuentaTipo(cuenta.tipo)) : icon("otra")}</span>
             <div class="mini-row__main">
@@ -199,13 +203,79 @@ function renderTotalesPorCuenta(entradas, cuentaMap) {
             </div>
           </div>
           <span class="mini-row__amount">${formatEUR(valor)}</span>
-        </div>`;
+        </button>`;
       })
       .join("") +
     `<div class="mini-row" style="border-top: 1px solid var(--border-strong); margin-top: 6px; padding-top: 12px;">
       <div class="mini-row__main"><span class="mini-row__title">Total</span></div>
       <span class="mini-row__amount">${formatEUR(total)}</span>
     </div>`;
+
+  el.querySelectorAll("[data-gf-cuenta]").forEach((btn) =>
+    btn.addEventListener("click", () => openDesgloseCuenta(btn.dataset.gfCuenta))
+  );
+}
+
+// Al tocar una cuenta: qué gastos fijos concretos componen ese total, con el
+// estado de cada uno en ese mes.
+function openDesgloseCuenta(cuentaId) {
+  if (!currentState) return;
+  const { suscripciones, cuentas, movimientos } = currentState;
+  const cuenta = cuentas.find((c) => c.id === cuentaId);
+  const esFuturo = esMesFuturo();
+
+  const filas = suscripciones
+    .filter((s) => s.activa !== false && s.cuenta_id === cuentaId)
+    .map((s) => {
+      const pagos = pagosDeSuscripcionEnMes(movimientos, s.id, mesGastosFijos);
+      const pagado = pagos.length > 0;
+      return {
+        nombre: s.nombre,
+        pagado,
+        importe: pagado
+          ? pagos.reduce((acc, m) => acc + Number(m.importe ?? 0), 0)
+          : Number(s.precio ?? 0),
+      };
+    })
+    .filter((f) => f.importe > 0)
+    .sort((a, b) => b.importe - a.importe);
+
+  const total = filas.reduce((acc, f) => acc + f.importe, 0);
+
+  openModal(
+    `
+    <h2 class="modal__title">${cuenta?.nombre ?? "Sin cuenta"} · ${etiquetaMes()}</h2>
+    <div class="mini-list">
+      ${filas
+        .map(
+          (f) => `
+        <div class="mini-row">
+          <div class="mini-row__body">
+            <span class="mini-row__icon">${icon(iconForSuscripcion(f.nombre))}</span>
+            <div class="mini-row__main">
+              <span class="mini-row__title">${f.nombre}</span>
+              <span class="mini-row__sub">${esFuturo ? "Estimado" : f.pagado ? "Pagado" : "Pendiente"}</span>
+            </div>
+          </div>
+          <span class="mini-row__amount">${formatEUR(f.importe)}</span>
+        </div>`
+        )
+        .join("")}
+      <div class="mini-row" style="border-top: 1px solid var(--border-strong); margin-top: 6px; padding-top: 12px;">
+        <div class="mini-row__main"><span class="mini-row__title">Total</span></div>
+        <span class="mini-row__amount">${formatEUR(total)}</span>
+      </div>
+    </div>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--ghost" id="btn-cerrar-desglose">Cerrar</button>
+    </div>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cerrar-desglose").addEventListener("click", closeModal);
+      },
+    }
+  );
 }
 
 function renderEvolucion(movimientos) {
