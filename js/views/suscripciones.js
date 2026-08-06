@@ -1,7 +1,7 @@
-import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=30";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=30";
-import { icon, iconForSuscripcion } from "../icons.js?v=30";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=30";
+import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=31";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=31";
+import { icon, iconForSuscripcion, entityIcon, iconForCuentaTipo } from "../icons.js?v=31";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=31";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).
@@ -48,6 +48,7 @@ export function renderSuscripciones(state) {
   if (suscripciones.length === 0) {
     el.innerHTML = `<p class="empty-state">Todavía no has añadido ningún gasto fijo.</p>`;
     document.getElementById("susc-resumen").textContent = "";
+    document.getElementById("susc-resumen-cuentas").innerHTML = "";
     return;
   }
 
@@ -56,6 +57,12 @@ export function renderSuscripciones(state) {
   let pagadoTotal = 0;
   let pendienteTotal = 0;
   let pagadasCount = 0;
+  // Cuánto sale cada mes de cada cuenta en total, para no tener que sumarlo
+  // a mano cuenta por cuenta (ej. "¿cuánto tengo de gastos fijos solo en
+  // Imagin?"). Usa el mismo importe que ya se muestra en cada fila: lo
+  // realmente pagado este mes si ya se marcó, o el precio habitual si
+  // todavía está pendiente.
+  const porCuenta = new Map();
 
   el.innerHTML = ordenadas
     .map((s) => {
@@ -67,6 +74,7 @@ export function renderSuscripciones(state) {
           pagadoTotal += importeReal;
           pagadasCount++;
         } else pendienteTotal += importeReal;
+        porCuenta.set(s.cuenta_id, (porCuenta.get(s.cuenta_id) || 0) + importeReal);
       }
 
       return wrapSwipe(
@@ -94,6 +102,8 @@ export function renderSuscripciones(state) {
   document.getElementById("susc-resumen").textContent =
     `Pagado este mes: ${formatEUR(pagadoTotal)} (${pagadasCount}/${totalActivas}) · Pendiente: ${formatEUR(pendienteTotal)}`;
 
+  renderResumenPorCuenta(porCuenta, cuentas);
+
   el.querySelectorAll("[data-edit]").forEach((btn) =>
     btn.addEventListener("click", () => openForm(suscripciones.find((s) => s.id === btn.dataset.edit), currentState))
   );
@@ -115,6 +125,38 @@ export function renderSuscripciones(state) {
       }
     })
   );
+}
+
+// porCuenta: Map de cuenta_id (o null si no tiene cuenta asignada) → total
+// mensual de gastos fijos activos que salen de ahí. Ordenado de mayor a
+// menor para que lo más gordo se vea primero.
+function renderResumenPorCuenta(porCuenta, cuentas) {
+  const el = document.getElementById("susc-resumen-cuentas");
+  if (!el) return;
+
+  if (porCuenta.size === 0) {
+    el.innerHTML = `<p class="empty-state">No hay gastos fijos activos.</p>`;
+    return;
+  }
+
+  const cuentaMap = new Map(cuentas.map((c) => [c.id, c]));
+
+  el.innerHTML = [...porCuenta.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([cuentaId, total]) => {
+      const cuenta = cuentaMap.get(cuentaId);
+      return `
+        <div class="mini-row">
+          <div class="mini-row__body">
+            <span class="mini-row__icon">${cuenta ? entityIcon(cuenta, iconForCuentaTipo(cuenta.tipo)) : icon("otra")}</span>
+            <div class="mini-row__main">
+              <span class="mini-row__title">${cuenta?.nombre ?? "Sin cuenta asignada"}</span>
+            </div>
+          </div>
+          <span class="mini-row__amount">${formatEUR(total)}</span>
+        </div>`;
+    })
+    .join("");
 }
 
 // checkboxInput: la casilla que el usuario acaba de marcar para abrir este

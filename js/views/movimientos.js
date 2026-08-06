@@ -6,10 +6,10 @@ import {
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js?v=30";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=30";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=30";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=30";
+} from "../db.js?v=31";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=31";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=31";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=31";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
