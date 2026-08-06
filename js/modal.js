@@ -1,4 +1,4 @@
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=38";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=39";
 
 const modalRoot = document.getElementById("modal-root");
 const modalScrim = document.getElementById("modal-scrim");
