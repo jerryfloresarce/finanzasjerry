@@ -6,9 +6,11 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=28";
-import { initDashboardAnimations, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=28";
-import { seedInitialData } from "../seed.js?v=28";
+  esPlanDePagos,
+  restantePlanDePagos,
+} from "../db.js?v=29";
+import { initDashboardAnimations, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=29";
+import { seedInitialData } from "../seed.js?v=29";
 import {
   pendingCorrections,
   applyAugustCorrections,
@@ -22,8 +24,11 @@ import {
   pendingLizFecha,
   fixLizFecha,
   dismissLizFecha,
-} from "../fixes.js?v=28";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=28";
+  pendingPlanPagosAna,
+  activarPlanPagosAna,
+  dismissPlanPagosAna,
+} from "../fixes.js?v=29";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=29";
 
 let chartInstance = null;
 
@@ -121,6 +126,24 @@ export function mountDashboard() {
       document.getElementById("liz-fecha-banner-error").textContent = mensajeError(err);
     }
   });
+
+  const planPagosAnaBtn = document.getElementById("btn-plan-pagos-ana");
+  planPagosAnaBtn?.addEventListener("click", async () => {
+    planPagosAnaBtn.disabled = true;
+    planPagosAnaBtn.textContent = "Aplicando…";
+    document.getElementById("plan-pagos-ana-banner-error").textContent = "";
+    try {
+      await activarPlanPagosAna();
+      await dismissPlanPagosAna();
+      planPagosAnaBtn.textContent = "Hecho ✓";
+      document.getElementById("plan-pagos-ana-banner")?.classList.add("is-hidden");
+    } catch (err) {
+      console.error("Error al activar el plan de pagos de Ana (mamá):", err);
+      planPagosAnaBtn.textContent = "Reintentar";
+      planPagosAnaBtn.disabled = false;
+      document.getElementById("plan-pagos-ana-banner-error").textContent = mensajeError(err);
+    }
+  });
 }
 
 const CATEGORY_COLORS = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#b6975f", "#7d8f8a", "#9c8a6f", "#6b8778"];
@@ -137,7 +160,7 @@ export function renderDashboard(state) {
   loadingEl?.classList.add("is-hidden");
   contentEl?.classList.remove("is-hidden");
 
-  const { cuentas, categorias, movimientos, suscripciones, prestamos } = state;
+  const { cuentas, categorias, movimientos, suscripciones, prestamos, pagosPrestamos } = state;
 
   const seedBanner = document.getElementById("seed-banner");
   if (seedBanner) seedBanner.classList.toggle("is-hidden", !(state.ready && cuentas.length === 0));
@@ -154,6 +177,9 @@ export function renderDashboard(state) {
   const lizFechaBanner = document.getElementById("liz-fecha-banner");
   if (lizFechaBanner) lizFechaBanner.classList.toggle("is-hidden", !(state.ready && pendingLizFecha()));
 
+  const planPagosAnaBanner = document.getElementById("plan-pagos-ana-banner");
+  if (planPagosAnaBanner) planPagosAnaBanner.classList.toggle("is-hidden", !(state.ready && pendingPlanPagosAna()));
+
   document.getElementById("hero-fecha").textContent = new Intl.DateTimeFormat("es-ES", {
     weekday: "long",
     day: "numeric",
@@ -167,7 +193,7 @@ export function renderDashboard(state) {
   renderLimites(movimientos, categorias);
   renderTopLugares(movimientos);
   renderRecientes(movimientos, categorias, cuentas);
-  renderPrestamos(prestamos);
+  renderPrestamos(prestamos, pagosPrestamos);
   renderSuscripciones(suscripciones, cuentas);
   renderCuentasResumen(cuentas, movimientos);
 
@@ -343,7 +369,7 @@ function renderRecientes(movimientos, categorias, cuentas) {
     .join("");
 }
 
-function renderPrestamos(prestamos) {
+function renderPrestamos(prestamos, pagosPrestamos) {
   const el = document.getElementById("prestamos-activos");
   const activos = prestamos.filter((p) => p.estado !== "Pagado");
 
@@ -354,17 +380,23 @@ function renderPrestamos(prestamos) {
 
   el.innerHTML = activos
     .map((p) => {
-      const capital = Number(p.capital ?? p.capital_inicial ?? 0);
+      const planPagos = esPlanDePagos(p);
+      const monto = planPagos ? restantePlanDePagos(p, pagosPrestamos) : Number(p.capital ?? p.capital_inicial ?? 0);
+      const sub = planPagos
+        ? "plan de pagos diario"
+        : p.interes_manual != null && p.interes_manual !== ""
+        ? "interés fijo"
+        : `${p.interes_porcentaje ?? 0}% interés`;
       return `
         <div class="mini-row">
           <div class="mini-row__body">
             <span class="avatar" style="background:${avatarColor(p.persona)}">${initials(p.persona)}</span>
             <div class="mini-row__main">
               <span class="mini-row__title">${p.persona}</span>
-              <span class="mini-row__sub">${p.interes_manual != null && p.interes_manual !== "" ? "interés fijo" : `${p.interes_porcentaje ?? 0}% interés`}</span>
+              <span class="mini-row__sub">${sub}</span>
             </div>
           </div>
-          <span class="mini-row__amount">${formatEUR(capital)}</span>
+          <span class="mini-row__amount">${formatEUR(monto)}</span>
         </div>`;
     })
     .join("");
