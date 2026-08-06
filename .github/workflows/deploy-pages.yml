@@ -1,0 +1,49 @@
+# Publicación en GitHub Pages con un margen de espera mucho más largo.
+#
+# El workflow que GitHub genera solo (el de "Deploy from a branch") espera
+# como mucho 10 minutos a que Pages termine de publicar y, si se agotan,
+# ABORTA Y CANCELA el despliegue a medias. Cuando Pages va lento —como está
+# pasando— eso deja la web sin actualizar aunque los archivos se hayan
+# subido bien. Aquí el único cambio de fondo es darle 30 minutos en vez de
+# 10, para que le dé tiempo a terminar en vez de cancelarse solo.
+name: Publicar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Permite relanzarlo a mano desde la pestaña Actions si hiciera falta.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# cancel-in-progress: false a propósito — si se cancelara el despliegue en
+# curso al llegar un push nuevo, volveríamos justo al problema de dejar la
+# publicación a medias.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/configure-pages@v5
+
+      # Sitio estático servido tal cual desde la raíz del repo (no hay
+      # compilación). La acción ya excluye .git y .github por su cuenta.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+        with:
+          timeout: 1800000
