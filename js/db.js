@@ -10,7 +10,7 @@ import {
   orderBy,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=35";
+import { db } from "./firebase-init.js?v=36";
 
 // ---------- Helpers genéricos ----------
 
