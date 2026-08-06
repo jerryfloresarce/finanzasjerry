@@ -1,0 +1,13 @@
+# Archivos que Cloudflare NO debe publicar en la web.
+#
+# Sin esto subía la carpeta .git entera (todo el historial del repositorio
+# quedaba descargable desde internet) y también .github. Aquí solo tiene que
+# servirse la web en sí: index.html, css/, js/ y assets/.
+.git
+.git/**
+.github
+.github/**
+
+# Documentación y reglas: se quedan en el repositorio, no hacen falta en la web.
+*.md
+firestore.rules
