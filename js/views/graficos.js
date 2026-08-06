@@ -6,13 +6,18 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=37";
-import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=37";
-import { icon, entityIcon, iconForCuentaTipo, iconForSuscripcion } from "../icons.js?v=37";
-import { openModal, closeModal } from "../modal.js?v=37";
+} from "../db.js?v=38";
+import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=38";
+import { icon, entityIcon, iconForCuentaTipo, iconForSuscripcion } from "../icons.js?v=38";
+import { openModal, closeModal } from "../modal.js?v=38";
+import { colorTema, paletaTema, conAlfa } from "../tema.js?v=38";
 
-const GASTO_COLORS = ["#b06a63", "#c48b83", "#9c6a63", "#8a5850", "#a37c74", "#7d5a53"];
-const INGRESO_COLORS = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#6b8778", "#9cae8f"];
+// Colores de respaldo (tema Original). Los de verdad los pone el tema
+// activo — ver js/tema.js.
+const GASTO_COLORS_BASE = ["#b06a63", "#c48b83", "#9c6a63", "#8a5850", "#a37c74", "#7d5a53"];
+const INGRESO_COLORS_BASE = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#6b8778", "#9cae8f"];
+const GASTO_COLORS = () => paletaTema("--paleta-gastos", GASTO_COLORS_BASE);
+const INGRESO_COLORS = () => paletaTema("--paleta-ingresos", INGRESO_COLORS_BASE);
 
 let rango = "mes";
 let filtroTexto = "";
@@ -148,8 +153,8 @@ function renderChartGastosFijosCuenta(labels, valores, esFuturo) {
         {
           label: esFuturo ? "Estimado" : "Gastos fijos",
           data: valores,
-          backgroundColor: esFuturo ? "rgba(182,151,95,0.5)" : "rgba(122,155,129,0.6)",
-          borderColor: esFuturo ? "#b6975f" : "#7a9b81",
+          backgroundColor: conAlfa(colorTema(esFuturo ? "--warning" : "--accent"), esFuturo ? 0.5 : 0.6),
+          borderColor: colorTema(esFuturo ? "--warning" : "--accent"),
           borderWidth: 1.5,
           borderRadius: 6,
           maxBarThickness: 72,
@@ -164,11 +169,11 @@ function renderChartGastosFijosCuenta(labels, valores, esFuturo) {
         tooltip: { callbacks: { label: (ctx) => formatEUR(ctx.parsed.y) } },
       },
       scales: {
-        x: { grid: { display: false }, ticks: { color: "#6d7a72", font: { size: 11 } } },
+        x: { grid: { display: false }, ticks: { color: colorTema("--chart-eje", "#6d7a72"), font: { size: 11 } } },
         y: {
           beginAtZero: true,
-          grid: { color: "rgba(233,238,234,0.06)" },
-          ticks: { color: "#6d7a72", font: { size: 11 }, callback: (v) => formatEUR(v).replace(",00", "") },
+          grid: { color: colorTema("--chart-rejilla", "rgba(233,238,234,0.06)") },
+          ticks: { color: colorTema("--chart-eje", "#6d7a72"), font: { size: 11 }, callback: (v) => formatEUR(v).replace(",00", "") },
         },
       },
     },
@@ -276,7 +281,10 @@ function openDesgloseCuenta(cuentaId) {
   );
 }
 
-function renderDonut(canvasId, datos, colors) {
+// paleta: función que devuelve la lista de colores del tema activo. Se
+// pasa como función y no como lista ya hecha porque los colores cambian
+// al cambiar de tema, y este render se vuelve a llamar entonces.
+function renderDonut(canvasId, datos, paleta) {
   const canvas = document.getElementById(canvasId);
   if (!canvas || typeof Chart === "undefined") return;
 
@@ -294,8 +302,11 @@ function renderDonut(canvasId, datos, colors) {
       datasets: [
         {
           data: datos.map((d) => d.total),
-          backgroundColor: datos.map((_, i) => colors[i % colors.length]),
-          borderColor: "#131a16",
+          backgroundColor: (() => {
+            const colores = paleta();
+            return datos.map((_, i) => colores[i % colores.length]);
+          })(),
+          borderColor: colorTema("--chart-borde", "#131a16"),
           borderWidth: 2,
         },
       ],
@@ -307,7 +318,7 @@ function renderDonut(canvasId, datos, colors) {
       plugins: {
         legend: {
           position: "bottom",
-          labels: { color: "#9fada4", boxWidth: 8, padding: 8, font: { family: "Inter", size: 10.5 } },
+          labels: { color: colorTema("--chart-leyenda", "#9fada4"), boxWidth: 8, padding: 8, font: { family: "Inter", size: 10.5 } },
         },
         tooltip: {
           callbacks: { label: (ctx) => `${ctx.label}: ${formatEUR(ctx.parsed)}` },

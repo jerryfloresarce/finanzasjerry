@@ -30,6 +30,48 @@
   --warning: #b6975f;
   --warning-soft: rgba(182, 151, 95, 0.14);
 
+  /* Texto que va ENCIMA de un color fuerte (botón primario, avatar,
+     botón rojo de eliminar). Se separa del resto porque en los temas
+     claros de acento hace falta texto oscuro y en los oscuros, claro. */
+  --on-accent: #10150f;
+  --on-accent-dim: #eef3ee;
+  --on-danger: #ffffff;
+
+  /* Ambiente: el fondo con niebla del login y del hero del Dashboard.
+     Las tres manchas de luz y la base del degradado, por separado, para
+     que cada tema pueda tener su propia atmósfera. */
+  --atm-luz-1: rgba(216, 199, 148, 0.09);
+  --atm-luz-2: rgba(96, 138, 106, 0.18);
+  --atm-luz-3: rgba(58, 82, 64, 0.22);
+  --atm-base-1: #121810;
+  --atm-base-2: #0b0f0c;
+  --atm-base-3: #060907;
+  /* Las rayas diagonales de "lluvia" que cruzan el ambiente. */
+  --atm-lluvia: rgba(220, 230, 224, 0.06);
+  /* Trama opcional por encima del ambiente (el damero del haori de
+     Tanjiro, por ejemplo). "none" = sin trama, que es lo normal. */
+  --atm-patron: none;
+  --atm-patron-tam: 46px 46px;
+
+  /* Imágenes de fondo. Cada tema puede traer la suya; si vale "none" se
+     ve solo el ambiente hecho con CSS. Para añadir una: se sube el
+     archivo a assets/img/ y se apunta aquí con url("../assets/img/…"). */
+  --login-imagen: url("../assets/img/login-bg.jpg");
+  --hero-imagen: none;
+  --hero-scrim: linear-gradient(100deg, rgba(10, 14, 12, 0.55) 0%, rgba(10, 14, 12, 0.75) 55%, rgba(10, 14, 12, 0.5) 100%);
+
+  /* Gráficos. Las paletas son listas separadas por comas que lee el JS
+     (js/tema.js), así que aquí SOLO valen colores sin comas dentro: hex
+     sí, rgba() no. */
+  --chart-rejilla: rgba(233, 238, 234, 0.06);
+  --chart-eje: #6d7a72;
+  --chart-leyenda: #9fada4;
+  --chart-borde: #131a16;
+  --paleta-gastos: #b06a63, #c48b83, #9c6a63, #8a5850, #a37c74, #7d5a53;
+  --paleta-ingresos: #7a9b81, #a8c3a0, #8a9b6e, #5f7a63, #6b8778, #9cae8f;
+  --paleta-categorias: #7a9b81, #a8c3a0, #8a9b6e, #5f7a63, #b6975f, #7d8f8a, #9c8a6f, #6b8778;
+  --paleta-avatares: #7a9b81, #8a9b6e, #7d8f8a, #9c8a6f, #6b8778, #a8935f;
+
   /* Tipografía */
   --font-display: "Fraunces", Georgia, serif;
   --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -131,10 +173,11 @@ input, select, textarea { font-size: 16px; }
    una foto real en assets/img/, basta con poner background-image ahí. */
 .atmosphere-bg {
   background:
-    radial-gradient(55% 45% at 62% 12%, rgba(216, 199, 148, 0.09) 0%, transparent 62%),
-    radial-gradient(70% 55% at 15% 92%, rgba(96, 138, 106, 0.18) 0%, transparent 68%),
-    radial-gradient(90% 70% at 85% 100%, rgba(58, 82, 64, 0.22) 0%, transparent 70%),
-    linear-gradient(160deg, #121810 0%, #0b0f0c 52%, #060907 100%);
+    var(--atm-patron) 0 0 / var(--atm-patron-tam) repeat,
+    radial-gradient(55% 45% at 62% 12%, var(--atm-luz-1) 0%, transparent 62%),
+    radial-gradient(70% 55% at 15% 92%, var(--atm-luz-2) 0%, transparent 68%),
+    radial-gradient(90% 70% at 85% 100%, var(--atm-luz-3) 0%, transparent 70%),
+    linear-gradient(160deg, var(--atm-base-1) 0%, var(--atm-base-2) 52%, var(--atm-base-3) 100%);
 }
 
 .atmosphere-bg::before {
@@ -153,8 +196,8 @@ input, select, textarea { font-size: 16px; }
   inset: -20%;
   background-image: repeating-linear-gradient(
     112deg,
-    rgba(220, 230, 224, 0.06) 0px,
-    rgba(220, 230, 224, 0.06) 1px,
+    var(--atm-lluvia) 0px,
+    var(--atm-lluvia) 1px,
     transparent 1px,
     transparent 15px
   );
@@ -204,7 +247,7 @@ input, select, textarea { font-size: 16px; }
   transform: scale(1.05);
   background-image:
     linear-gradient(180deg, rgba(6, 9, 7, 0.32) 0%, rgba(6, 9, 7, 0.62) 60%, rgba(6, 9, 7, 0.88) 100%),
-    url("../assets/img/login-bg.jpg");
+    var(--login-imagen);
   background-size: cover;
   background-position: center 62%;
 }
@@ -434,7 +477,7 @@ input, select, textarea { font-size: 16px; }
 
 .btn--primary {
   background: var(--accent-dim);
-  color: #eef3ee;
+  color: var(--on-accent-dim);
 }
 .btn--primary:hover { background: var(--accent); }
 
@@ -693,7 +736,7 @@ input, select, textarea { font-size: 16px; }
 .segmented__btn:hover { color: var(--text-primary); }
 .segmented__btn.is-active {
   background: var(--accent-dim);
-  color: #eef3ee;
+  color: var(--on-accent-dim);
 }
 
 /* ---------------- KPI tiles ---------------- */
@@ -762,10 +805,22 @@ input, select, textarea { font-size: 16px; }
   will-change: transform;
 }
 
+/* Si el tema trae imagen para el hero, se pinta en su propia capa entre el
+   ambiente y el scrim. Con "none" (lo normal) esta capa no se ve y queda
+   el ambiente hecho solo con CSS, igual que antes. */
+.hero__imagen {
+  position: absolute;
+  inset: 0;
+  background-image: var(--hero-imagen);
+  background-size: cover;
+  background-position: center 45%;
+  pointer-events: none;
+}
+
 .hero__scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(100deg, rgba(10, 14, 12, 0.55) 0%, rgba(10, 14, 12, 0.75) 55%, rgba(10, 14, 12, 0.5) 100%);
+  background: var(--hero-scrim);
 }
 
 .hero__content {
@@ -1050,7 +1105,7 @@ canvas { max-width: 100%; }
   bottom: 0;
   width: 88px;
   background: var(--danger);
-  color: #fff;
+  color: var(--on-danger);
   border: none;
   font-size: 0.82rem;
   font-weight: 600;
@@ -1092,7 +1147,7 @@ canvas { max-width: 100%; }
   border-radius: 999px;
   font-family: var(--font-display);
   font-size: 0.95rem;
-  color: #10150f;
+  color: var(--on-accent);
   flex-shrink: 0;
 }
 

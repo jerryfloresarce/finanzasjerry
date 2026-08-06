@@ -8,9 +8,9 @@ import {
   fromTimestamp,
   esPlanDePagos,
   restantePlanDePagos,
-} from "../db.js?v=37";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=37";
-import { seedInitialData } from "../seed.js?v=37";
+} from "../db.js?v=38";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=38";
+import { seedInitialData } from "../seed.js?v=38";
 import {
   pendingCorrections,
   applyAugustCorrections,
@@ -27,9 +27,10 @@ import {
   pendingPlanPagosAna,
   activarPlanPagosAna,
   dismissPlanPagosAna,
-} from "../fixes.js?v=37";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=37";
-import { openHistorial } from "./cuentas.js?v=37";
+} from "../fixes.js?v=38";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=38";
+import { openHistorial } from "./cuentas.js?v=38";
+import { colorTema, paletaTema } from "../tema.js?v=38";
 
 let chartInstance = null;
 
@@ -147,7 +148,10 @@ export function mountDashboard() {
   });
 }
 
-const CATEGORY_COLORS = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#b6975f", "#7d8f8a", "#9c8a6f", "#6b8778"];
+// Los colores salen del tema activo (js/tema.js), no de una lista fija:
+// así el donut cambia junto con el resto de la app.
+const CATEGORY_COLORS_BASE = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#b6975f", "#7d8f8a", "#9c8a6f", "#6b8778"];
+const categoryColors = () => paletaTema("--paleta-categorias", CATEGORY_COLORS_BASE);
 
 export function renderDashboard(state) {
   const loadingEl = document.getElementById("dashboard-loading");
@@ -224,7 +228,8 @@ function renderChart(movimientos, categorias) {
 
   const labels = datos.map((d) => d.categoria.nombre);
   const values = datos.map((d) => d.total);
-  const colors = datos.map((_, i) => CATEGORY_COLORS[i % CATEGORY_COLORS.length]);
+  const paleta = categoryColors();
+  const colors = datos.map((_, i) => paleta[i % paleta.length]);
 
   // El Dashboard se vuelve a renderizar con cada actualización de Firestore
   // (no solo al entrar en la vista) — destruir y recrear el gráfico cada vez
@@ -251,7 +256,7 @@ function renderChart(movimientos, categorias) {
         {
           data: values,
           backgroundColor: colors,
-          borderColor: "#131a16",
+          borderColor: colorTema("--chart-borde", "#131a16"),
           borderWidth: 2,
         },
       ],
@@ -263,7 +268,7 @@ function renderChart(movimientos, categorias) {
       plugins: {
         legend: {
           position: "bottom",
-          labels: { color: "#9fada4", boxWidth: 10, padding: 14, font: { family: "Inter", size: 12 } },
+          labels: { color: colorTema("--chart-leyenda", "#9fada4"), boxWidth: 10, padding: 14, font: { family: "Inter", size: 12 } },
         },
         tooltip: {
           callbacks: { label: (ctx) => `${ctx.label}: ${formatEUR(ctx.parsed)}` },

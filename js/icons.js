@@ -3,6 +3,8 @@
 // icon() de antes para no tocar el resto de las vistas — solo cambia
 // cómo se genera el marcado por dentro.
 
+import { paletaTema } from "./tema.js?v=38";
+
 const PH = {
   dashboard: "squares-four",
   movimientos: "arrows-left-right",
@@ -99,10 +101,13 @@ export function initials(nombre = "") {
   return (parts[0][0] + parts[1][0]).toUpperCase();
 }
 
+// La paleta de las iniciales sale del tema activo; la lista de aquí es
+// solo el respaldo (el tema Original y por si el CSS aún no ha cargado).
 const AVATAR_PALETTE = ["#7a9b81", "#8a9b6e", "#7d8f8a", "#9c8a6f", "#6b8778", "#a8935f"];
 
 export function avatarColor(seed = "") {
+  const paleta = paletaTema("--paleta-avatares", AVATAR_PALETTE);
   let hash = 0;
   for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
+  return paleta[hash % paleta.length];
 }

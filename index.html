@@ -21,7 +21,25 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=37" />
+<link rel="stylesheet" href="css/styles.css?v=38" />
+<link rel="stylesheet" href="css/temas.css?v=38" />
+<script>
+  /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
+     desde un módulo (que se ejecuta al final), la app abriría un instante
+     en verde y cambiaría de color a la vista. La lista de temas se repite
+     aquí a propósito: este script no puede importar nada todavía. El
+     catálogo bueno está en js/tema.js. */
+  try {
+    var temaGuardado = localStorage.getItem("fj-tema");
+    var temasValidos = ["luffy", "zoro", "sanji", "tanjiro", "zenitsu", "inosuke", "akaza"];
+    if (temaGuardado && temasValidos.indexOf(temaGuardado) !== -1) {
+      document.documentElement.dataset.tema = temaGuardado;
+      var fondo = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (fondo && meta) meta.setAttribute("content", fondo);
+    }
+  } catch (e) {}
+</script>
 <link rel="icon" href="data:,">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
@@ -200,6 +218,7 @@
 
       <div class="hero" id="hero-parallax">
         <div class="hero__bg atmosphere-bg" id="hero-bg" aria-hidden="true"></div>
+        <div class="hero__imagen" aria-hidden="true"></div>
         <div class="hero__scrim" aria-hidden="true"></div>
         <div class="hero__content">
           <div class="hero__brand">
@@ -434,6 +453,12 @@
 
   <div class="cuenta-panel__divider"></div>
 
+  <h3 class="cuenta-panel__subtitle">Temas</h3>
+  <p class="entity-card__meta" style="margin: 0 0 2px;">Cambia el aspecto de toda la app. «Original» la deja como estaba.</p>
+  <div id="temas-selector"></div>
+
+  <div class="cuenta-panel__divider"></div>
+
   <h3 class="cuenta-panel__subtitle">Configuración</h3>
   <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-exportar-datos">Exportar mis datos</button>
   <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-importar-datos">Importar desde una copia</button>
@@ -455,6 +480,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=37"></script>
+<script type="module" src="js/app.js?v=38"></script>
 </body>
 </html>

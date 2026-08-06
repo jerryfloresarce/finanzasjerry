@@ -6,10 +6,11 @@ import {
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js?v=37";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=37";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=37";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=37";
+} from "../db.js?v=38";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=38";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=38";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=38";
+import { colorTema } from "../tema.js?v=38";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -77,8 +78,8 @@ function renderComparativa(ingresos, gastos) {
     data: {
       labels: ["Este mes"],
       datasets: [
-        { label: "Ingresos", data: [ingresos], backgroundColor: "#7a9b81", borderRadius: 6, maxBarThickness: 40 },
-        { label: "Gastos", data: [gastos], backgroundColor: "#b06a63", borderRadius: 6, maxBarThickness: 40 },
+        { label: "Ingresos", data: [ingresos], backgroundColor: colorTema("--success", "#7a9b81"), borderRadius: 6, maxBarThickness: 40 },
+        { label: "Gastos", data: [gastos], backgroundColor: colorTema("--danger", "#b06a63"), borderRadius: 6, maxBarThickness: 40 },
       ],
     },
     options: {
@@ -86,15 +87,15 @@ function renderComparativa(ingresos, gastos) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { position: "top", align: "end", labels: { color: "#9fada4", boxWidth: 8, font: { family: "Inter", size: 11 } } },
+        legend: { position: "top", align: "end", labels: { color: colorTema("--chart-leyenda", "#9fada4"), boxWidth: 8, font: { family: "Inter", size: 11 } } },
         tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatEUR(ctx.parsed.x)}` } },
       },
       scales: {
         x: {
-          grid: { color: "rgba(233,238,234,0.06)" },
-          ticks: { color: "#6d7a72", font: { size: 11 }, callback: (v) => formatEUR(v).replace(",00", "") },
+          grid: { color: colorTema("--chart-rejilla", "rgba(233,238,234,0.06)") },
+          ticks: { color: colorTema("--chart-eje", "#6d7a72"), font: { size: 11 }, callback: (v) => formatEUR(v).replace(",00", "") },
         },
-        y: { grid: { display: false }, ticks: { color: "#9fada4", font: { size: 12 } } },
+        y: { grid: { display: false }, ticks: { color: colorTema("--chart-leyenda", "#9fada4"), font: { size: 12 } } },
       },
     },
   });
