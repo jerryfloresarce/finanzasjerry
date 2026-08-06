@@ -71,17 +71,14 @@ export function initDashboardAnimations() {
       });
       heroTriggers.push(parallax.scrollTrigger);
 
-      gsap.fromTo(
-        heroBg,
-        { scale: 1.12, opacity: 0.6 },
-        { scale: 1.05, opacity: 1, duration: 1.4, ease: "power2.out" }
-      );
+      // Solo se funde la opacidad, sin escalar ni desplazar nada: antes el
+      // fondo hacía un zoom (1.12 → 1.05) y el contenido subía 28px justo
+      // en el momento en que llegaban los datos, así que se juntaba con el
+      // resto de animaciones y daba la sensación de que la pantalla entera
+      // se movía. Un fundido no desplaza nada de sitio.
+      gsap.fromTo(heroBg, { opacity: 0.6 }, { opacity: 1, duration: 0.9, ease: "power2.out" });
       if (heroContent) {
-        gsap.fromTo(
-          heroContent,
-          { y: 28, opacity: 0 },
-          { y: 0, opacity: 1, duration: 1.1, ease: "power3.out", delay: 0.15 }
-        );
+        gsap.fromTo(heroContent, { opacity: 0 }, { opacity: 1, duration: 0.7, ease: "power2.out" });
       }
 
       initHeroMouseParallax();
@@ -94,13 +91,11 @@ export function initDashboardAnimations() {
         start: "top 88%",
         once: true,
         onEnter: () => {
-          gsap.to(el, {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            delay: (i % 3) * 0.06,
-            ease: "power3.out",
-          });
+          // Igual que el hero: solo opacidad, sin desplazamiento vertical ni
+          // escalonado. La cascada de tarjetas subiendo de 24px una tras
+          // otra era la otra mitad de la sensación de "la página se mueve
+          // muchísimo" al terminar de cargar.
+          gsap.to(el, { opacity: 1, duration: 0.5, ease: "power2.out" });
         },
       });
       revealTriggers.push(trigger);
@@ -152,16 +147,13 @@ export function refreshAnimations() {
 // aislado — de verdad separado en el tiempo del anterior, como una acción
 // suelta del usuario mucho después — se anima.
 const VENTANA_RAFAGA_MS = 1200;
-// Arranca "caliente" (con el reloj ya en marcha desde que se cargó este
-// módulo) para que la propia ráfaga de arranque de la app también quede
-// cubierta sin necesidad de un caso especial aparte.
-let ultimoPase = Date.now();
+let ultimoPase = 0;
 let esteEsRafaga = true;
 
-// Debe llamarse UNA vez al principio de cada renderizado del Dashboard
-// (antes de countUpTo/renderChart), para fijar si este pase concreto cuenta
-// como parte de una ráfaga reciente. estaAsentando() solo lee ese resultado
-// ya calculado durante el resto del mismo pase.
+// Debe llamarse UNA vez al principio de cada renderizado (antes de
+// countUpTo/renderChart), para fijar si este pase concreto cuenta como parte
+// de una ráfaga reciente. estaAsentando() solo lee ese resultado ya
+// calculado durante el resto del mismo pase.
 export function iniciarPaseDeRender() {
   const ahora = Date.now();
   esteEsRafaga = ahora - ultimoPase < VENTANA_RAFAGA_MS;
@@ -179,12 +171,35 @@ const countState = new WeakMap();
 export function countUpTo(el, targetValue, format) {
   if (!el) return;
   const prev = countState.get(el);
+
+  // Si ya hay una animación en marcha hacia EXACTAMENTE este mismo valor, se
+  // deja correr. Firestore entrega un mismo cambio dos veces (primero desde
+  // la caché local, luego confirmado por el servidor); sin esto, la segunda
+  // notificación cortaba la animación a medias y el número pegaba un salto
+  // seco hasta el final.
+  if (prev?.tween && prev.target === targetValue) return;
+
   const from = prev?.value ?? 0;
   if (prev?.tween) prev.tween.kill();
 
-  if (estaAsentando() || typeof gsap === "undefined") {
+  // La PRIMERA vez que este elemento recibe un valor no hay nada que
+  // "contar": no existe un valor anterior del que salir, así que animar
+  // aquí es inventarse un recorrido desde 0 hasta la cifra real. Eso es
+  // justo lo que se veía al abrir la app (el saldo subiendo 2428 → 2812 →
+  // 2985 → 3032 mientras el resto de la pantalla también entraba animada).
+  // Un contador anima un CAMBIO; en el primer pintado no hay cambio, así
+  // que se pone el número directamente.
+  //
+  // Nota: esta comprobación es independiente del tiempo transcurrido — la
+  // detección por ráfaga de abajo no cubría este caso porque los datos de
+  // Firestore tardan varios segundos en llegar (mientras se ve "Cargando
+  // tus datos…"), así que el primer renderizado real siempre parecía un
+  // pase "aislado" y por tanto animable.
+  const esPrimerValor = prev === undefined;
+
+  if (esPrimerValor || estaAsentando() || typeof gsap === "undefined") {
     el.textContent = format(targetValue);
-    countState.set(el, { value: targetValue, tween: null });
+    countState.set(el, { value: targetValue, tween: null, target: targetValue });
     return;
   }
 
@@ -200,13 +215,13 @@ export function countUpTo(el, targetValue, format) {
     ease: "power2.out",
     onUpdate: () => {
       el.textContent = format(obj.value);
-      countState.set(el, { value: obj.value, tween });
+      countState.set(el, { value: obj.value, tween, target: targetValue });
     },
     onComplete: () => {
-      countState.set(el, { value: targetValue, tween: null });
+      countState.set(el, { value: targetValue, tween: null, target: targetValue });
     },
   });
-  countState.set(el, { value: from, tween });
+  countState.set(el, { value: from, tween, target: targetValue });
 }
 
 // Anima las barras .progress-fill de 0 al ancho final la primera vez que se
