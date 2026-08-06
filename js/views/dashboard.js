@@ -8,9 +8,9 @@ import {
   fromTimestamp,
   esPlanDePagos,
   restantePlanDePagos,
-} from "../db.js?v=29";
-import { initDashboardAnimations, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=29";
-import { seedInitialData } from "../seed.js?v=29";
+} from "../db.js?v=30";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=30";
+import { seedInitialData } from "../seed.js?v=30";
 import {
   pendingCorrections,
   applyAugustCorrections,
@@ -27,8 +27,9 @@ import {
   pendingPlanPagosAna,
   activarPlanPagosAna,
   dismissPlanPagosAna,
-} from "../fixes.js?v=29";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=29";
+} from "../fixes.js?v=30";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=30";
+import { openHistorial } from "./cuentas.js?v=30";
 
 let chartInstance = null;
 
@@ -160,6 +161,12 @@ export function renderDashboard(state) {
   loadingEl?.classList.add("is-hidden");
   contentEl?.classList.remove("is-hidden");
 
+  // Marca si este renderizado llega pegado al anterior (ráfaga de
+  // Firestore por una modificación, o varias colecciones asentándose) antes
+  // de tocar ningún número o gráfico — countUpTo/renderChart, más abajo,
+  // consultan ese resultado para decidir si animan o aplican al instante.
+  iniciarPaseDeRender();
+
   const { cuentas, categorias, movimientos, suscripciones, prestamos, pagosPrestamos } = state;
 
   const seedBanner = document.getElementById("seed-banner");
@@ -195,7 +202,7 @@ export function renderDashboard(state) {
   renderRecientes(movimientos, categorias, cuentas);
   renderPrestamos(prestamos, pagosPrestamos);
   renderSuscripciones(suscripciones, cuentas);
-  renderCuentasResumen(cuentas, movimientos);
+  renderCuentasResumen(state);
 
   initDashboardAnimations();
 }
@@ -428,7 +435,8 @@ function renderSuscripciones(suscripciones, cuentas) {
     .join("");
 }
 
-function renderCuentasResumen(cuentas, movimientos) {
+function renderCuentasResumen(state) {
+  const { cuentas, movimientos } = state;
   const el = document.getElementById("cuentas-resumen");
   const activas = cuentas.filter((c) => c.activa !== false);
 
@@ -441,7 +449,7 @@ function renderCuentasResumen(cuentas, movimientos) {
     .map((c) => {
       const saldo = calcularSaldoCuenta(c, movimientos);
       return `
-        <div class="mini-row">
+        <button type="button" class="mini-row" data-cuenta="${c.id}">
           <div class="mini-row__body">
             <span class="mini-row__icon">${entityIcon(c, iconForCuentaTipo(c.tipo))}</span>
             <div class="mini-row__main">
@@ -450,7 +458,14 @@ function renderCuentasResumen(cuentas, movimientos) {
             </div>
           </div>
           <span class="mini-row__amount">${formatEUR(saldo)}</span>
-        </div>`;
+        </button>`;
     })
     .join("");
+
+  // Al tocar una cuenta se abre su historial completo (más reciente
+  // primero) — el mismo modal que usa la vista de Cuentas, para no tener
+  // dos formas distintas de ver lo mismo.
+  el.querySelectorAll("[data-cuenta]").forEach((btn) =>
+    btn.addEventListener("click", () => openHistorial(activas.find((c) => c.id === btn.dataset.cuenta), state))
+  );
 }
