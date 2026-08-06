@@ -2,7 +2,7 @@
 // ya cargado en memoria (state) y llaman a los mismos helpers de db.js
 // que usa el resto de la app. Pensado para ejecutarse una vez desde un
 // botón temporal y luego poder borrarse.
-import { state } from "./store.js?v=28";
+import { state } from "./store.js?v=29";
 import {
   addPrestamo,
   updatePrestamo,
@@ -14,7 +14,9 @@ import {
   updateConfig,
   toTimestamp,
   fromTimestamp,
-} from "./db.js?v=28";
+  esPlanDePagos,
+  generarFechasPlanDePagos,
+} from "./db.js?v=29";
 
 const ANA_FECHAS = [
   "2026-08-07", "2026-08-08", "2026-08-10", "2026-08-11", "2026-08-12",
@@ -211,6 +213,43 @@ export function dismissLizFecha() {
 export async function fixLizFecha() {
   const liz = state.prestamos.find((p) => p.persona === "Liz colombiana");
   if (liz) await updatePrestamo(liz.id, { fecha_interes: "2026-09-02" });
+}
+
+// ---------------------------------------------------------------------
+// Ana (mamá): su préstamo no funciona como "capital + un interés al mes" —
+// devuelve 30€/día durante 20 días (sin contar domingos) hasta terminar de
+// pagar los 500€ de capital + 100€ de interés repartidos entre esos días.
+// Se activa el plan de pagos diario y se generan los 20 días a partir del
+// 07/08/2026.
+// ---------------------------------------------------------------------
+
+export function pendingPlanPagosAna() {
+  if (state.config?.planPagosAnaOk) return false;
+  const ana = state.prestamos.find((p) => p.persona === "Ana (mamá)");
+  return Boolean(ana && !esPlanDePagos(ana));
+}
+
+export function dismissPlanPagosAna() {
+  return updateConfig({ planPagosAnaOk: true });
+}
+
+export async function activarPlanPagosAna() {
+  const ana = state.prestamos.find((p) => p.persona === "Ana (mamá)");
+  if (!ana) return;
+  await updatePrestamo(ana.id, { plan_pagos: true, fecha_interes: null });
+  const yaTieneDias = state.pagosPrestamos.some((pg) => pg.prestamo_id === ana.id);
+  if (!yaTieneDias) {
+    const fechas = generarFechasPlanDePagos("2026-08-07", 20);
+    for (const f of fechas) {
+      await addPagoPrestamo({
+        prestamo_id: ana.id,
+        fecha: toTimestamp(f),
+        importe: 30,
+        pagado: false,
+        movimiento_id: null,
+      });
+    }
+  }
 }
 
 export async function applyGastosFijosAgosto() {

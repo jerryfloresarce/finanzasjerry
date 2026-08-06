@@ -10,7 +10,7 @@ import {
   orderBy,
   Timestamp,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=28";
+import { db } from "./firebase-init.js?v=29";
 
 // ---------- Helpers genéricos ----------
 
@@ -79,6 +79,39 @@ export const listenPagosPrestamos = (cb) => listen("pagos_prestamos", "fecha", c
 export const addPagoPrestamo = (data) => addDoc(col("pagos_prestamos"), data);
 export const updatePagoPrestamo = (id, data) => updateDoc(doc(db, "pagos_prestamos", id), data);
 export const deletePagoPrestamo = (id) => deleteDoc(doc(db, "pagos_prestamos", id));
+
+// ---------- Préstamos con plan de pagos diario (ej. Ana (mamá)) ----------
+// Algunos préstamos no funcionan como "capital + un interés mensual": se
+// devuelven en cuotas diarias iguales (capital + interés ya repartidos entre
+// todos los días) hasta saldar la deuda entera. Para esos, `pagos_prestamos`
+// guarda un documento por día (fecha + importe esperado + si ya se cobró),
+// en vez de usar el bloque de "interés mensual" del resto de préstamos.
+
+export function esPlanDePagos(prestamo) {
+  return Boolean(prestamo?.plan_pagos);
+}
+
+// Lo que falta por cobrar de un préstamo con plan de pagos diario: la suma
+// de los días todavía no marcados como pagados. Se suma día a día (no un
+// simple "días restantes × cuota") porque el importe de un día concreto se
+// puede editar a mano si un día se paga de más o de menos.
+export function restantePlanDePagos(prestamo, pagosPrestamos) {
+  return pagosPrestamos
+    .filter((pg) => pg.prestamo_id === prestamo.id && !pg.pagado)
+    .reduce((acc, pg) => acc + Number(pg.importe ?? 0), 0);
+}
+
+// Genera "cantidad" fechas ISO consecutivas a partir de inicioISO, saltando
+// los domingos.
+export function generarFechasPlanDePagos(inicioISO, cantidad) {
+  const fechas = [];
+  const d = new Date(inicioISO + "T00:00:00");
+  while (fechas.length < cantidad) {
+    if (d.getDay() !== 0) fechas.push(d.toISOString().slice(0, 10));
+    d.setDate(d.getDate() + 1);
+  }
+  return fechas;
+}
 
 // ---------- Configuración de la app (un solo documento) ----------
 // Guarda cosas como "¿ya se descartó tal banner?" en Firestore en vez de

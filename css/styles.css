@@ -1209,6 +1209,27 @@ canvas { max-width: 100%; }
 .prestamo-interes__actions { display: flex; gap: 8px; flex-shrink: 0; }
 .prestamo-liquidar-btn { margin-top: 10px; }
 
+.plan-pagos {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* Las filas del plan de pagos son <button>, a diferencia del resto de
+   .mini-row (divs sin interacción) — se les resetea la apariencia nativa
+   de botón para que se sigan viendo igual, pero clicables. */
+button.mini-row {
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+button.mini-row:last-child { border-bottom: none; }
+
 /* =========================================================
    DATA TABLE (movimientos)
    ========================================================= */
