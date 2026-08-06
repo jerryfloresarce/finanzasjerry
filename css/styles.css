@@ -957,6 +957,21 @@ canvas { max-width: 100%; }
 .mini-row__amount--neg { color: var(--text-primary); }
 .mini-row > .btn { flex-shrink: 0; }
 
+.estimacion-input {
+  width: 100px;
+  flex-shrink: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  color: var(--text-primary);
+  text-align: right;
+  /* font-size se hereda de la regla global "input { font-size: 16px }" a
+     propósito — por debajo de 16px, Safari en iOS hace zoom automático al
+     enfocar el campo. */
+}
+.estimacion-input:focus { outline: none; border-color: var(--accent-dim); }
+
 .empty-state {
   color: var(--text-muted);
   font-size: 0.85rem;
