@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=33" />
+<link rel="stylesheet" href="css/styles.css?v=34" />
 <link rel="icon" href="data:,">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 </head>
@@ -388,20 +388,16 @@
 
       <article class="card" style="margin-bottom: 20px;">
         <h2 class="card__title">Gastos fijos por cuenta</h2>
-        <p class="entity-card__meta" style="margin-bottom: 12px;">
-          Este mes vs. la estimación para el mes que viene (si son fijos, por defecto se asume que serán iguales —
-          puedes ajustar cualquiera abajo).
-        </p>
+        <div class="susc-mes-nav">
+          <button type="button" class="btn btn--ghost btn--sm" id="gf-mes-prev" aria-label="Mes anterior">‹</button>
+          <span id="gf-mes-label" class="susc-mes-label"></span>
+          <button type="button" class="btn btn--ghost btn--sm" id="gf-mes-next" aria-label="Mes siguiente">›</button>
+        </div>
+        <p class="entity-card__meta" id="gf-mes-nota" style="margin-bottom: 12px;"></p>
         <div class="chart-wrap" style="height: 240px;">
           <canvas id="chart-gastos-fijos-cuenta"></canvas>
         </div>
-        <div class="cuenta-panel__divider" style="margin: 16px 0;"></div>
-        <h3 class="card__title" style="font-size: 0.95rem;">Ajustar la estimación del próximo mes</h3>
-        <div id="gastos-fijos-estimacion-lista" class="mini-list" style="margin-top: 8px;"></div>
-        <button type="button" class="btn btn--primary btn--sm" id="btn-guardar-estimacion" style="margin-top: 12px;">
-          Guardar estimaciones
-        </button>
-        <p class="field-error" id="gastos-fijos-estimacion-msg" style="margin-top: 8px;"></p>
+        <div id="gf-totales-cuenta" class="mini-list" style="margin-top: 16px;"></div>
       </article>
 
       <div class="grid grid--graficos-donuts">
@@ -467,6 +463,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=33"></script>
+<script type="module" src="js/app.js?v=34"></script>
 </body>
 </html>
