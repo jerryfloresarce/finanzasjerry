@@ -133,26 +133,45 @@ export function refreshAnimations() {
 }
 
 // Cuenta un número desde su valor anterior hasta el nuevo, formateando con
-// `format`. Firestore puede disparar varias actualizaciones seguidas nada
-// más abrir la app (primero desde caché local, luego confirmadas por el
-// servidor, una vez por cada colección) — matar el tween anterior antes de
-// lanzar uno nuevo (ver abajo) ya evita que compitan entre sí, pero en un
-// móvil real esas actualizaciones pueden seguir llegando sueltas durante
-// más de un segundo, y aunque no compitan, cada una relanza una animación
-// de un segundo entera — así que el número se sigue viendo "correr" de
-// valor en valor. Por eso, además, durante los primeros segundos tras
-// cargar la página (mientras los datos todavía se están asentando) el
-// número se pone directamente sin animar; solo una vez asentado, los
-// cambios futuros (reales, hechos por el usuario) sí se animan.
-const ARRANQUE = Date.now();
-const VENTANA_ASENTAMIENTO_MS = 2500;
+// `format`. Firestore puede disparar varias actualizaciones seguidas para
+// un mismo cambio (primero desde caché local, luego confirmada por el
+// servidor) — matar el tween anterior antes de lanzar uno nuevo (ver abajo)
+// evita que compitan entre sí, pero en un móvil real esas actualizaciones
+// pueden llegar separadas por más de medio segundo (justo el margen que
+// agrupa notify() en store.js), así que a veces igual llegan como DOS
+// renderizados sueltos y cada uno relanza su propia animación de un
+// segundo — eso es lo que se seguía viendo como "epilepsia" bastante
+// después de abrir la app, no solo al arrancar: cualquier modificación
+// (editar/borrar/marcar algo) dispara la misma ráfaga.
+//
+// En vez de solo proteger los primeros segundos tras cargar la página, se
+// detecta una ráfaga por RECENCIA: si este renderizado del Dashboard llega
+// a menos de VENTANA_RAFAGA_MS del anterior, se trata como parte de la
+// misma ráfaga y se aplica sin animar (da igual si es el primero, el
+// segundo o el enésimo de esa ráfaga). Solo cuando un renderizado llega
+// aislado — de verdad separado en el tiempo del anterior, como una acción
+// suelta del usuario mucho después — se anima.
+const VENTANA_RAFAGA_MS = 1200;
+// Arranca "caliente" (con el reloj ya en marcha desde que se cargó este
+// módulo) para que la propia ráfaga de arranque de la app también quede
+// cubierta sin necesidad de un caso especial aparte.
+let ultimoPase = Date.now();
+let esteEsRafaga = true;
+
+// Debe llamarse UNA vez al principio de cada renderizado del Dashboard
+// (antes de countUpTo/renderChart), para fijar si este pase concreto cuenta
+// como parte de una ráfaga reciente. estaAsentando() solo lee ese resultado
+// ya calculado durante el resto del mismo pase.
+export function iniciarPaseDeRender() {
+  const ahora = Date.now();
+  esteEsRafaga = ahora - ultimoPase < VENTANA_RAFAGA_MS;
+  ultimoPase = ahora;
+}
 
 // Compartido con otras animaciones (ej. el redibujado del gráfico de
-// categorías en dashboard.js) que tienen el mismo problema: mientras los
-// datos de Firestore todavía se están asentando, cualquier transición
-// animada se ve "competir" contra la siguiente actualización que llega.
+// categorías en dashboard.js) que tienen el mismo problema.
 export function estaAsentando() {
-  return Date.now() - ARRANQUE < VENTANA_ASENTAMIENTO_MS;
+  return esteEsRafaga;
 }
 
 const countState = new WeakMap();

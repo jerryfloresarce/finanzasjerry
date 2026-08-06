@@ -1,9 +1,9 @@
-import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha, fromTimestamp } from "../db.js?v=29";
-import { openModal, closeModal, todayISO } from "../modal.js?v=29";
-import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=29";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=29";
-import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=29";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=29";
+import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha, fromTimestamp } from "../db.js?v=30";
+import { openModal, closeModal, todayISO } from "../modal.js?v=30";
+import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=30";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=30";
+import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=30";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=30";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 
@@ -60,7 +60,7 @@ export function renderCuentas(state) {
   attachCopyId(el);
 }
 
-function openHistorial(cuenta, state) {
+export function openHistorial(cuenta, state) {
   const { movimientos, categorias, cuentas } = state;
   const catMap = new Map(categorias.map((c) => [c.id, c]));
   const cuentaMap = new Map(cuentas.map((c) => [c.id, c.nombre]));
