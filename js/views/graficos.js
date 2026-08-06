@@ -3,14 +3,13 @@ import {
   totalPorTipo,
   desglosePorCategoria,
   desglosePorSubcategoria,
-  evolucionMensual,
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=36";
-import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=36";
-import { icon, entityIcon, iconForCuentaTipo, iconForSuscripcion } from "../icons.js?v=36";
-import { openModal, closeModal } from "../modal.js?v=36";
+} from "../db.js?v=37";
+import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=37";
+import { icon, entityIcon, iconForCuentaTipo, iconForSuscripcion } from "../icons.js?v=37";
+import { openModal, closeModal } from "../modal.js?v=37";
 
 const GASTO_COLORS = ["#b06a63", "#c48b83", "#9c6a63", "#8a5850", "#a37c74", "#7d5a53"];
 const INGRESO_COLORS = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#6b8778", "#9cae8f"];
@@ -58,7 +57,6 @@ export function renderGraficos(state) {
   countUpTo(document.getElementById("kpi-ingresos"), ingresos, formatEUR);
   countUpTo(document.getElementById("kpi-gastos"), gastos, formatEUR);
 
-  renderEvolucion(movimientos);
   renderGastosFijosPorCuenta(state);
   renderDonut("chart-gastos-cat", desglosePorCategoria(filtrados, categorias, "Gasto"), GASTO_COLORS);
   renderDonut("chart-ingresos-cat", desglosePorCategoria(filtrados, categorias, "Ingreso"), INGRESO_COLORS);
@@ -276,66 +274,6 @@ function openDesgloseCuenta(cuentaId) {
       },
     }
   );
-}
-
-function renderEvolucion(movimientos) {
-  const canvas = document.getElementById("chart-evolucion");
-  if (!canvas || typeof Chart === "undefined") return;
-
-  const buckets = evolucionMensual(movimientos, 12);
-
-  if (charts.evolucion) charts.evolucion.destroy();
-
-  charts.evolucion = new Chart(canvas, {
-    type: "line",
-    data: {
-      labels: buckets.map((b) => b.label),
-      datasets: [
-        {
-          label: "Ingresos",
-          data: buckets.map((b) => b.ingresos),
-          borderColor: "#7a9b81",
-          backgroundColor: "rgba(122,155,129,0.15)",
-          fill: true,
-          tension: 0.35,
-          pointRadius: 0,
-          borderWidth: 2,
-        },
-        {
-          label: "Gastos",
-          data: buckets.map((b) => b.gastos),
-          borderColor: "#b06a63",
-          backgroundColor: "rgba(176,106,99,0.1)",
-          fill: true,
-          tension: 0.35,
-          pointRadius: 0,
-          borderWidth: 2,
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: "index", intersect: false },
-      plugins: {
-        legend: {
-          position: "top",
-          align: "end",
-          labels: { color: "#9fada4", boxWidth: 8, font: { family: "Inter", size: 11 } },
-        },
-        tooltip: {
-          callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatEUR(ctx.parsed.y)}` },
-        },
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: "#6d7a72", font: { size: 11 } } },
-        y: {
-          grid: { color: "rgba(233,238,234,0.06)" },
-          ticks: { color: "#6d7a72", font: { size: 11 }, callback: (v) => formatEUR(v).replace(",00", "") },
-        },
-      },
-    },
-  });
 }
 
 function renderDonut(canvasId, datos, colors) {

@@ -496,6 +496,7 @@ input, select, textarea { font-size: 16px; }
   width: min(88vw, 320px);
   max-height: calc(100vh - 84px);
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--bg-elevated);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
@@ -1301,6 +1302,9 @@ button.mini-row:last-child { border-bottom: none; }
   max-height: 88vh;
   overflow-y: auto;
   overflow-x: hidden;
+  /* Al llegar al final del contenido del modal, el gesto no "salta" a
+     arrastrar la página de detrás ni provoca el rebote de iOS. */
+  overscroll-behavior: contain;
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-lg);
@@ -1366,6 +1370,8 @@ button.mini-row:last-child { border-bottom: none; }
   display: flex;
   flex-direction: column;
   gap: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   transform: translateX(-100%);
   transition: transform 0.3s var(--ease-lux);
 }

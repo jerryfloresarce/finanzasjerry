@@ -1,3 +1,5 @@
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=37";
+
 const modalRoot = document.getElementById("modal-root");
 const modalScrim = document.getElementById("modal-scrim");
 const modalContent = document.getElementById("modal-content");
@@ -18,14 +20,14 @@ export function openModal(html, { onMount, wide, onClose } = {}) {
   modalContent.classList.toggle("modal--wide", Boolean(wide));
   modalRoot.classList.remove("is-hidden");
   requestAnimationFrame(() => modalRoot.classList.add("is-open"));
-  document.body.style.overflow = "hidden";
+  bloquearScrollFondo("modal");
   activeOnClose = onClose || null;
   if (onMount) onMount(modalContent);
 }
 
 export function closeModal() {
   modalRoot.classList.remove("is-open");
-  document.body.style.overflow = "";
+  desbloquearScrollFondo("modal");
   modalCloseTimeout = setTimeout(() => {
     modalRoot.classList.add("is-hidden");
     modalContent.innerHTML = "";

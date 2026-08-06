@@ -1,16 +1,17 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=36";
-import { state, subscribe, initStore } from "./store.js?v=36";
+import { onAuthReady } from "./auth.js?v=37";
+import { state, subscribe, initStore } from "./store.js?v=37";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=36";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=36";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=36";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=36";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=36";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=36";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=36";
-import { mountCuentaPanel } from "./views/cuenta.js?v=36";
-import { refreshAnimations } from "./animations.js?v=36";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=37";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=37";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=37";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=37";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=37";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=37";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=37";
+import { mountCuentaPanel } from "./views/cuenta.js?v=37";
+import { refreshAnimations } from "./animations.js?v=37";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=37";
 
 const ROUTES = {
   dashboard: renderDashboard,
@@ -70,7 +71,9 @@ function navigate() {
   showView(currentRoute);
   closeMobileNav();
   renderCurrentView();
-  document.getElementById("view-container")?.scrollTo({ top: 0 });
+  // Quien hace scroll es la página entera, no #view-container (que solo
+  // pone márgenes), así que al cambiar de apartado hay que subir la ventana.
+  window.scrollTo(0, 0);
 }
 
 // Navegamos con history.replaceState en vez de dejar que los <a href="#/...">
@@ -116,6 +119,7 @@ function openMobileNav() {
     mobileNav.classList.add("is-open");
     mobileNavScrim.classList.add("is-open");
   });
+  bloquearScrollFondo("nav");
 }
 
 // navigate() llama a esto en cada cambio de ruta, incluso cuando el menú no
@@ -124,6 +128,7 @@ function openMobileNav() {
 // menú justo después de haberlo abierto).
 function closeMobileNav() {
   if (!mobileNav.classList.contains("is-open")) return;
+  desbloquearScrollFondo("nav");
   clearDragStyles();
   mobileNav.classList.remove("is-open");
   mobileNavScrim.classList.remove("is-open");
@@ -186,6 +191,8 @@ function endDrag(progress) {
   mobileNavScrim.style.opacity = opening ? "1" : "0";
   mobileNav.classList.toggle("is-open", opening);
   mobileNavScrim.classList.toggle("is-open", opening);
+  if (opening) bloquearScrollFondo("nav");
+  else desbloquearScrollFondo("nav");
 
   if (opening) {
     closeNavTimeout = setTimeout(clearDragStyles, 320);

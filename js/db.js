@@ -9,8 +9,32 @@ import {
   query,
   orderBy,
   Timestamp,
+  disableNetwork,
+  enableNetwork,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=36";
+import { db } from "./firebase-init.js?v=37";
+
+// Cuando el iPhone deja la app en segundo plano (o la pantalla se apaga),
+// Safari congela la conexión abierta de Firestore. Al volver, esa conexión
+// suele estar muerta pero el navegador no lo sabe: los listeners siguen
+// "vivos" sin recibir nada, así que lo que se haya añadido por fuera —desde
+// un Atajo, por ejemplo— no aparecía hasta cerrar la app del todo y volver
+// a abrirla. Cortando y volviendo a levantar la red se fuerza a Firestore a
+// abrir una conexión nueva y a reenviar todo lo que se perdió.
+let reconectando = false;
+
+export async function reconectarFirestore() {
+  if (reconectando) return;
+  reconectando = true;
+  try {
+    await disableNetwork(db);
+    await enableNetwork(db);
+  } catch (err) {
+    console.error("No se pudo reconectar con Firestore:", err);
+  } finally {
+    reconectando = false;
+  }
+}
 
 // ---------- Helpers genéricos ----------
 
@@ -240,29 +264,6 @@ export function desglosePorSubcategoria(movimientos, tipo, filtroTexto = "") {
   return [...totales.entries()]
     .map(([subcategoria, total]) => ({ subcategoria, total }))
     .sort((a, b) => b.total - a.total);
-}
-
-export function evolucionMensual(movimientos, meses = 12, fecha = new Date()) {
-  const buckets = [];
-  for (let i = meses - 1; i >= 0; i--) {
-    const d = new Date(fecha.getFullYear(), fecha.getMonth() - i, 1);
-    buckets.push({
-      year: d.getFullYear(),
-      month: d.getMonth(),
-      label: new Intl.DateTimeFormat("es-ES", { month: "short" }).format(d),
-      ingresos: 0,
-      gastos: 0,
-    });
-  }
-  movimientos.forEach((m) => {
-    const d = fromTimestamp(m.fecha);
-    if (!d) return;
-    const bucket = buckets.find((b) => b.year === d.getFullYear() && b.month === d.getMonth());
-    if (!bucket) return;
-    if (m.tipo === "Ingreso") bucket.ingresos += Number(m.importe ?? 0);
-    else if (m.tipo === "Gasto") bucket.gastos += Number(m.importe ?? 0);
-  });
-  return buckets;
 }
 
 export function formatEUR(value) {

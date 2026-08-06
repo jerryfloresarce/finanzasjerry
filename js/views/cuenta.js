@@ -1,7 +1,8 @@
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=36";
-import { state } from "../store.js?v=36";
-import { exportarDatos, importarDatos } from "../backup.js?v=36";
+import { auth } from "../firebase-init.js?v=37";
+import { state } from "../store.js?v=37";
+import { exportarDatos, importarDatos } from "../backup.js?v=37";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=37";
 
 let panel = null;
 let scrim = null;
@@ -11,11 +12,13 @@ function openPanel() {
   if (emailEl) emailEl.textContent = auth.currentUser?.email || "—";
   panel.classList.add("is-open");
   scrim.classList.remove("is-hidden");
+  bloquearScrollFondo("panel");
 }
 
 function closePanel() {
   panel.classList.remove("is-open");
   scrim.classList.add("is-hidden");
+  desbloquearScrollFondo("panel");
 }
 
 function toggle() {
