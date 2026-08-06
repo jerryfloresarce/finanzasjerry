@@ -911,8 +911,10 @@ input, select, textarea { font-size: 16px; }
 canvas { max-width: 100%; }
 
 /* Reveal-on-scroll (GSAP toggles .is-visible) */
-.reveal { opacity: 0; transform: translateY(24px); }
-.reveal.is-visible { opacity: 1; transform: translateY(0); }
+/* Sin translateY: las tarjetas solo se funden, no suben de sitio (ver el
+   comentario de "reveal" en animations.js). */
+.reveal { opacity: 0; }
+.reveal.is-visible { opacity: 1; }
 
 /* =========================================================
    MINI LISTS (dashboard)

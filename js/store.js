@@ -6,7 +6,7 @@ import {
   listenPrestamos,
   listenPagosPrestamos,
   listenConfig,
-} from "./db.js?v=32";
+} from "./db.js?v=33";
 
 export const state = {
   cuentas: [],
