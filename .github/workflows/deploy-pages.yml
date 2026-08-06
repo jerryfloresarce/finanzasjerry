@@ -29,6 +29,19 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # 9 minutos: uno menos que el límite interno de actions/deploy-pages.
+    #
+    # Ese límite NO se puede subir — se le pasó timeout: 1800000 (30 min) y
+    # aun así abortó a los 600 s clavados, así que la acción lo capa. Y al
+    # cumplirse no se limita a fallar: ejecuta "Canceling Pages
+    # deployment...", es decir, mata una publicación que estaba avanzando
+    # (el log muestra deployment_in_progress hasta el último segundo).
+    #
+    # Cortando el job un minuto antes, la acción nunca llega a esa línea y
+    # la publicación sigue su curso en los servidores de Pages hasta
+    # terminar sola. El workflow aparecerá en rojo por el corte: es
+    # esperado y no significa que la web no se haya actualizado.
+    timeout-minutes: 9
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
