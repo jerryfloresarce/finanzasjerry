@@ -1,8 +1,9 @@
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=37";
-import { state } from "../store.js?v=37";
-import { exportarDatos, importarDatos } from "../backup.js?v=37";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=37";
+import { auth } from "../firebase-init.js?v=38";
+import { state } from "../store.js?v=38";
+import { exportarDatos, importarDatos } from "../backup.js?v=38";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=38";
+import { montarSelectorTemas } from "../tema.js?v=38";
 
 let panel = null;
 let scrim = null;
@@ -37,6 +38,8 @@ export function mountCuentaPanel() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closePanel();
   });
+
+  montarSelectorTemas(document.getElementById("temas-selector"));
 
   document.getElementById("btn-cuenta-logout")?.addEventListener("click", () => signOut(auth));
 

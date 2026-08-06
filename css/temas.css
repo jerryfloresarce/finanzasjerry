@@ -1,0 +1,437 @@
+/* =========================================================
+   FINANZAS JERRY — Temas
+   =========================================================
+   Cada tema no es más que un juego distinto de las mismas variables que
+   define :root en styles.css. Se aplica poniendo data-tema en el <html>
+   (lo hace js/tema.js), así que sin atributo la app se ve exactamente
+   como siempre: el tema "Original" es simplemente no tener ninguno.
+
+   Reglas que se siguen en todos:
+   - El fondo se queda oscuro. Lo que cambia es el TINTE del negro, no su
+     luminosidad, para que los números se sigan leyendo de noche.
+   - --accent es el color con el que se reconoce al personaje: es el que
+     pinta botones, iconos, enlaces y el saldo.
+   - --danger y --success mantienen su significado (rojo = sale dinero,
+     verde/aguamarina = entra) aunque estén teñidos para encajar. En los
+     temas donde el acento ya es rojizo, se elige un rojo de tono
+     claramente distinto para que no se confundan.
+   - Las paletas son listas separadas por comas que lee js/tema.js: aquí
+     solo valen colores SIN comas dentro (hex sí, rgba() no).
+   ========================================================= */
+
+/* =========================================================
+   ONE PIECE · LUFFY — rojo del chaleco, amarillo paja, azul del mar
+   ========================================================= */
+html[data-tema="luffy"] {
+  --bg: #120a09;
+  --bg-elevated: #19100d;
+  --surface: #1f1512;
+  --surface-hover: #281b17;
+  --border: rgba(255, 228, 196, 0.09);
+  --border-strong: rgba(255, 228, 196, 0.17);
+
+  --text-primary: #fbefe4;
+  --text-secondary: #c6a794;
+  --text-muted: #8c7263;
+
+  --accent: #f5b324;
+  --accent-dim: #b47c10;
+  --accent-soft: rgba(245, 179, 36, 0.14);
+  --accent-soft-strong: rgba(245, 179, 36, 0.26);
+
+  --success: #57a85f;
+  --danger: #e03b33;
+  --danger-soft: rgba(224, 59, 51, 0.16);
+  --warning: #f5872a;
+  --warning-soft: rgba(245, 135, 42, 0.16);
+
+  --on-accent: #241203;
+  --on-accent-dim: #241203;
+  --on-danger: #ffffff;
+
+  --atm-luz-1: rgba(245, 179, 36, 0.13);
+  --atm-luz-2: rgba(224, 59, 51, 0.2);
+  --atm-luz-3: rgba(62, 124, 196, 0.16);
+  --atm-base-1: #1c0f0b;
+  --atm-base-2: #120a08;
+  --atm-base-3: #0a0605;
+  --atm-lluvia: rgba(255, 226, 170, 0.06);
+
+  --hero-scrim: linear-gradient(100deg, rgba(18, 10, 9, 0.5) 0%, rgba(18, 10, 9, 0.74) 55%, rgba(18, 10, 9, 0.46) 100%);
+
+  --chart-rejilla: rgba(255, 228, 196, 0.07);
+  --chart-eje: #8c7263;
+  --chart-leyenda: #c6a794;
+  --chart-borde: #1f1512;
+  --paleta-gastos: #e03b33, #ef6a52, #c13228, #f58a6a, #a82820, #d9553f;
+  --paleta-ingresos: #f5b324, #ffd264, #d99512, #3e7cc4, #6fa8e0, #b47c10;
+  --paleta-categorias: #f5b324, #e03b33, #3e7cc4, #f5872a, #ffd264, #6fa8e0, #c13228, #b47c10;
+  --paleta-avatares: #e03b33, #f5b324, #3e7cc4, #f5872a, #c13228, #b47c10;
+}
+
+/* =========================================================
+   ONE PIECE · ZORO — verde de las katanas, negro, oro de los pendientes
+   ========================================================= */
+html[data-tema="zoro"] {
+  --bg: #060a07;
+  --bg-elevated: #0b110c;
+  --surface: #101711;
+  --surface-hover: #152016;
+  --border: rgba(214, 240, 219, 0.09);
+  --border-strong: rgba(214, 240, 219, 0.18);
+
+  --text-primary: #e8f3ea;
+  --text-secondary: #9cb8a2;
+  --text-muted: #66806b;
+
+  --accent: #23b24b;
+  --accent-dim: #167130;
+  --accent-soft: rgba(35, 178, 75, 0.15);
+  --accent-soft-strong: rgba(35, 178, 75, 0.27);
+
+  --success: #23b24b;
+  --danger: #c4382f;
+  --danger-soft: rgba(196, 56, 47, 0.16);
+  --warning: #d9af37;
+  --warning-soft: rgba(217, 175, 55, 0.16);
+
+  --on-accent: #04170a;
+  --on-accent-dim: #eafbee;
+  --on-danger: #ffffff;
+
+  --atm-luz-1: rgba(217, 175, 55, 0.17);
+  --atm-luz-2: rgba(35, 178, 75, 0.3);
+  --atm-luz-3: rgba(12, 58, 26, 0.42);
+  --atm-base-1: #0a1a0e;
+  --atm-base-2: #060d08;
+  --atm-base-3: #030603;
+  --atm-lluvia: rgba(206, 240, 214, 0.06);
+
+  --hero-scrim: linear-gradient(100deg, rgba(6, 10, 7, 0.5) 0%, rgba(6, 10, 7, 0.76) 55%, rgba(6, 10, 7, 0.46) 100%);
+
+  --chart-rejilla: rgba(214, 240, 219, 0.07);
+  --chart-eje: #66806b;
+  --chart-leyenda: #9cb8a2;
+  --chart-borde: #101711;
+  --paleta-gastos: #c4382f, #e0645a, #9e2a23, #d97a2f, #a85a22, #7e211b;
+  --paleta-ingresos: #23b24b, #5fd97f, #167130, #d9af37, #8fcf9e, #0e4d22;
+  --paleta-categorias: #23b24b, #d9af37, #5fd97f, #c4382f, #167130, #8fcf9e, #d97a2f, #0e4d22;
+  --paleta-avatares: #23b24b, #d9af37, #167130, #c4382f, #5fd97f, #8fcf9e;
+}
+
+/* =========================================================
+   ONE PIECE · SANJI — rubio, traje negro, humo azul
+   ========================================================= */
+html[data-tema="sanji"] {
+  --bg: #07080c;
+  --bg-elevated: #0c0e14;
+  --surface: #11141c;
+  --surface-hover: #171b25;
+  --border: rgba(222, 231, 245, 0.09);
+  --border-strong: rgba(222, 231, 245, 0.18);
+
+  --text-primary: #edf0f6;
+  --text-secondary: #a2aabd;
+  --text-muted: #6b7386;
+
+  --accent: #e7c15c;
+  --accent-dim: #a8863a;
+  --accent-soft: rgba(231, 193, 92, 0.14);
+  --accent-soft-strong: rgba(231, 193, 92, 0.25);
+
+  --success: #58b48d;
+  --danger: #d0574a;
+  --danger-soft: rgba(208, 87, 74, 0.16);
+  --warning: #e78b3c;
+  --warning-soft: rgba(231, 139, 60, 0.16);
+
+  --on-accent: #191307;
+  --on-accent-dim: #191307;
+  --on-danger: #ffffff;
+
+  --atm-luz-1: rgba(231, 193, 92, 0.11);
+  --atm-luz-2: rgba(46, 120, 200, 0.2);
+  --atm-luz-3: rgba(18, 30, 52, 0.32);
+  --atm-base-1: #101625;
+  --atm-base-2: #0a0d16;
+  --atm-base-3: #05070c;
+  --atm-lluvia: rgba(214, 228, 250, 0.07);
+
+  --hero-scrim: linear-gradient(100deg, rgba(7, 8, 12, 0.5) 0%, rgba(7, 8, 12, 0.76) 55%, rgba(7, 8, 12, 0.46) 100%);
+
+  --chart-rejilla: rgba(222, 231, 245, 0.07);
+  --chart-eje: #6b7386;
+  --chart-leyenda: #a2aabd;
+  --chart-borde: #11141c;
+  --paleta-gastos: #d0574a, #e7857a, #a83e33, #e78b3c, #b4652a, #7e2c24;
+  --paleta-ingresos: #e7c15c, #f2d98f, #a8863a, #2e78c8, #6ba5e0, #58b48d;
+  --paleta-categorias: #e7c15c, #2e78c8, #58b48d, #d0574a, #f2d98f, #6ba5e0, #e78b3c, #a8863a;
+  --paleta-avatares: #e7c15c, #2e78c8, #58b48d, #d0574a, #a8863a, #6ba5e0;
+}
+
+/* =========================================================
+   KIMETSU NO YAIBA · TANJIRO — damero verde y negro del haori,
+   rojo de los pendientes hanafuda
+   ========================================================= */
+html[data-tema="tanjiro"] {
+  --bg: #080b0a;
+  --bg-elevated: #0d1211;
+  --surface: #121917;
+  --surface-hover: #18211e;
+  --border: rgba(226, 240, 235, 0.09);
+  --border-strong: rgba(226, 240, 235, 0.18);
+
+  --text-primary: #eaf1ee;
+  --text-secondary: #9db3ac;
+  --text-muted: #667c76;
+
+  --accent: #1f9e68;
+  --accent-dim: #146545;
+  --accent-soft: rgba(31, 158, 104, 0.15);
+  --accent-soft-strong: rgba(31, 158, 104, 0.26);
+
+  --success: #1f9e68;
+  --danger: #d93b2b;
+  --danger-soft: rgba(217, 59, 43, 0.17);
+  --warning: #e0932e;
+  --warning-soft: rgba(224, 147, 46, 0.16);
+
+  --on-accent: #041710;
+  --on-accent-dim: #e9fbf3;
+  --on-danger: #ffffff;
+
+  --atm-luz-1: rgba(217, 59, 43, 0.28);
+  --atm-luz-2: rgba(31, 158, 104, 0.24);
+  --atm-luz-3: rgba(10, 44, 32, 0.4);
+  --atm-base-1: #0c1a15;
+  --atm-base-2: #080f0d;
+  --atm-base-3: #040706;
+  --atm-lluvia: rgba(226, 240, 235, 0.06);
+  /* El damero del haori. Es lo que hace que se reconozca al momento. */
+  --atm-patron: repeating-conic-gradient(rgba(31, 158, 104, 0.16) 0% 25%, transparent 0% 50%);
+  --atm-patron-tam: 46px 46px;
+
+  --hero-scrim: linear-gradient(100deg, rgba(8, 11, 10, 0.48) 0%, rgba(8, 11, 10, 0.74) 55%, rgba(8, 11, 10, 0.44) 100%);
+
+  --chart-rejilla: rgba(226, 240, 235, 0.07);
+  --chart-eje: #667c76;
+  --chart-leyenda: #9db3ac;
+  --chart-borde: #121917;
+  --paleta-gastos: #d93b2b, #ec7263, #a82a1e, #e0932e, #b06d1c, #7e1f16;
+  --paleta-ingresos: #1f9e68, #56c795, #146545, #d93b2b, #8fd9ba, #0d4630;
+  --paleta-categorias: #1f9e68, #d93b2b, #56c795, #e0932e, #146545, #8fd9ba, #ec7263, #0d4630;
+  --paleta-avatares: #1f9e68, #d93b2b, #146545, #e0932e, #56c795, #8fd9ba;
+}
+
+/* =========================================================
+   KIMETSU NO YAIBA · ZENITSU — amarillo del rayo, naranja de las puntas
+   ========================================================= */
+html[data-tema="zenitsu"] {
+  --bg: #0c0904;
+  --bg-elevated: #130f06;
+  --surface: #191308;
+  --surface-hover: #211a0c;
+  --border: rgba(255, 240, 200, 0.1);
+  --border-strong: rgba(255, 240, 200, 0.19);
+
+  --text-primary: #fbf3df;
+  --text-secondary: #c9b384;
+  --text-muted: #8e7b52;
+
+  --accent: #ffd028;
+  --accent-dim: #b8900e;
+  --accent-soft: rgba(255, 208, 40, 0.14);
+  --accent-soft-strong: rgba(255, 208, 40, 0.26);
+
+  --success: #8fbe3c;
+  --danger: #d9482f;
+  --danger-soft: rgba(217, 72, 47, 0.16);
+  --warning: #f58021;
+  --warning-soft: rgba(245, 128, 33, 0.16);
+
+  --on-accent: #221800;
+  --on-accent-dim: #221800;
+  --on-danger: #ffffff;
+
+  --atm-luz-1: rgba(255, 208, 40, 0.16);
+  --atm-luz-2: rgba(245, 128, 33, 0.16);
+  --atm-luz-3: rgba(40, 26, 4, 0.34);
+  --atm-base-1: #1c1405;
+  --atm-base-2: #100b03;
+  --atm-base-3: #070502;
+  /* Las rayas del ambiente pasan a ser destellos dorados. */
+  --atm-lluvia: rgba(255, 214, 80, 0.1);
+
+  --hero-scrim: linear-gradient(100deg, rgba(12, 9, 4, 0.48) 0%, rgba(12, 9, 4, 0.74) 55%, rgba(12, 9, 4, 0.44) 100%);
+
+  --chart-rejilla: rgba(255, 240, 200, 0.07);
+  --chart-eje: #8e7b52;
+  --chart-leyenda: #c9b384;
+  --chart-borde: #191308;
+  --paleta-gastos: #d9482f, #ee7a5c, #a83420, #f58021, #b85c16, #7e2416;
+  --paleta-ingresos: #ffd028, #ffe480, #b8900e, #f58021, #8fbe3c, #d9b41a;
+  --paleta-categorias: #ffd028, #f58021, #8fbe3c, #d9482f, #ffe480, #b8900e, #ee7a5c, #6e8f2a;
+  --paleta-avatares: #ffd028, #f58021, #8fbe3c, #d9482f, #b8900e, #ee7a5c;
+}
+
+/* =========================================================
+   KIMETSU NO YAIBA · INOSUKE — turquesa del pelo, hueso del jabalí,
+   índigo de la noche
+   ========================================================= */
+html[data-tema="inosuke"] {
+  --bg: #05080b;
+  --bg-elevated: #0a0f14;
+  --surface: #0f161c;
+  --surface-hover: #141e26;
+  --border: rgba(222, 238, 245, 0.09);
+  --border-strong: rgba(222, 238, 245, 0.18);
+
+  --text-primary: #e7f1f5;
+  --text-secondary: #9db2be;
+  --text-muted: #667a86;
+
+  --accent: #2fb6d9;
+  --accent-dim: #1a7794;
+  --accent-soft: rgba(47, 182, 217, 0.15);
+  --accent-soft-strong: rgba(47, 182, 217, 0.27);
+
+  --success: #34b58c;
+  --danger: #d9564e;
+  --danger-soft: rgba(217, 86, 78, 0.16);
+  --warning: #dda94f;
+  --warning-soft: rgba(221, 169, 79, 0.16);
+
+  --on-accent: #04161c;
+  --on-accent-dim: #eaf9ff;
+  --on-danger: #ffffff;
+
+  --atm-luz-1: rgba(199, 214, 222, 0.1);
+  --atm-luz-2: rgba(47, 182, 217, 0.18);
+  --atm-luz-3: rgba(20, 44, 72, 0.34);
+  --atm-base-1: #0d1a26;
+  --atm-base-2: #070d14;
+  --atm-base-3: #03060a;
+  --atm-lluvia: rgba(206, 232, 245, 0.07);
+
+  --hero-scrim: linear-gradient(100deg, rgba(5, 8, 11, 0.48) 0%, rgba(5, 8, 11, 0.76) 55%, rgba(5, 8, 11, 0.44) 100%);
+
+  --chart-rejilla: rgba(222, 238, 245, 0.07);
+  --chart-eje: #667a86;
+  --chart-leyenda: #9db2be;
+  --chart-borde: #0f161c;
+  --paleta-gastos: #d9564e, #e88c7e, #a63a34, #dda94f, #b07b2c, #7e2620;
+  --paleta-ingresos: #2fb6d9, #7fd8ec, #1a7794, #34b58c, #c7d6de, #14586e;
+  --paleta-categorias: #2fb6d9, #34b58c, #c7d6de, #d9564e, #7fd8ec, #1a7794, #dda94f, #3e6b8c;
+  --paleta-avatares: #2fb6d9, #34b58c, #c7d6de, #3e6b8c, #1a7794, #dda94f;
+}
+
+/* =========================================================
+   KIMETSU NO YAIBA · AKAZA — rosa del pelo, cian de los tatuajes,
+   amarillo de los ojos (Luna Superior Tres)
+   ========================================================= */
+html[data-tema="akaza"] {
+  --bg: #0a060c;
+  --bg-elevated: #110a14;
+  --surface: #17101b;
+  --surface-hover: #1e1624;
+  --border: rgba(245, 226, 250, 0.09);
+  --border-strong: rgba(245, 226, 250, 0.18);
+
+  --text-primary: #f3eaf6;
+  --text-secondary: #b79fc0;
+  --text-muted: #7e6a87;
+
+  --accent: #ff4d8d;
+  --accent-dim: #a8265c;
+  --accent-soft: rgba(255, 77, 141, 0.15);
+  --accent-soft-strong: rgba(255, 77, 141, 0.27);
+
+  /* El verde de "entra dinero" se cambia por el aguamarina de los
+     tatuajes: sigue leyéndose como positivo y encaja con el rosa. El
+     rojo de "sale dinero" se tira hacia el naranja para que no se
+     confunda con el rosa del acento. */
+  --success: #2fcbb4;
+  --danger: #e8452e;
+  --danger-soft: rgba(232, 69, 46, 0.17);
+  --warning: #f5d24e;
+  --warning-soft: rgba(245, 210, 78, 0.16);
+
+  --on-accent: #26030f;
+  --on-accent-dim: #ffeaf3;
+  --on-danger: #ffffff;
+
+  --atm-luz-1: rgba(255, 77, 141, 0.18);
+  --atm-luz-2: rgba(53, 214, 224, 0.14);
+  --atm-luz-3: rgba(48, 14, 60, 0.36);
+  --atm-base-1: #1a0a20;
+  --atm-base-2: #0d0611;
+  --atm-base-3: #060309;
+  --atm-lluvia: rgba(255, 190, 220, 0.07);
+
+  --hero-scrim: linear-gradient(100deg, rgba(10, 6, 12, 0.48) 0%, rgba(10, 6, 12, 0.74) 55%, rgba(10, 6, 12, 0.44) 100%);
+
+  --chart-rejilla: rgba(245, 226, 250, 0.07);
+  --chart-eje: #7e6a87;
+  --chart-leyenda: #b79fc0;
+  --chart-borde: #17101b;
+  --paleta-gastos: #e8452e, #f2806c, #b32e1d, #ff4d8d, #c22c69, #7e2015;
+  --paleta-ingresos: #ff4d8d, #ff8fb8, #a8265c, #35d6e0, #2fcbb4, #7fe8ee;
+  --paleta-categorias: #ff4d8d, #35d6e0, #f5d24e, #e8452e, #ff8fb8, #2fcbb4, #a8265c, #7fe8ee;
+  --paleta-avatares: #ff4d8d, #35d6e0, #f5d24e, #a8265c, #2fcbb4, #e8452e;
+}
+
+/* =========================================================
+   SELECTOR DE TEMAS (panel de Mi cuenta)
+   ========================================================= */
+
+.temas-grupo {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 14px 0 8px;
+}
+.temas-grupo:first-of-type { margin-top: 6px; }
+
+.temas-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.tema-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-lux), color 0.2s var(--ease-lux), background 0.2s var(--ease-lux);
+}
+.tema-btn:hover { background: var(--surface-hover); color: var(--text-primary); }
+.tema-btn.is-active {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: var(--accent-soft);
+}
+
+/* Tres franjas con los colores del tema, para reconocerlo de un vistazo
+   sin tener que aplicarlo. */
+.tema-btn__muestra {
+  display: flex;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.tema-btn__muestra span { flex: 1; }
+
+.tema-btn__nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
