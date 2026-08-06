@@ -6,7 +6,8 @@ import {
   listenPrestamos,
   listenPagosPrestamos,
   listenConfig,
-} from "./db.js?v=36";
+  reconectarFirestore,
+} from "./db.js?v=37";
 
 export const state = {
   cuentas: [],
@@ -72,11 +73,38 @@ function notify(key) {
   notifyTimeout = setTimeout(emitir, Math.min(AGRUPAR_MS, margenRestante));
 }
 
+// Al volver a la app tras un rato fuera, se fuerza una reconexión con
+// Firestore. Sin esto, lo añadido desde fuera (los Atajos del iPhone) no
+// aparecía hasta cerrar y volver a abrir la app: la conexión que Safari
+// congeló al irse a segundo plano se queda muda al volver.
+const MINIMO_FUERA_MS = 1500;
+let momentoDeOcultarse = 0;
+
+function vigilarVuelta() {
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      momentoDeOcultarse = Date.now();
+      return;
+    }
+    if (momentoDeOcultarse && Date.now() - momentoDeOcultarse >= MINIMO_FUERA_MS) {
+      reconectarFirestore();
+    }
+    momentoDeOcultarse = 0;
+  });
+
+  // En iOS, volver a una página que estaba en la caché de atrás/adelante no
+  // siempre dispara visibilitychange; pageshow con persisted sí.
+  window.addEventListener("pageshow", (e) => {
+    if (e.persisted) reconectarFirestore();
+  });
+}
+
 let started = false;
 
 export function initStore() {
   if (started) return;
   started = true;
+  vigilarVuelta();
   listenCuentas((items) => { state.cuentas = items; notify("cuentas"); });
   listenCategorias((items) => { state.categorias = items; notify("categorias"); });
   listenMovimientos((items) => { state.movimientos = items; notify("movimientos"); });
