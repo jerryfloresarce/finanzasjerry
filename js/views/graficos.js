@@ -4,12 +4,12 @@ import {
   desglosePorCategoria,
   desglosePorSubcategoria,
   evolucionMensual,
-  updateSuscripcion,
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=33";
-import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=33";
+} from "../db.js?v=34";
+import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=34";
+import { icon, entityIcon, iconForCuentaTipo } from "../icons.js?v=34";
 
 const GASTO_COLORS = ["#b06a63", "#c48b83", "#9c6a63", "#8a5850", "#a37c74", "#7d5a53"];
 const INGRESO_COLORS = ["#7a9b81", "#a8c3a0", "#8a9b6e", "#5f7a63", "#6b8778", "#9cae8f"];
@@ -34,7 +34,14 @@ export function mountGraficos() {
     if (currentState) renderListaSubcategorias(movimientosEnRango(currentState.movimientos, rango));
   });
 
-  document.getElementById("btn-guardar-estimacion")?.addEventListener("click", guardarEstimaciones);
+  document.getElementById("gf-mes-prev")?.addEventListener("click", () => {
+    mesGastosFijos = new Date(mesGastosFijos.getFullYear(), mesGastosFijos.getMonth() - 1, 1);
+    if (currentState) renderGastosFijosPorCuenta(currentState);
+  });
+  document.getElementById("gf-mes-next")?.addEventListener("click", () => {
+    mesGastosFijos = new Date(mesGastosFijos.getFullYear(), mesGastosFijos.getMonth() + 1, 1);
+    if (currentState) renderGastosFijosPorCuenta(currentState);
+  });
 }
 
 export function renderGraficos(state) {
@@ -57,55 +64,67 @@ export function renderGraficos(state) {
   renderListaSubcategorias(filtrados);
 }
 
-// Gastos fijos que ya se cobraron este mes (calendario real, no el mes que
-// se esté viendo en otra vista), agrupados por cuenta — y la estimación de
-// lo que tocará el mes que viene, asumiendo por defecto que un gasto fijo
-// cobra lo mismo (solo cambia si se le guarda una estimación distinta a
-// mano, ver guardarEstimaciones()).
-function pagosDelMesReal(movimientos, suscripcionId) {
-  const hoy = new Date();
+// ---------------- Gastos fijos por cuenta (mes a mes) ----------------
+// Este bloque es una réplica visual del apartado "Gastos fijos": para cada
+// gasto fijo activo se toma lo que realmente se cobró ese mes si ya está
+// marcado como pagado y, si no, su precio habitual. Con esa única regla
+// salen los tres casos sin lógica aparte:
+//   · meses pasados y el mes actual → el coste del mes (lo pagado + lo que
+//     todavía queda pendiente)
+//   · meses futuros → la estimación, porque ahí nadie ha pagado nada aún y
+//     todo cae en el precio configurado
+// Por eso la estimación se ajusta editando el gasto fijo en su apartado
+// (su precio y su cuenta), no desde aquí: esa es la única fuente de verdad.
+let mesGastosFijos = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+function pagosDeSuscripcionEnMes(movimientos, suscripcionId, mes) {
   return movimientos.filter((m) => {
     if (m.suscripcion_id !== suscripcionId) return false;
     const d = fromTimestamp(m.fecha);
-    return d && d.getFullYear() === hoy.getFullYear() && d.getMonth() === hoy.getMonth();
+    return d && d.getFullYear() === mes.getFullYear() && d.getMonth() === mes.getMonth();
   });
 }
 
-function importeEsteMes(s, movimientos) {
-  const pagos = pagosDelMesReal(movimientos, s.id);
-  return pagos.length > 0 ? pagos.reduce((acc, m) => acc + Number(m.importe ?? 0), 0) : Number(s.precio ?? 0);
-}
-
-function importeEstimado(s) {
-  return Number(s.estimado_proximo_mes ?? s.precio ?? 0);
+function importeDelMes(s, movimientos, mes) {
+  const pagos = pagosDeSuscripcionEnMes(movimientos, s.id, mes);
+  return pagos.length > 0
+    ? pagos.reduce((acc, m) => acc + Number(m.importe ?? 0), 0)
+    : Number(s.precio ?? 0);
 }
 
 function renderGastosFijosPorCuenta(state) {
   const { suscripciones, cuentas, movimientos } = state;
   const cuentaMap = new Map(cuentas.map((c) => [c.id, c]));
-  const activas = suscripciones.filter((s) => s.activa !== false);
 
-  const esteMesPorCuenta = new Map();
-  const estimadoPorCuenta = new Map();
-  activas.forEach((s) => {
-    esteMesPorCuenta.set(s.cuenta_id, (esteMesPorCuenta.get(s.cuenta_id) || 0) + importeEsteMes(s, movimientos));
-    estimadoPorCuenta.set(s.cuenta_id, (estimadoPorCuenta.get(s.cuenta_id) || 0) + importeEstimado(s));
-  });
+  // Solo cuentas que de verdad tienen algún gasto fijo ese mes: si una
+  // cuenta no carga nada, no pinta nada en el gráfico.
+  const totales = new Map();
+  suscripciones
+    .filter((s) => s.activa !== false)
+    .forEach((s) => {
+      const importe = importeDelMes(s, movimientos, mesGastosFijos);
+      if (importe > 0) totales.set(s.cuenta_id, (totales.get(s.cuenta_id) || 0) + importe);
+    });
 
-  const cuentaIds = [...new Set([...esteMesPorCuenta.keys(), ...estimadoPorCuenta.keys()])].sort(
-    (a, b) => (esteMesPorCuenta.get(b) || 0) - (esteMesPorCuenta.get(a) || 0)
-  );
+  const mesLabel = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(mesGastosFijos);
+  document.getElementById("gf-mes-label").textContent = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1);
 
+  const hoy = new Date();
+  const esFuturo = mesGastosFijos > new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  document.getElementById("gf-mes-nota").textContent = esFuturo
+    ? "Estimación: se asume que cada gasto fijo cobrará su precio habitual. Para cambiarla, edita el gasto fijo (precio o cuenta) en Gastos fijos."
+    : "Total de gastos fijos de cada cuenta este mes, contando lo ya pagado y lo que queda pendiente.";
+
+  const entradas = [...totales.entries()].sort((a, b) => b[1] - a[1]);
   renderChartGastosFijosCuenta(
-    cuentaIds.map((id) => cuentaMap.get(id)?.nombre ?? "Sin cuenta"),
-    cuentaIds.map((id) => esteMesPorCuenta.get(id) || 0),
-    cuentaIds.map((id) => estimadoPorCuenta.get(id) || 0)
+    entradas.map(([id]) => cuentaMap.get(id)?.nombre ?? "Sin cuenta"),
+    entradas.map(([, total]) => total),
+    esFuturo
   );
-
-  renderListaEstimacion(activas, cuentaMap, movimientos);
+  renderTotalesPorCuenta(entradas, cuentaMap);
 }
 
-function renderChartGastosFijosCuenta(labels, esteMes, estimado) {
+function renderChartGastosFijosCuenta(labels, valores, esFuturo) {
   const canvas = document.getElementById("chart-gastos-fijos-cuenta");
   if (!canvas || typeof Chart === "undefined") return;
 
@@ -116,53 +135,36 @@ function renderChartGastosFijosCuenta(labels, esteMes, estimado) {
     return;
   }
 
+  // Barras, no líneas: cada cuenta es una categoría independiente, no un
+  // punto de una serie temporal — unirlas con una línea daba a entender una
+  // progresión de Imagin a Efectivo que no significa nada.
   charts.gastosFijosCuenta = new Chart(canvas, {
-    type: "line",
+    type: "bar",
     data: {
       labels,
       datasets: [
         {
-          label: "Este mes",
-          data: esteMes,
-          borderColor: "#7a9b81",
-          backgroundColor: "rgba(122,155,129,0.15)",
-          fill: false,
-          tension: 0.3,
-          pointRadius: 4,
-          pointBackgroundColor: "#7a9b81",
-          borderWidth: 2,
-        },
-        {
-          label: "Próximo mes (estimado)",
-          data: estimado,
-          borderColor: "#b6975f",
-          backgroundColor: "rgba(182,151,95,0.12)",
-          fill: false,
-          tension: 0.3,
-          pointRadius: 4,
-          pointBackgroundColor: "#b6975f",
-          borderDash: [6, 4],
-          borderWidth: 2,
+          label: esFuturo ? "Estimado" : "Gastos fijos",
+          data: valores,
+          backgroundColor: esFuturo ? "rgba(182,151,95,0.5)" : "rgba(122,155,129,0.6)",
+          borderColor: esFuturo ? "#b6975f" : "#7a9b81",
+          borderWidth: 1.5,
+          borderRadius: 6,
+          maxBarThickness: 72,
         },
       ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      interaction: { mode: "index", intersect: false },
       plugins: {
-        legend: {
-          position: "top",
-          align: "end",
-          labels: { color: "#9fada4", boxWidth: 8, font: { family: "Inter", size: 11 } },
-        },
-        tooltip: {
-          callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatEUR(ctx.parsed.y)}` },
-        },
+        legend: { display: false },
+        tooltip: { callbacks: { label: (ctx) => formatEUR(ctx.parsed.y) } },
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: "#6d7a72", font: { size: 11 } } },
         y: {
+          beginAtZero: true,
           grid: { color: "rgba(233,238,234,0.06)" },
           ticks: { color: "#6d7a72", font: { size: 11 }, callback: (v) => formatEUR(v).replace(",00", "") },
         },
@@ -171,64 +173,39 @@ function renderChartGastosFijosCuenta(labels, esteMes, estimado) {
   });
 }
 
-function renderListaEstimacion(activas, cuentaMap, movimientos) {
-  const el = document.getElementById("gastos-fijos-estimacion-lista");
+// Debajo del gráfico, lo mismo en texto: cada cuenta con su total del mes
+// (de mayor a menor) y la suma de todas al final.
+function renderTotalesPorCuenta(entradas, cuentaMap) {
+  const el = document.getElementById("gf-totales-cuenta");
   if (!el) return;
 
-  if (activas.length === 0) {
-    el.innerHTML = `<p class="empty-state">No hay gastos fijos activos.</p>`;
+  if (entradas.length === 0) {
+    el.innerHTML = `<p class="empty-state">Ninguna cuenta tiene gastos fijos este mes.</p>`;
     return;
   }
 
-  el.innerHTML = activas
-    .map((s) => {
-      const cuenta = cuentaMap.get(s.cuenta_id);
-      const esteMes = importeEsteMes(s, movimientos);
-      return `
-        <div class="mini-row" data-estimacion-row="${s.id}">
-          <div class="mini-row__main">
-            <span class="mini-row__title">${s.nombre}</span>
-            <span class="mini-row__sub">${cuenta?.nombre ?? "Sin cuenta"} · este mes ${formatEUR(esteMes)}</span>
-          </div>
-          <input
-            type="number"
-            step="0.01"
-            class="estimacion-input"
-            data-estimacion-input="${s.id}"
-            value="${s.estimado_proximo_mes ?? ""}"
-            placeholder="${formatEUR(s.precio ?? 0)} (igual)"
-          />
-        </div>`;
-    })
-    .join("");
-}
+  const total = entradas.reduce((acc, [, valor]) => acc + valor, 0);
 
-async function guardarEstimaciones() {
-  const btn = document.getElementById("btn-guardar-estimacion");
-  const msg = document.getElementById("gastos-fijos-estimacion-msg");
-  if (!currentState) return;
-  btn.disabled = true;
-  msg.textContent = "";
-  try {
-    const inputs = document.querySelectorAll("[data-estimacion-input]");
-    for (const input of inputs) {
-      const s = currentState.suscripciones.find((x) => x.id === input.dataset.estimacionInput);
-      if (!s) continue;
-      const nuevo = input.value === "" ? null : Number(input.value);
-      const actual = s.estimado_proximo_mes ?? null;
-      if (nuevo !== actual) {
-        await updateSuscripcion(s.id, { estimado_proximo_mes: nuevo });
-      }
-    }
-    msg.style.color = "var(--success)";
-    msg.textContent = "Estimaciones guardadas.";
-  } catch (err) {
-    console.error("Error al guardar estimaciones:", err);
-    msg.style.color = "var(--danger)";
-    msg.textContent = "No se pudo guardar. Inténtalo de nuevo.";
-  } finally {
-    btn.disabled = false;
-  }
+  el.innerHTML =
+    entradas
+      .map(([cuentaId, valor]) => {
+        const cuenta = cuentaMap.get(cuentaId);
+        return `
+        <div class="mini-row">
+          <div class="mini-row__body">
+            <span class="mini-row__icon">${cuenta ? entityIcon(cuenta, iconForCuentaTipo(cuenta.tipo)) : icon("otra")}</span>
+            <div class="mini-row__main">
+              <span class="mini-row__title">${cuenta?.nombre ?? "Sin cuenta asignada"}</span>
+            </div>
+          </div>
+          <span class="mini-row__amount">${formatEUR(valor)}</span>
+        </div>`;
+      })
+      .join("") +
+    `<div class="mini-row" style="border-top: 1px solid var(--border-strong); margin-top: 6px; padding-top: 12px;">
+      <div class="mini-row__main"><span class="mini-row__title">Total</span></div>
+      <span class="mini-row__amount">${formatEUR(total)}</span>
+    </div>`;
 }
 
 function renderEvolucion(movimientos) {
