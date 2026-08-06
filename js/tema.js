@@ -1,5 +1,5 @@
-import { updateConfig } from "./db.js?v=38";
-import { state } from "./store.js?v=38";
+import { updateConfig } from "./db.js?v=39";
+import { state } from "./store.js?v=39";
 
 // Temas de la app. El aspecto de cada uno vive entero en css/temas.css:
 // aquí solo está el catálogo (para pintar el selector) y la mecánica de
@@ -103,6 +103,7 @@ export function aplicarTema(id, { guardar = true } = {}) {
 
   if (guardar) recordarEnLocal(tema);
   pintarBarraDelNavegador();
+  marcarSiElHeroTieneImagen();
   document.dispatchEvent(new CustomEvent("tema-cambiado", { detail: { tema } }));
   return tema;
 }
@@ -115,6 +116,17 @@ function pintarBarraDelNavegador() {
   if (!meta) return;
   const fondo = colorTema("--bg", "");
   if (fondo) meta.setAttribute("content", fondo);
+}
+
+// El velo del hero tiene que ser más oscuro cuando hay una foto detrás que
+// cuando solo está el ambiente de CSS. En vez de obligar a cada tema a
+// acordarse de poner dos variables a la vez, se mira si el tema trae imagen
+// y se marca el hero en consecuencia.
+function marcarSiElHeroTieneImagen() {
+  const hero = document.querySelector(".hero");
+  if (!hero) return;
+  const imagen = colorTema("--hero-imagen", "none");
+  hero.classList.toggle("hero--con-imagen", Boolean(imagen) && imagen !== "none");
 }
 
 // El tema elegido viaja en el documento de configuración, así que se ve

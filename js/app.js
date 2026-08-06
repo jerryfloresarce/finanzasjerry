@@ -1,18 +1,18 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=38";
-import { state, subscribe, initStore } from "./store.js?v=38";
+import { onAuthReady } from "./auth.js?v=39";
+import { state, subscribe, initStore } from "./store.js?v=39";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=38";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=38";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=38";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=38";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=38";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=38";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=38";
-import { mountCuentaPanel } from "./views/cuenta.js?v=38";
-import { refreshAnimations } from "./animations.js?v=38";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=38";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=38";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=39";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=39";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=39";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=39";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=39";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=39";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=39";
+import { mountCuentaPanel } from "./views/cuenta.js?v=39";
+import { refreshAnimations } from "./animations.js?v=39";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=39";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=39";
 
 const ROUTES = {
   dashboard: renderDashboard,

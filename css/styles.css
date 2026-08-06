@@ -823,6 +823,27 @@ input, select, textarea { font-size: 16px; }
   background: var(--hero-scrim);
 }
 
+/* Con una foto detrás hace falta más sombra, y sobre todo a la DERECHA,
+   que es donde va el saldo. El velo normal está pensado para el ambiente
+   hecho con CSS, que ya es oscuro de por sí y es más claro justo por ese
+   lado. La clase la pone js/tema.js cuando el tema trae imagen. */
+.hero--con-imagen .hero__scrim {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.46) 0%,
+    rgba(0, 0, 0, 0.56) 42%,
+    rgba(0, 0, 0, 0.8) 100%
+  );
+}
+
+/* La fecha y el "Saldo total" van en un gris apagado que se pierde si la
+   foto tiene una zona clara justo detrás. Con imagen se suben a un blanco
+   translúcido, que aguanta cualquier fondo. */
+.hero--con-imagen .hero__date,
+.hero--con-imagen .hero__eyebrow {
+  color: rgba(255, 255, 255, 0.82);
+}
+
 .hero__content {
   position: relative;
   height: 100%;
