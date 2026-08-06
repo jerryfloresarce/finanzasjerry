@@ -6,10 +6,10 @@ import {
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js?v=35";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=35";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=35";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=35";
+} from "../db.js?v=36";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=36";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=36";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=36";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -59,6 +59,12 @@ export function renderMovimientos(state) {
 
   renderComparativa(ingresosMes, gastosMes);
   renderCalendario(delMes, categorias, cuentas);
+
+  // Si hay un día abierto en el modal, se repinta con los datos recién
+  // llegados. Sin esto, al borrar un movimiento desde dentro del modal la
+  // fila seguía ahí (solo se repintaba el calendario de detrás), y parecía
+  // que el borrado no había funcionado hasta cerrar y volver a abrir.
+  if (diaAbierto) openDiaDetalle(diaAbierto, state);
 }
 
 function renderComparativa(ingresos, gastos) {
@@ -139,7 +145,13 @@ function renderCalendario(movimientosMes, categorias, cuentas) {
   );
 }
 
+// Día que se está viendo en el modal de detalle, o null si está cerrado.
+// renderMovimientos lo consulta para repintar el modal cuando cambian los
+// datos mientras sigue abierto.
+let diaAbierto = null;
+
 function openDiaDetalle(fecha, state) {
+  diaAbierto = fecha;
   const { movimientos, categorias, cuentas } = state;
   const catMap = new Map(categorias.map((c) => [c.id, c]));
   const cuentaMap = new Map(cuentas.map((c) => [c.id, c.nombre]));
@@ -198,11 +210,24 @@ function openDiaDetalle(fecha, state) {
   `,
     {
       wide: true,
+      onClose: () => {
+        diaAbierto = null;
+      },
       onMount: (root) => {
         root.querySelector("#btn-cerrar-dia").addEventListener("click", closeModal);
-        root.querySelector("#btn-add-dia").addEventListener("click", () => openForm(null, state, fecha));
+        // Al abrir el formulario encima, este modal deja de estar en
+        // pantalla: si no se soltara `diaAbierto`, la siguiente
+        // actualización de datos lo repintaría por encima del formulario
+        // que el usuario está rellenando.
+        root.querySelector("#btn-add-dia").addEventListener("click", () => {
+          diaAbierto = null;
+          openForm(null, state, fecha);
+        });
         root.querySelectorAll("[data-edit]").forEach((btn) =>
-          btn.addEventListener("click", () => openForm(movimientos.find((m) => m.id === btn.dataset.edit), state))
+          btn.addEventListener("click", () => {
+            diaAbierto = null;
+            openForm(movimientos.find((m) => m.id === btn.dataset.edit), state);
+          })
         );
         const lista = root.querySelector(".mini-list");
         if (lista) {

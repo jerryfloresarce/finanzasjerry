@@ -18,7 +18,10 @@ export function wrapSwipe(innerHTML, id) {
 
 function closeRow(content, row) {
   content.style.transform = "translateX(0)";
-  row.classList.remove("is-open");
+  // row puede no existir si esa fila ya se borró de la pantalla (al eliminar
+  // un elemento, la lista entera se vuelve a pintar y la fila que estaba
+  // deslizada desaparece con ella).
+  row?.classList.remove("is-open");
   if (lastOpen === content) lastOpen = null;
 }
 
@@ -29,6 +32,11 @@ function closeRow(content, row) {
 // su propio attachSwipe con su propio onDelete).
 // onDelete(id): se llama al tocar el botón rojo "Eliminar".
 export function attachSwipe(container, onDelete) {
+  // Si la fila que quedó deslizada ya no está en el documento (su lista se
+  // volvió a pintar), se suelta la referencia: si no, se quedaba apuntando
+  // a un nodo muerto que ya nadie puede cerrar ni ver.
+  if (lastOpen && !lastOpen.isConnected) lastOpen = null;
+
   container.querySelectorAll(":scope > [data-swipe-row]").forEach((row) => {
     const content = row.querySelector("[data-swipe-content]");
     const deleteBtn = row.querySelector("[data-swipe-delete]");
