@@ -3,6 +3,8 @@
 // revela al arrastrar el contenido hacia la izquierda. Se usa en vez de
 // un botón "Eliminar" siempre visible, en todas las listas de la app.
 
+import { animarFilaAlEliminar } from "./efectos.js?v=41";
+
 const REVEAL_PX = 88;
 const DRAG_LOCK_THRESHOLD = 8;
 
@@ -31,7 +33,12 @@ function closeRow(content, row) {
 // anidadas (p. ej. los pagos dentro de una tarjeta de préstamo, que llevan
 // su propio attachSwipe con su propio onDelete).
 // onDelete(id): se llama al tocar el botón rojo "Eliminar".
-export function attachSwipe(container, onDelete) {
+// confirmar: texto de la pregunta de seguridad. La pregunta se hace aquí y
+// no en cada vista para poder encadenar bien las tres cosas: preguntar,
+// despedir la fila con la animación del tema, y solo entonces borrar. Si se
+// borrara antes, la lista se volvería a pintar a los pocos milisegundos y
+// la fila desaparecería de golpe sin que diera tiempo a ver nada.
+export function attachSwipe(container, onDelete, { confirmar } = {}) {
   // Si la fila que quedó deslizada ya no está en el documento (su lista se
   // volvió a pintar), se suelta la referencia: si no, se quedaba apuntando
   // a un nodo muerto que ya nadie puede cerrar ni ver.
@@ -42,7 +49,11 @@ export function attachSwipe(container, onDelete) {
     const deleteBtn = row.querySelector("[data-swipe-delete]");
     if (!content || !deleteBtn) return;
 
-    deleteBtn.addEventListener("click", () => onDelete(row.dataset.swipeRow));
+    deleteBtn.addEventListener("click", async () => {
+      if (confirmar && !window.confirm(confirmar)) return;
+      await animarFilaAlEliminar(row);
+      onDelete(row.dataset.swipeRow);
+    });
 
     let startX = null;
     let startY = null;

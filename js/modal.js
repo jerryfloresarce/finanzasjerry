@@ -1,4 +1,5 @@
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=40";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=41";
+import { efectoAlGuardar } from "./efectos.js?v=41";
 
 const modalRoot = document.getElementById("modal-root");
 const modalScrim = document.getElementById("modal-scrim");
@@ -7,6 +8,21 @@ const modalContent = document.getElementById("modal-content");
 const MODAL_TRANSITION_MS = 220;
 let modalCloseTimeout = null;
 let activeOnClose = null;
+
+// Confirmación visual al guardar: el destello del personaje. Se engancha
+// aquí, en un único sitio, en vez de en el "submit" de cada formulario.
+// No basta con escuchar el submit: si el guardado falla, el modal se queda
+// abierto y no habría nada que celebrar. Por eso se apunta el momento del
+// envío y solo se lanza el efecto si además el modal se cierra justo
+// después — que es lo que hacen todos los formularios cuando les ha ido
+// bien. Cancelar o cerrar sin enviar no dispara nada.
+const MARGEN_TRAS_ENVIAR_MS = 2000;
+let momentoDelEnvio = 0;
+
+modalContent.addEventListener("submit", () => {
+  momentoDelEnvio = Date.now();
+});
+
 
 // onClose: se llama SIEMPRE que el modal se cierra (Cancelar, click en el
 // scrim, Escape, o un cierre tras guardar con éxito) — quien lo pasa es
@@ -26,6 +42,10 @@ export function openModal(html, { onMount, wide, onClose } = {}) {
 }
 
 export function closeModal() {
+  if (momentoDelEnvio && Date.now() - momentoDelEnvio < MARGEN_TRAS_ENVIAR_MS) {
+    efectoAlGuardar();
+  }
+  momentoDelEnvio = 0;
   modalRoot.classList.remove("is-open");
   desbloquearScrollFondo("modal");
   modalCloseTimeout = setTimeout(() => {

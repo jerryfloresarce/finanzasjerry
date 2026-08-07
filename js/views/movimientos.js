@@ -6,11 +6,11 @@ import {
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js?v=40";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=40";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=40";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=40";
-import { colorTema } from "../tema.js?v=40";
+} from "../db.js?v=41";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=41";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=41";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=41";
+import { colorTema } from "../tema.js?v=41";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -232,8 +232,8 @@ function openDiaDetalle(fecha, state) {
         );
         const lista = root.querySelector(".mini-list");
         if (lista) {
-          attachSwipe(lista, (id) => {
-            if (confirm("¿Eliminar este movimiento?")) deleteMovimiento(id);
+          attachSwipe(lista, (id) => deleteMovimiento(id), {
+            confirmar: "¿Eliminar este movimiento?",
           });
         }
       },

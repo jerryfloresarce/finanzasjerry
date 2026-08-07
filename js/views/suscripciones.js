@@ -1,7 +1,7 @@
-import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=40";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=40";
-import { icon, iconForSuscripcion } from "../icons.js?v=40";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=40";
+import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=41";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=41";
+import { icon, iconForSuscripcion } from "../icons.js?v=41";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=41";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).

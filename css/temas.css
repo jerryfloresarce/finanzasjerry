@@ -65,6 +65,12 @@ html[data-tema="luffy"] {
 
   --marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M7.3%2011.7c0-4.7%202-7.4%204.7-7.4s4.7%202.7%204.7%207.4z%22%2F%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%2215.9%22%20rx%3D%2211.1%22%20ry%3D%223.2%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
 
+  --hero-imagen: url("../assets/img/Imagen_Luffy.jpg");
+  --hero-imagen-espejo: scaleX(-1);
+  --hero-imagen-zoom: 175% auto;
+  --hero-imagen-encuadre: 78% 16%;
+  --hero-imagen-filtro: brightness(0.58) saturate(0.5);
+  --hero-imagen-mascara: radial-gradient(74% 130% at 76% 46%, #000 0%, #000 30%, transparent 74%);
   --hero-scrim: linear-gradient(100deg, rgba(18, 10, 9, 0.5) 0%, rgba(18, 10, 9, 0.74) 55%, rgba(18, 10, 9, 0.46) 100%);
 
   --chart-rejilla: rgba(255, 228, 196, 0.07);
@@ -121,6 +127,12 @@ html[data-tema="zoro"] {
 
   --marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3Cg%20id%3D%22k%22%3E%3Cpath%20d%3D%22M12%201.6l1.15%202.5v8.2h-2.3V4.1z%22%2F%3E%3Crect%20x%3D%229.2%22%20y%3D%2212.5%22%20width%3D%225.6%22%20height%3D%221.6%22%20rx%3D%22.8%22%2F%3E%3Crect%20x%3D%2211.2%22%20y%3D%2214.4%22%20width%3D%221.6%22%20height%3D%227.6%22%20rx%3D%22.8%22%2F%3E%3C%2Fg%3E%3C%2Fdefs%3E%3Cg%20fill%3D%22%23000%22%20transform%3D%22rotate%28-24%2012%2012%29%22%3E%3Cuse%20href%3D%22%23k%22%20transform%3D%22translate%28-7.4%201.4%29%20scale%28.92%29%20translate%281%201%29%22%2F%3E%3Cuse%20href%3D%22%23k%22%2F%3E%3Cuse%20href%3D%22%23k%22%20transform%3D%22translate%287.4%201.4%29%20scale%28.92%29%20translate%28-1%201%29%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
 
+  --hero-imagen: url("../assets/img/Imagen_Zoro.jpg");
+  --hero-imagen-espejo: scaleX(-1);
+  --hero-imagen-zoom: 132% auto;
+  --hero-imagen-encuadre: 82% 34%;
+  --hero-imagen-filtro: brightness(1.05) contrast(1.15);
+  --hero-imagen-mascara: radial-gradient(82% 140% at 76% 50%, #000 0%, #000 34%, transparent 80%);
   --hero-scrim: linear-gradient(100deg, rgba(6, 10, 7, 0.5) 0%, rgba(6, 10, 7, 0.76) 55%, rgba(6, 10, 7, 0.46) 100%);
 
   --chart-rejilla: rgba(214, 240, 219, 0.07);
@@ -177,6 +189,12 @@ html[data-tema="sanji"] {
 
   --marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%20d%3D%22M2.5%2017.5C2.5%209.5%207.6%204.8%2013.6%205.4c3.9.4%206.4%202.9%206.4%205.9%200%202.6-1.9%204.4-4.2%204.4-2%200-3.4-1.4-3.4-3.1%200-1.5%201.1-2.5%202.4-2.5%22%2F%3E%3C%2Fsvg%3E");
 
+  --hero-imagen: url("../assets/img/Imagen_Sanji.jpg");
+  --hero-imagen-espejo: scaleX(-1);
+  --hero-imagen-zoom: 150% auto;
+  --hero-imagen-encuadre: 74% 24%;
+  --hero-imagen-filtro: brightness(0.62) saturate(0.5);
+  --hero-imagen-mascara: radial-gradient(74% 130% at 74% 46%, #000 0%, #000 28%, transparent 72%);
   --hero-scrim: linear-gradient(100deg, rgba(7, 8, 12, 0.5) 0%, rgba(7, 8, 12, 0.76) 55%, rgba(7, 8, 12, 0.46) 100%);
 
   --chart-rejilla: rgba(222, 231, 245, 0.07);
@@ -234,6 +252,12 @@ html[data-tema="tanjiro"] {
 
   --marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M2.2%202.2h6.5v6.5H2.2zm6.5%206.5h6.6v6.6H8.7zm6.6-6.5h6.5v6.5h-6.5zM2.2%2015.3h6.5v6.5H2.2zm13.1%200h6.5v6.5h-6.5z%22%2F%3E%3C%2Fsvg%3E");
 
+  --hero-imagen: url("../assets/img/Imagen_Tanjiro.jpg");
+  --hero-imagen-espejo: scaleX(-1);
+  --hero-imagen-zoom: 130% auto;
+  --hero-imagen-encuadre: 80% 24%;
+  --hero-imagen-filtro: brightness(0.62) saturate(0.75);
+  --hero-imagen-mascara: radial-gradient(76% 130% at 76% 46%, #000 0%, #000 30%, transparent 76%);
   --hero-scrim: linear-gradient(100deg, rgba(8, 11, 10, 0.48) 0%, rgba(8, 11, 10, 0.74) 55%, rgba(8, 11, 10, 0.44) 100%);
 
   --chart-rejilla: rgba(226, 240, 235, 0.07);
@@ -293,6 +317,12 @@ html[data-tema="zenitsu"] {
 
   --marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M14.6%201.2%204.2%2013.6h5.6L8.9%2022.8%2019.8%209.9h-6z%22%2F%3E%3C%2Fsvg%3E");
 
+  --hero-imagen: url("../assets/img/hero-zenitsu.jpg");
+  --hero-imagen-espejo: scaleX(-1);
+  --hero-imagen-zoom: cover;
+  --hero-imagen-encuadre: center 24%;
+  --hero-imagen-filtro: brightness(0.62) saturate(0.6);
+  --hero-imagen-mascara: radial-gradient(72% 130% at 64% 46%, #000 0%, #000 28%, transparent 74%);
   --hero-scrim: linear-gradient(100deg, rgba(12, 9, 4, 0.48) 0%, rgba(12, 9, 4, 0.74) 55%, rgba(12, 9, 4, 0.44) 100%);
 
   --chart-rejilla: rgba(255, 240, 200, 0.07);
@@ -352,6 +382,12 @@ html[data-tema="inosuke"] {
 
   --marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cdefs%3E%3Cg%20id%3D%22s%22%3E%3Crect%20x%3D%2210.7%22%20y%3D%222.4%22%20width%3D%222.6%22%20height%3D%2213.2%22%20rx%3D%22.4%22%2F%3E%3Cpath%20d%3D%22M10.7%203.9%209%205.4l1.7%201.5zm0%203.2L9%208.6l1.7%201.5zm0%203.2-1.7%201.5%201.7%201.5z%22%2F%3E%3Crect%20x%3D%228.7%22%20y%3D%2215.7%22%20width%3D%226.6%22%20height%3D%221.7%22%20rx%3D%22.85%22%2F%3E%3Crect%20x%3D%2211%22%20y%3D%2217.5%22%20width%3D%222%22%20height%3D%224.2%22%20rx%3D%221%22%2F%3E%3C%2Fg%3E%3C%2Fdefs%3E%3Cg%20fill%3D%22%23000%22%3E%3Cuse%20href%3D%22%23s%22%20transform%3D%22rotate%28-38%2012%2012%29%22%2F%3E%3Cuse%20href%3D%22%23s%22%20transform%3D%22rotate%2838%2012%2012%29%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
 
+  --hero-imagen: url("../assets/img/hero-inosuke.jpg");
+  --hero-imagen-espejo: none;
+  --hero-imagen-zoom: cover;
+  --hero-imagen-encuadre: 30% 40%;
+  --hero-imagen-filtro: brightness(0.34) saturate(0.3);
+  --hero-imagen-mascara: radial-gradient(72% 130% at 30% 50%, #000 0%, #000 28%, transparent 72%);
   --hero-scrim: linear-gradient(100deg, rgba(5, 8, 11, 0.48) 0%, rgba(5, 8, 11, 0.76) 55%, rgba(5, 8, 11, 0.44) 100%);
 
   --chart-rejilla: rgba(222, 238, 245, 0.07);
@@ -413,6 +449,12 @@ html[data-tema="akaza"] {
 
   --marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%201.6v20.8M3%206.8l18%2010.4M3%2017.2%2021%206.8%22%2F%3E%3Cpath%20d%3D%22M9.4%204.4%2012%201.8l2.6%202.6M9.4%2019.6%2012%2022.2l2.6-2.6M3.1%2010.2l-.5-3.6%203.6-.5M20.9%2013.8l.5%203.6-3.6.5M6.2%2018.4l-3.6-.5.5-3.6M17.8%205.6l3.6.5-.5%203.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
 
+  --hero-imagen: url("../assets/img/Imagen_Akasa.jpg");
+  --hero-imagen-espejo: scaleX(-1);
+  --hero-imagen-zoom: 190% auto;
+  --hero-imagen-encuadre: 29% 22%;
+  --hero-imagen-filtro: brightness(0.64) saturate(0.75);
+  --hero-imagen-mascara: radial-gradient(70% 130% at 78% 46%, #000 0%, #000 26%, transparent 70%);
   --hero-scrim: linear-gradient(100deg, rgba(10, 6, 12, 0.48) 0%, rgba(10, 6, 12, 0.74) 55%, rgba(10, 6, 12, 0.44) 100%);
 
   --chart-rejilla: rgba(245, 226, 250, 0.07);
@@ -530,3 +572,194 @@ html[data-tema="akaza"] {
 }
 
 .tema-btn__nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* =========================================================
+   EFECTOS POR PERSONAJE
+   =========================================================
+   Tres momentos: al abrir el Dashboard (o al cambiar de tema), al guardar
+   algo, y al eliminar una fila. Los dos primeros usan la misma capa
+   .efecto —en el hero o a pantalla completa— y el tercero se aplica sobre
+   la propia fila que se va.
+
+   La mecánica (cuándo se disparan y cuándo se limpian) está en
+   js/efectos.js. Original no aparece aquí: sin tema no hay efecto. */
+
+/* ---------- LUFFY: el sombrero cae y rebota ---------- */
+html[data-tema="luffy"] .efecto.is-activo {
+  background: var(--accent);
+  -webkit-mask: var(--marca) 20% 46% / 76px 76px no-repeat;
+  mask: var(--marca) 20% 46% / 76px 76px no-repeat;
+  animation: fj-sombrero 1200ms cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+@keyframes fj-sombrero {
+  0% { opacity: 0; transform: translateY(-90px) rotate(-22deg); }
+  22% { opacity: 0.95; }
+  55% { opacity: 0.95; transform: translateY(0) rotate(0deg); }
+  70% { transform: translateY(-9px) rotate(3deg); }
+  85% { opacity: 0.65; transform: translateY(0) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(0) rotate(0deg); }
+}
+html[data-tema="luffy"] .swipe-row.is-eliminando {
+  animation: fj-goma 420ms cubic-bezier(0.4, 0, 0.9, 0.4) both;
+}
+@keyframes fj-goma {
+  0% { opacity: 1; transform: scaleX(1); }
+  35% { transform: scaleX(1.07) translateX(-8px); }
+  100% { opacity: 0; transform: scaleX(0.18) translateX(-120%); }
+}
+
+/* ---------- ZORO: los tres tajos cruzan la pantalla ---------- */
+html[data-tema="zoro"] .efecto.is-activo {
+  background: linear-gradient(
+    104deg,
+    transparent 0 12px,
+    var(--accent) 12px 15px,
+    transparent 15px 40px,
+    var(--accent) 40px 43px,
+    transparent 43px 68px,
+    var(--accent) 68px 71px,
+    transparent 71px 100%
+  );
+  animation: fj-tajos 950ms cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+@keyframes fj-tajos {
+  0% { opacity: 0; transform: translateX(-55%); }
+  18% { opacity: 0.95; }
+  70% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateX(115%); }
+}
+/* Al eliminar, la fila se cierra sobre sí misma como si la hubieran
+   cortado en dos y la mitad se deslizara. */
+html[data-tema="zoro"] .swipe-row.is-eliminando {
+  animation: fj-corte 420ms cubic-bezier(0.5, 0, 0.9, 0.5) both;
+}
+@keyframes fj-corte {
+  0% { opacity: 1; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+  28% { transform: translateX(-5px); }
+  100% {
+    opacity: 0;
+    transform: translateX(-34px) skewX(-9deg);
+    clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+  }
+}
+
+/* ---------- SANJI: la llamarada azul del Ifrit Jambe ---------- */
+html[data-tema="sanji"] .efecto.is-activo {
+  background: radial-gradient(62% 105% at 20% 110%, #4b93e0 0%, rgba(46, 120, 200, 0.6) 36%, transparent 72%);
+  animation: fj-llama 1000ms ease-out both;
+}
+@keyframes fj-llama {
+  0% { opacity: 0; transform: translateY(28%) scaleY(0.5); }
+  25% { opacity: 1; }
+  60% { opacity: 0.8; }
+  100% { opacity: 0; transform: translateY(-16%) scaleY(1.3); }
+}
+html[data-tema="sanji"] .swipe-row.is-eliminando {
+  animation: fj-brasa 420ms ease-in both;
+}
+@keyframes fj-brasa {
+  0% { opacity: 1; filter: none; }
+  40% { filter: brightness(1.6) saturate(1.4); }
+  100% { opacity: 0; filter: brightness(0.2); transform: translateY(10px) scale(0.94); }
+}
+
+/* ---------- TANJIRO: la onda de la Respiración del Agua ---------- */
+html[data-tema="tanjiro"] .efecto.is-activo {
+  background:
+    radial-gradient(34% 62% at 16% 38%, rgba(31, 158, 104, 0.75) 0%, transparent 72%),
+    radial-gradient(34% 62% at 40% 64%, rgba(31, 158, 104, 0.55) 0%, transparent 72%),
+    radial-gradient(34% 62% at 64% 34%, rgba(31, 158, 104, 0.65) 0%, transparent 72%);
+  animation: fj-agua 1100ms cubic-bezier(0.25, 0.7, 0.3, 1) both;
+}
+@keyframes fj-agua {
+  0% { opacity: 0; transform: translateX(-45%) skewX(-10deg); }
+  20% { opacity: 0.9; }
+  75% { opacity: 0.8; }
+  100% { opacity: 0; transform: translateX(75%) skewX(-10deg); }
+}
+html[data-tema="tanjiro"] .swipe-row.is-eliminando {
+  animation: fj-corriente 420ms ease-in both;
+}
+@keyframes fj-corriente {
+  0% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-42px) skewX(-14deg) scaleY(0.86); }
+}
+
+/* ---------- ZENITSU: el relámpago ----------
+   Los saltos son duros a propósito (steps): un rayo no se desvanece
+   suavemente, parpadea. */
+html[data-tema="zenitsu"] .efecto.is-activo {
+  background:
+    linear-gradient(96deg, transparent 0 30%, rgba(255, 208, 40, 0.5) 46%, transparent 62%),
+    radial-gradient(90% 160% at 26% 50%, rgba(255, 232, 140, 0.55) 0%, transparent 62%);
+  animation: fj-rayo 800ms steps(1, end) both;
+}
+@keyframes fj-rayo {
+  0% { opacity: 0; }
+  6% { opacity: 1; }
+  14% { opacity: 0.05; }
+  22% { opacity: 0.85; }
+  30% { opacity: 0.1; }
+  40% { opacity: 0.55; }
+  55% { opacity: 0; }
+  100% { opacity: 0; }
+}
+html[data-tema="zenitsu"] .swipe-row.is-eliminando {
+  animation: fj-fulminado 420ms steps(1, end) both;
+}
+@keyframes fj-fulminado {
+  0% { opacity: 1; filter: none; }
+  20% { filter: brightness(2.4) saturate(0.2); }
+  35% { opacity: 1; filter: none; }
+  50% { filter: brightness(2.8) saturate(0); }
+  70% { opacity: 0.22; }
+  100% { opacity: 0; transform: scale(0.97); }
+}
+
+/* ---------- INOSUKE: el aspa de sus dos espadas ---------- */
+html[data-tema="inosuke"] .efecto.is-activo {
+  background:
+    linear-gradient(58deg, transparent 0 49%, var(--accent) 49.4% 50.6%, transparent 51%),
+    linear-gradient(-58deg, transparent 0 49%, var(--accent) 49.4% 50.6%, transparent 51%);
+  animation: fj-aspa 850ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+@keyframes fj-aspa {
+  0% { opacity: 0; transform: scale(0.5) rotate(-8deg); }
+  22% { opacity: 0.85; }
+  55% { opacity: 0.6; }
+  100% { opacity: 0; transform: scale(1.9) rotate(5deg); }
+}
+html[data-tema="inosuke"] .swipe-row.is-eliminando {
+  animation: fj-embestida 420ms cubic-bezier(0.5, 0, 0.9, 0.4) both;
+}
+@keyframes fj-embestida {
+  0% { opacity: 1; transform: translateX(0) rotate(0); }
+  25% { transform: translateX(11px) rotate(0.7deg); }
+  100% { opacity: 0; transform: translateX(-130%) rotate(-3deg); }
+}
+
+/* ---------- AKAZA: la onda de choque de la Aguja de Brújula ---------- */
+html[data-tema="akaza"] .efecto.is-activo {
+  background: radial-gradient(
+    circle at 22% 50%,
+    transparent 0 26%,
+    var(--accent) 28% 33%,
+    transparent 35% 46%,
+    rgba(53, 214, 224, 0.8) 48% 52%,
+    transparent 54%
+  );
+  transform-origin: 22% 50%;
+  animation: fj-onda 950ms cubic-bezier(0.15, 0.8, 0.3, 1) both;
+}
+@keyframes fj-onda {
+  0% { opacity: 0.95; transform: scale(0.15); }
+  100% { opacity: 0; transform: scale(2.6); }
+}
+html[data-tema="akaza"] .swipe-row.is-eliminando {
+  animation: fj-implosion 420ms cubic-bezier(0.6, 0, 0.9, 0.3) both;
+}
+@keyframes fj-implosion {
+  0% { opacity: 1; transform: scale(1) rotate(0); }
+  30% { transform: scale(1.04); }
+  100% { opacity: 0; transform: scale(0.18) rotate(-7deg); }
+}

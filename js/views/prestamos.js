@@ -12,10 +12,10 @@ import {
   fromTimestamp,
   esPlanDePagos,
   restantePlanDePagos,
-} from "../db.js?v=40";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=40";
-import { initials, avatarColor, icon } from "../icons.js?v=40";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=40";
+} from "../db.js?v=41";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=41";
+import { initials, avatarColor, icon } from "../icons.js?v=41";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=41";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -130,8 +130,8 @@ export function renderPrestamos(state) {
   el.querySelectorAll("[data-dia-pagado]").forEach((btn) =>
     btn.addEventListener("click", () => deshacerDiaPagado(pagosPrestamos.find((pg) => pg.id === btn.dataset.diaPagado)))
   );
-  attachSwipe(el, (id) => {
-    if (confirm("¿Eliminar este préstamo?")) deletePrestamo(id);
+  attachSwipe(el, (id) => deletePrestamo(id), {
+    confirmar: "¿Eliminar este préstamo?",
   });
 }
 
