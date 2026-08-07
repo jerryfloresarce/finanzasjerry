@@ -1,61 +1,49 @@
-import { updateConfig } from "./db.js?v=39";
-import { state } from "./store.js?v=39";
+import { updateConfig } from "./db.js?v=40";
+import { state } from "./store.js?v=40";
 
-// Temas de la app. El aspecto de cada uno vive entero en css/temas.css:
-// aquí solo está el catálogo (para pintar el selector) y la mecánica de
-// aplicarlo y recordarlo.
-//
-// "muestra" son los tres colores que se ven en el cuadradito del selector,
-// en el mismo orden que se perciben en el tema: fondo, acento y el color
-// secundario que lo hace reconocible.
+// Temas de la app. El aspecto de cada uno —colores, trama de fondo y la
+// marca del personaje— vive entero en css/temas.css: aquí solo está el
+// catálogo, para saber cuáles hay y cómo agruparlos en el selector.
 export const TEMAS = [
   {
     id: "original",
     nombre: "Original",
     grupo: "Por defecto",
-    muestra: ["#0a0e0c", "#7a9b81", "#b6975f"],
   },
   {
     id: "luffy",
     nombre: "Luffy",
     grupo: "One Piece",
-    muestra: ["#120a09", "#f5b324", "#e03b33"],
   },
   {
     id: "zoro",
     nombre: "Zoro",
     grupo: "One Piece",
-    muestra: ["#060a07", "#23b24b", "#d9af37"],
   },
   {
     id: "sanji",
     nombre: "Sanji",
     grupo: "One Piece",
-    muestra: ["#07080c", "#e7c15c", "#2e78c8"],
   },
   {
     id: "tanjiro",
     nombre: "Tanjiro",
     grupo: "Kimetsu no Yaiba",
-    muestra: ["#080b0a", "#1f9e68", "#d93b2b"],
   },
   {
     id: "zenitsu",
     nombre: "Zenitsu",
     grupo: "Kimetsu no Yaiba",
-    muestra: ["#0c0904", "#ffd028", "#f58021"],
   },
   {
     id: "inosuke",
     nombre: "Inosuke",
     grupo: "Kimetsu no Yaiba",
-    muestra: ["#05080b", "#2fb6d9", "#c7d6de"],
   },
   {
     id: "akaza",
     nombre: "Akaza",
     grupo: "Kimetsu no Yaiba",
-    muestra: ["#0a060c", "#ff4d8d", "#35d6e0"],
   },
 ];
 
@@ -186,10 +174,11 @@ export function conAlfa(color, alfa) {
 // ---------- Selector ----------
 
 function botonTema(tema, activo) {
-  const franjas = tema.muestra.map((c) => `<span style="background:${c}"></span>`).join("");
+  // La muestra (fondo + marca del personaje) la pinta el CSS a partir del
+  // data-tema-id, para no tener los dibujos repetidos en dos sitios.
   return `
     <button type="button" class="tema-btn ${activo ? "is-active" : ""}" data-tema-id="${tema.id}">
-      <span class="tema-btn__muestra" aria-hidden="true">${franjas}</span>
+      <span class="tema-btn__muestra" aria-hidden="true"></span>
       <span class="tema-btn__nombre">${tema.nombre}</span>
     </button>`;
 }
