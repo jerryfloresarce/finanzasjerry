@@ -576,16 +576,430 @@ html[data-tema="akaza"] {
 /* =========================================================
    EFECTOS POR PERSONAJE
    =========================================================
-   Tres momentos: al abrir el Dashboard (o al cambiar de tema), al guardar
-   algo, y al eliminar una fila. Los dos primeros usan la misma capa
-   .efecto —en el hero o a pantalla completa— y el tercero se aplica sobre
-   la propia fila que se va.
+   Cuatro momentos, cada uno con su capa:
+
+   .hero__efecto        dentro de la tarjeta del hero (entrada)
+   #efecto-entrada      A PANTALLA COMPLETA: el gesto grande, al abrir la
+                        app y al cambiar de tema. Es el que se nota.
+   #efecto-accion       a pantalla completa pero corto: confirma un guardado
+   .hero.is-entrando    la propia tarjeta, que se estira, tiembla o se
+                        ilumina según el personaje
+   #saldo-total.is-destacado   el saldo, que se enciende
+   .swipe-row.is-eliminando    la fila que se va
 
    La mecánica (cuándo se disparan y cuándo se limpian) está en
-   js/efectos.js. Original no aparece aquí: sin tema no hay efecto. */
+   js/efectos.js. Original no aparece aquí: sin tema no hay efecto.
 
-/* ---------- LUFFY: el sombrero cae y rebota ---------- */
-html[data-tema="luffy"] .efecto.is-activo {
+   Todo lo que se mueve usa transform y opacity, que el móvil resuelve en
+   la tarjeta gráfica. El único filter que se anima es el de la tarjeta del
+   hero, que es un elemento pequeño y solo durante millisegundos. */
+
+/* ---------------------------------------------------------
+   LUFFY — Gomu Gomu: todo se estira y vuelve de golpe
+   --------------------------------------------------------- */
+
+/* El puño sale disparado de un lado a otro de la pantalla, estirándose
+   por el camino. */
+html[data-tema="luffy"] #efecto-entrada.is-activo {
+  background:
+    radial-gradient(26% 10% at 50% 50%, rgba(255, 214, 120, 0.95) 0%, rgba(245, 179, 36, 0.55) 42%, transparent 72%),
+    linear-gradient(90deg, transparent, rgba(224, 59, 51, 0.3) 48%, transparent);
+  animation: fj-pistol 1600ms cubic-bezier(0.16, 0.9, 0.24, 1) both;
+}
+@keyframes fj-pistol {
+  0% { opacity: 0; transform: translateX(-130%) scaleX(0.3); }
+  14% { opacity: 1; }
+  46% { transform: translateX(-6%) scaleX(3.2); }
+  62% { transform: translateX(6%) scaleX(1.4); }
+  78% { opacity: 0.85; transform: translateX(28%) scaleX(2.2); }
+  100% { opacity: 0; transform: translateX(130%) scaleX(0.6); }
+}
+/* El anillo del impacto, al final del recorrido. */
+html[data-tema="luffy"] #efecto-entrada.is-activo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 78% 50%, transparent 0 5%, rgba(245, 179, 36, 0.85) 6% 8.5%, transparent 10%);
+  animation: fj-impacto 1600ms cubic-bezier(0.1, 0.85, 0.3, 1) both;
+}
+@keyframes fj-impacto {
+  0%, 40% { opacity: 0; transform: scale(0.2); }
+  52% { opacity: 1; transform: scale(0.6); }
+  100% { opacity: 0; transform: scale(3.4); }
+}
+/* Y la tarjeta entera se estira como una goma y rebota hasta pararse. */
+html[data-tema="luffy"] .hero.is-entrando {
+  animation: fj-goma-hero 1600ms cubic-bezier(0.2, 1.7, 0.3, 1) both;
+}
+@keyframes fj-goma-hero {
+  0% { transform: scale(1); filter: brightness(1); }
+  12% { transform: scaleX(1.42) scaleY(0.74); filter: brightness(2.1) saturate(1.4); }
+  30% { transform: scaleX(0.82) scaleY(1.18); filter: brightness(1.5); }
+  46% { transform: scaleX(1.18) scaleY(0.9); filter: brightness(1.15); }
+  62% { transform: scaleX(0.94) scaleY(1.05); }
+  78% { transform: scaleX(1.04) scaleY(0.98); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+/* ---------------------------------------------------------
+   ZORO — los tres tajos parten la pantalla
+   --------------------------------------------------------- */
+
+html[data-tema="zoro"] #efecto-entrada.is-activo {
+  background: linear-gradient(
+    104deg,
+    transparent 0 6%,
+    rgba(255, 255, 255, 0.9) 6.4% 7.2%,
+    var(--accent) 7.2% 8.4%,
+    transparent 8.8% 20%,
+    rgba(255, 255, 255, 0.9) 20.4% 21.2%,
+    var(--accent) 21.2% 22.4%,
+    transparent 22.8% 34%,
+    rgba(255, 255, 255, 0.9) 34.4% 35.2%,
+    var(--accent) 35.2% 36.4%,
+    transparent 36.8% 100%
+  );
+  animation: fj-tajos-pantalla 1400ms cubic-bezier(0.12, 0.9, 0.2, 1) both;
+}
+@keyframes fj-tajos-pantalla {
+  0% { opacity: 0; transform: translateX(-75%) skewX(-4deg); }
+  12% { opacity: 1; }
+  72% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(120%) skewX(-4deg); }
+}
+/* El fogonazo del acero justo cuando pasa el filo. */
+html[data-tema="zoro"] #efecto-entrada.is-activo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.45);
+  animation: fj-destello-corte 1400ms steps(1, end) both;
+}
+@keyframes fj-destello-corte {
+  0%, 22% { opacity: 0; }
+  25% { opacity: 1; }
+  31% { opacity: 0; }
+  100% { opacity: 0; }
+}
+/* La tarjeta acusa el corte: salta de lado y se inclina. */
+html[data-tema="zoro"] .hero.is-entrando {
+  animation: fj-hero-corte 1400ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+@keyframes fj-hero-corte {
+  0% { transform: translateX(0) skewX(0); filter: brightness(1); }
+  22% { transform: translateX(-16px) skewX(-6deg); filter: brightness(2.6) saturate(1.5); }
+  34% { transform: translateX(13px) skewX(4deg); filter: brightness(1.4); }
+  48% { transform: translateX(-6px) skewX(-2deg); }
+  70% { transform: translateX(2px) skewX(0.5deg); }
+  100% { transform: translateX(0) skewX(0); filter: brightness(1); }
+}
+
+/* ---------------------------------------------------------
+   SANJI — la llamarada azul sube por toda la pantalla
+   --------------------------------------------------------- */
+
+html[data-tema="sanji"] #efecto-entrada.is-activo {
+  background:
+    radial-gradient(100% 95% at 26% 122%, #c3e4ff 0%, #6fb2f0 14%, #2e78c8 34%, rgba(46, 120, 200, 0.5) 62%, transparent 88%),
+    radial-gradient(70% 72% at 70% 128%, rgba(150, 210, 255, 0.85) 0%, rgba(46, 120, 200, 0.35) 46%, transparent 78%);
+  animation: fj-llamarada 1600ms cubic-bezier(0.2, 0.8, 0.25, 1) both;
+}
+@keyframes fj-llamarada {
+  0% { opacity: 0; transform: translateY(55%) scaleY(0.3) scaleX(0.75); }
+  18% { opacity: 1; }
+  50% { transform: translateY(-14%) scaleY(1.5) scaleX(1.1); }
+  100% { opacity: 0; transform: translateY(-58%) scaleY(2.1) scaleX(1.25); }
+}
+/* Chispas doradas por encima de la llama. */
+html[data-tema="sanji"] #efecto-entrada.is-activo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(7px 7px at 18% 76%, var(--accent), transparent 70%),
+    radial-gradient(5px 5px at 31% 58%, #fff0c0, transparent 70%),
+    radial-gradient(8px 8px at 44% 82%, var(--accent), transparent 70%),
+    radial-gradient(6px 6px at 57% 64%, #fff0c0, transparent 70%),
+    radial-gradient(9px 9px at 70% 88%, var(--accent), transparent 70%),
+    radial-gradient(5px 5px at 84% 70%, #fff0c0, transparent 70%),
+    radial-gradient(7px 7px at 92% 84%, var(--accent), transparent 70%);
+  animation: fj-chispas 1600ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+@keyframes fj-chispas {
+  0% { opacity: 0; transform: translateY(40%) scale(0.8); }
+  26% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-95%) scale(2.2); }
+}
+html[data-tema="sanji"] .hero.is-entrando {
+  animation: fj-hero-llama 1600ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+@keyframes fj-hero-llama {
+  0% { transform: translateY(0) scale(1); filter: brightness(1); }
+  18% { transform: translateY(-10px) scale(1.05); filter: brightness(2.2) saturate(1.5); }
+  38% { transform: translateY(3px) scale(0.99); filter: brightness(1.3); }
+  60% { transform: translateY(-2px) scale(1.01); }
+  100% { transform: translateY(0) scale(1); filter: brightness(1); }
+}
+
+/* ---------------------------------------------------------
+   TANJIRO — la Respiración del Agua barre la pantalla
+   --------------------------------------------------------- */
+
+html[data-tema="tanjiro"] #efecto-entrada.is-activo {
+  background:
+    radial-gradient(30% 44% at 10% 28%, rgba(140, 245, 200, 0.8) 0%, transparent 70%),
+    radial-gradient(34% 48% at 32% 64%, rgba(31, 158, 104, 0.85) 0%, transparent 70%),
+    radial-gradient(30% 44% at 56% 26%, rgba(140, 245, 200, 0.75) 0%, transparent 70%),
+    radial-gradient(34% 48% at 80% 62%, rgba(31, 158, 104, 0.8) 0%, transparent 70%);
+  animation: fj-agua-pantalla 1600ms cubic-bezier(0.25, 0.7, 0.3, 1) both;
+}
+@keyframes fj-agua-pantalla {
+  0% { opacity: 0; transform: translateX(-85%) skewX(-14deg) scaleY(1.25); }
+  18% { opacity: 1; }
+  74% { opacity: 0.95; }
+  100% { opacity: 0; transform: translateX(90%) skewX(-14deg) scaleY(1.25); }
+}
+/* La espuma de la cresta, un poco por detrás de la ola. */
+html[data-tema="tanjiro"] #efecto-entrada.is-activo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(102deg, transparent 0 42%, rgba(220, 255, 240, 0.55) 47% 50%, transparent 55%);
+  animation: fj-espuma 1600ms cubic-bezier(0.25, 0.7, 0.3, 1) both;
+}
+@keyframes fj-espuma {
+  0% { opacity: 0; transform: translateX(-90%); }
+  25% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateX(95%); }
+}
+html[data-tema="tanjiro"] .hero.is-entrando {
+  animation: fj-hero-ola 1600ms cubic-bezier(0.25, 0.85, 0.3, 1) both;
+}
+@keyframes fj-hero-ola {
+  0% { transform: scale(1) skewX(0); filter: brightness(1); }
+  20% { transform: scaleX(1.06) scaleY(0.96) skewX(-3deg); filter: brightness(2.1) saturate(1.4); }
+  42% { transform: scaleX(0.97) scaleY(1.03) skewX(2deg); filter: brightness(1.3); }
+  64% { transform: scaleX(1.02) scaleY(0.99) skewX(-1deg); }
+  100% { transform: scale(1) skewX(0); filter: brightness(1); }
+}
+
+/* ---------------------------------------------------------
+   ZENITSU — el rayo atraviesa la pantalla entera
+   ---------------------------------------------------------
+   El recorte dibuja un relámpago que va de arriba a abajo cruzando toda
+   la pantalla. Los saltos son duros a propósito (steps): un rayo no se
+   desvanece suavemente, parpadea. */
+
+html[data-tema="zenitsu"] #efecto-entrada.is-activo {
+  background: linear-gradient(160deg, #fffbe6 0%, var(--accent) 45%, #f58021 100%);
+  clip-path: polygon(64% -5%, 34% 44%, 51% 44%, 26% 105%, 72% 42%, 54% 42%, 82% -5%);
+  animation: fj-rayo-pantalla 1600ms steps(1, end) both;
+}
+@keyframes fj-rayo-pantalla {
+  0% { opacity: 0; }
+  5% { opacity: 1; }
+  11% { opacity: 0; }
+  17% { opacity: 1; }
+  25% { opacity: 0.15; }
+  31% { opacity: 1; }
+  44% { opacity: 0; }
+  100% { opacity: 0; }
+}
+/* Y el fogonazo que ilumina toda la pantalla con cada chispazo. */
+html[data-tema="zenitsu"] #efecto-entrada.is-activo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(130% 100% at 52% 38%, rgba(255, 246, 200, 0.92) 0%, rgba(255, 208, 40, 0.35) 45%, transparent 76%);
+  animation: fj-fogonazo 1600ms steps(1, end) both;
+}
+@keyframes fj-fogonazo {
+  0% { opacity: 0; }
+  4% { opacity: 0.95; }
+  9% { opacity: 0.05; }
+  16% { opacity: 0.8; }
+  22% { opacity: 0; }
+  30% { opacity: 0.5; }
+  40% { opacity: 0; }
+  100% { opacity: 0; }
+}
+html[data-tema="zenitsu"] .hero.is-entrando {
+  animation: fj-hero-rayo 1600ms steps(1, end) both;
+}
+@keyframes fj-hero-rayo {
+  0% { filter: brightness(1); transform: translate(0, 0); }
+  4% { filter: brightness(3.4) saturate(0.4); transform: translate(3px, -2px); }
+  9% { filter: brightness(1); transform: translate(-2px, 1px); }
+  16% { filter: brightness(2.8) saturate(0.5); transform: translate(-3px, 2px); }
+  22% { filter: brightness(1); transform: translate(2px, -1px); }
+  30% { filter: brightness(2.2); transform: translate(1px, 1px); }
+  40% { filter: brightness(1); transform: translate(0, 0); }
+  100% { filter: brightness(1); transform: translate(0, 0); }
+}
+
+/* ---------------------------------------------------------
+   INOSUKE — el aspa de sus dos espadas, a tamaño pantalla
+   --------------------------------------------------------- */
+
+html[data-tema="inosuke"] #efecto-entrada.is-activo {
+  background:
+    linear-gradient(56deg, transparent 0 48.3%, rgba(255, 255, 255, 0.85) 48.7% 49.4%, var(--accent) 49.4% 50.6%, rgba(255, 255, 255, 0.85) 50.6% 51.3%, transparent 51.7%),
+    linear-gradient(-56deg, transparent 0 48.3%, rgba(255, 255, 255, 0.85) 48.7% 49.4%, var(--accent) 49.4% 50.6%, rgba(255, 255, 255, 0.85) 50.6% 51.3%, transparent 51.7%);
+  animation: fj-aspa-pantalla 1500ms cubic-bezier(0.15, 0.9, 0.25, 1) both;
+}
+@keyframes fj-aspa-pantalla {
+  0% { opacity: 0; transform: scale(0.2) rotate(-16deg); }
+  16% { opacity: 1; }
+  55% { opacity: 0.9; transform: scale(1.2) rotate(0deg); }
+  100% { opacity: 0; transform: scale(2.8) rotate(9deg); }
+}
+html[data-tema="inosuke"] .hero.is-entrando {
+  animation: fj-hero-embestida 1500ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+@keyframes fj-hero-embestida {
+  0% { transform: translate(0, 0) rotate(0); filter: brightness(1); }
+  14% { transform: translate(-18px, 4px) rotate(-1.6deg); filter: brightness(2.4) saturate(1.3); }
+  26% { transform: translate(15px, -3px) rotate(1.3deg); filter: brightness(1.5); }
+  40% { transform: translate(-9px, 2px) rotate(-0.7deg); }
+  56% { transform: translate(5px, -1px) rotate(0.35deg); }
+  74% { transform: translate(-2px, 0) rotate(-0.15deg); }
+  100% { transform: translate(0, 0) rotate(0); filter: brightness(1); }
+}
+
+/* ---------------------------------------------------------
+   AKAZA — la onda de choque de la Aguja de Brújula
+   --------------------------------------------------------- */
+
+html[data-tema="akaza"] #efecto-entrada.is-activo {
+  background: radial-gradient(
+    circle at 50% 46%,
+    transparent 0 13%,
+    var(--accent) 14% 17%,
+    transparent 18% 26%,
+    rgba(53, 214, 224, 0.85) 27% 30%,
+    transparent 31% 41%,
+    var(--accent) 42% 44%,
+    transparent 45%
+  );
+  animation: fj-onda-pantalla 1600ms cubic-bezier(0.1, 0.85, 0.25, 1) both;
+}
+@keyframes fj-onda-pantalla {
+  0% { opacity: 1; transform: scale(0.05); }
+  70% { opacity: 0.9; }
+  100% { opacity: 0; transform: scale(3.2); }
+}
+/* El aire tiñéndose antes del golpe. */
+html[data-tema="akaza"] #efecto-entrada.is-activo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(90% 70% at 50% 46%, rgba(255, 77, 141, 0.5) 0%, rgba(53, 214, 224, 0.18) 46%, transparent 78%);
+  animation: fj-tinte 1600ms ease-out both;
+}
+@keyframes fj-tinte {
+  0% { opacity: 0; transform: scale(0.4); }
+  16% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.9); }
+}
+html[data-tema="akaza"] .hero.is-entrando {
+  animation: fj-hero-onda 1600ms cubic-bezier(0.2, 1.4, 0.3, 1) both;
+}
+@keyframes fj-hero-onda {
+  0% { transform: scale(1); filter: brightness(1); }
+  14% { transform: scale(0.9); filter: brightness(2.4) saturate(1.5); }
+  34% { transform: scale(1.07); filter: brightness(1.4); }
+  54% { transform: scale(0.98); }
+  74% { transform: scale(1.02); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+/* =========================================================
+   EL SALDO SE ENCIENDE (igual en todos, con el color del tema)
+   ========================================================= */
+
+html[data-tema] #saldo-total.is-destacado {
+  animation: fj-saldo-enciende 1500ms cubic-bezier(0.18, 0.9, 0.3, 1) both;
+}
+@keyframes fj-saldo-enciende {
+  0% { color: var(--accent); text-shadow: 0 0 42px var(--accent), 0 0 16px var(--accent); transform: scale(1.16); }
+  22% { transform: scale(0.99); }
+  40% { color: var(--accent); text-shadow: 0 0 24px var(--accent); transform: scale(1.04); }
+  100% { color: inherit; text-shadow: none; transform: scale(1); }
+}
+
+/* =========================================================
+   CELEBRACIÓN — al liquidar un préstamo entero
+   =========================================================
+   La marca del personaje revienta en el centro con ondas alrededor. Es
+   igual en todos los temas porque cada uno ya trae su propia marca y su
+   propio color: no hace falta escribirla siete veces. */
+
+html[data-tema] #efecto-entrada.is-celebrando {
+  background:
+    radial-gradient(circle at 50% 44%, var(--accent-soft-strong) 0%, transparent 58%),
+    radial-gradient(
+      circle at 50% 44%,
+      transparent 0 19%,
+      var(--accent) 20% 22%,
+      transparent 23% 35%,
+      var(--accent) 36% 38%,
+      transparent 39% 51%,
+      var(--accent) 52% 54%,
+      transparent 55%
+    );
+  animation: fj-celebra-ondas 2200ms cubic-bezier(0.12, 0.85, 0.22, 1) both;
+}
+@keyframes fj-celebra-ondas {
+  0% { opacity: 0; transform: scale(0.1); }
+  10% { opacity: 1; }
+  75% { opacity: 0.75; }
+  100% { opacity: 0; transform: scale(3); }
+}
+html[data-tema] #efecto-entrada.is-celebrando::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  -webkit-mask: var(--marca) center 42% / 44vmin 44vmin no-repeat;
+  mask: var(--marca) center 42% / 44vmin 44vmin no-repeat;
+  animation: fj-celebra-marca 2200ms cubic-bezier(0.2, 1.5, 0.28, 1) both;
+}
+@keyframes fj-celebra-marca {
+  0% { opacity: 0; transform: scale(0.2) rotate(-18deg); }
+  18% { opacity: 1; transform: scale(1.28) rotate(7deg); }
+  32% { transform: scale(0.94) rotate(-3deg); }
+  46% { transform: scale(1.07) rotate(1.5deg); }
+  70% { opacity: 1; transform: scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: scale(1.55) rotate(0deg); }
+}
+
+/* =========================================================
+   DENTRO DEL HERO Y AL GUARDAR
+   =========================================================
+   Versiones cortas del gesto de cada personaje: la de dentro de la
+   tarjeta acompaña a la entrada, y la de pantalla completa confirma que
+   algo se ha guardado. */
+
+html[data-tema="luffy"] .hero__efecto.is-activo {
+  background: linear-gradient(
+    90deg,
+    transparent 0 6%,
+    rgba(245, 179, 36, 0.7) 22%,
+    rgba(255, 219, 130, 0.95) 50%,
+    rgba(245, 179, 36, 0.7) 78%,
+    transparent 94%
+  );
+  animation: fj-estiron 1200ms cubic-bezier(0.2, 1.45, 0.3, 1) both;
+}
+@keyframes fj-estiron {
+  0% { opacity: 0; transform: scaleX(0.08) scaleY(0.35); }
+  18% { opacity: 0.95; transform: scaleX(1.35) scaleY(0.85); }
+  42% { opacity: 0.75; transform: scaleX(0.82) scaleY(1.05); }
+  70% { opacity: 0.4; transform: scaleX(1.06) scaleY(0.98); }
+  100% { opacity: 0; transform: scaleX(1) scaleY(1); }
+}
+
+html[data-tema="luffy"] #efecto-accion.is-activo {
   background: var(--accent);
   -webkit-mask: var(--marca) 20% 46% / 76px 76px no-repeat;
   mask: var(--marca) 20% 46% / 76px 76px no-repeat;
@@ -599,17 +1013,9 @@ html[data-tema="luffy"] .efecto.is-activo {
   85% { opacity: 0.65; transform: translateY(0) rotate(0deg); }
   100% { opacity: 0; transform: translateY(0) rotate(0deg); }
 }
-html[data-tema="luffy"] .swipe-row.is-eliminando {
-  animation: fj-goma 420ms cubic-bezier(0.4, 0, 0.9, 0.4) both;
-}
-@keyframes fj-goma {
-  0% { opacity: 1; transform: scaleX(1); }
-  35% { transform: scaleX(1.07) translateX(-8px); }
-  100% { opacity: 0; transform: scaleX(0.18) translateX(-120%); }
-}
 
-/* ---------- ZORO: los tres tajos cruzan la pantalla ---------- */
-html[data-tema="zoro"] .efecto.is-activo {
+html[data-tema="zoro"] .hero__efecto.is-activo,
+html[data-tema="zoro"] #efecto-accion.is-activo {
   background: linear-gradient(
     104deg,
     transparent 0 12px,
@@ -628,23 +1034,9 @@ html[data-tema="zoro"] .efecto.is-activo {
   70% { opacity: 0.9; }
   100% { opacity: 0; transform: translateX(115%); }
 }
-/* Al eliminar, la fila se cierra sobre sí misma como si la hubieran
-   cortado en dos y la mitad se deslizara. */
-html[data-tema="zoro"] .swipe-row.is-eliminando {
-  animation: fj-corte 420ms cubic-bezier(0.5, 0, 0.9, 0.5) both;
-}
-@keyframes fj-corte {
-  0% { opacity: 1; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
-  28% { transform: translateX(-5px); }
-  100% {
-    opacity: 0;
-    transform: translateX(-34px) skewX(-9deg);
-    clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
-  }
-}
 
-/* ---------- SANJI: la llamarada azul del Ifrit Jambe ---------- */
-html[data-tema="sanji"] .efecto.is-activo {
+html[data-tema="sanji"] .hero__efecto.is-activo,
+html[data-tema="sanji"] #efecto-accion.is-activo {
   background: radial-gradient(62% 105% at 20% 110%, #4b93e0 0%, rgba(46, 120, 200, 0.6) 36%, transparent 72%);
   animation: fj-llama 1000ms ease-out both;
 }
@@ -654,17 +1046,9 @@ html[data-tema="sanji"] .efecto.is-activo {
   60% { opacity: 0.8; }
   100% { opacity: 0; transform: translateY(-16%) scaleY(1.3); }
 }
-html[data-tema="sanji"] .swipe-row.is-eliminando {
-  animation: fj-brasa 420ms ease-in both;
-}
-@keyframes fj-brasa {
-  0% { opacity: 1; filter: none; }
-  40% { filter: brightness(1.6) saturate(1.4); }
-  100% { opacity: 0; filter: brightness(0.2); transform: translateY(10px) scale(0.94); }
-}
 
-/* ---------- TANJIRO: la onda de la Respiración del Agua ---------- */
-html[data-tema="tanjiro"] .efecto.is-activo {
+html[data-tema="tanjiro"] .hero__efecto.is-activo,
+html[data-tema="tanjiro"] #efecto-accion.is-activo {
   background:
     radial-gradient(34% 62% at 16% 38%, rgba(31, 158, 104, 0.75) 0%, transparent 72%),
     radial-gradient(34% 62% at 40% 64%, rgba(31, 158, 104, 0.55) 0%, transparent 72%),
@@ -677,18 +1061,9 @@ html[data-tema="tanjiro"] .efecto.is-activo {
   75% { opacity: 0.8; }
   100% { opacity: 0; transform: translateX(75%) skewX(-10deg); }
 }
-html[data-tema="tanjiro"] .swipe-row.is-eliminando {
-  animation: fj-corriente 420ms ease-in both;
-}
-@keyframes fj-corriente {
-  0% { opacity: 1; }
-  100% { opacity: 0; transform: translateX(-42px) skewX(-14deg) scaleY(0.86); }
-}
 
-/* ---------- ZENITSU: el relámpago ----------
-   Los saltos son duros a propósito (steps): un rayo no se desvanece
-   suavemente, parpadea. */
-html[data-tema="zenitsu"] .efecto.is-activo {
+html[data-tema="zenitsu"] .hero__efecto.is-activo,
+html[data-tema="zenitsu"] #efecto-accion.is-activo {
   background:
     linear-gradient(96deg, transparent 0 30%, rgba(255, 208, 40, 0.5) 46%, transparent 62%),
     radial-gradient(90% 160% at 26% 50%, rgba(255, 232, 140, 0.55) 0%, transparent 62%);
@@ -704,20 +1079,9 @@ html[data-tema="zenitsu"] .efecto.is-activo {
   55% { opacity: 0; }
   100% { opacity: 0; }
 }
-html[data-tema="zenitsu"] .swipe-row.is-eliminando {
-  animation: fj-fulminado 420ms steps(1, end) both;
-}
-@keyframes fj-fulminado {
-  0% { opacity: 1; filter: none; }
-  20% { filter: brightness(2.4) saturate(0.2); }
-  35% { opacity: 1; filter: none; }
-  50% { filter: brightness(2.8) saturate(0); }
-  70% { opacity: 0.22; }
-  100% { opacity: 0; transform: scale(0.97); }
-}
 
-/* ---------- INOSUKE: el aspa de sus dos espadas ---------- */
-html[data-tema="inosuke"] .efecto.is-activo {
+html[data-tema="inosuke"] .hero__efecto.is-activo,
+html[data-tema="inosuke"] #efecto-accion.is-activo {
   background:
     linear-gradient(58deg, transparent 0 49%, var(--accent) 49.4% 50.6%, transparent 51%),
     linear-gradient(-58deg, transparent 0 49%, var(--accent) 49.4% 50.6%, transparent 51%);
@@ -729,17 +1093,9 @@ html[data-tema="inosuke"] .efecto.is-activo {
   55% { opacity: 0.6; }
   100% { opacity: 0; transform: scale(1.9) rotate(5deg); }
 }
-html[data-tema="inosuke"] .swipe-row.is-eliminando {
-  animation: fj-embestida 420ms cubic-bezier(0.5, 0, 0.9, 0.4) both;
-}
-@keyframes fj-embestida {
-  0% { opacity: 1; transform: translateX(0) rotate(0); }
-  25% { transform: translateX(11px) rotate(0.7deg); }
-  100% { opacity: 0; transform: translateX(-130%) rotate(-3deg); }
-}
 
-/* ---------- AKAZA: la onda de choque de la Aguja de Brújula ---------- */
-html[data-tema="akaza"] .efecto.is-activo {
+html[data-tema="akaza"] .hero__efecto.is-activo,
+html[data-tema="akaza"] #efecto-accion.is-activo {
   background: radial-gradient(
     circle at 22% 50%,
     transparent 0 26%,
@@ -755,6 +1111,71 @@ html[data-tema="akaza"] .efecto.is-activo {
   0% { opacity: 0.95; transform: scale(0.15); }
   100% { opacity: 0; transform: scale(2.6); }
 }
+
+/* =========================================================
+   AL ELIMINAR UNA FILA
+   ========================================================= */
+
+html[data-tema="luffy"] .swipe-row.is-eliminando {
+  animation: fj-goma 420ms cubic-bezier(0.4, 0, 0.9, 0.4) both;
+}
+@keyframes fj-goma {
+  0% { opacity: 1; transform: scaleX(1); }
+  35% { transform: scaleX(1.07) translateX(-8px); }
+  100% { opacity: 0; transform: scaleX(0.18) translateX(-120%); }
+}
+
+html[data-tema="zoro"] .swipe-row.is-eliminando {
+  animation: fj-corte 420ms cubic-bezier(0.5, 0, 0.9, 0.5) both;
+}
+@keyframes fj-corte {
+  0% { opacity: 1; clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+  28% { transform: translateX(-5px); }
+  100% {
+    opacity: 0;
+    transform: translateX(-34px) skewX(-9deg);
+    clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+  }
+}
+
+html[data-tema="sanji"] .swipe-row.is-eliminando {
+  animation: fj-brasa 420ms ease-in both;
+}
+@keyframes fj-brasa {
+  0% { opacity: 1; filter: none; }
+  40% { filter: brightness(1.6) saturate(1.4); }
+  100% { opacity: 0; filter: brightness(0.2); transform: translateY(10px) scale(0.94); }
+}
+
+html[data-tema="tanjiro"] .swipe-row.is-eliminando {
+  animation: fj-corriente 420ms ease-in both;
+}
+@keyframes fj-corriente {
+  0% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-42px) skewX(-14deg) scaleY(0.86); }
+}
+
+html[data-tema="zenitsu"] .swipe-row.is-eliminando {
+  animation: fj-fulminado 420ms steps(1, end) both;
+}
+@keyframes fj-fulminado {
+  0% { opacity: 1; filter: none; }
+  20% { filter: brightness(2.4) saturate(0.2); }
+  35% { opacity: 1; filter: none; }
+  50% { filter: brightness(2.8) saturate(0); }
+  70% { opacity: 0.22; }
+  100% { opacity: 0; transform: scale(0.97); }
+}
+
+html[data-tema="inosuke"] .swipe-row.is-eliminando {
+  animation: fj-embestida 420ms cubic-bezier(0.5, 0, 0.9, 0.4) both;
+}
+@keyframes fj-embestida {
+  0% { opacity: 1; transform: translateX(0) rotate(0); }
+  25% { transform: translateX(11px) rotate(0.7deg); }
+  100% { opacity: 0; transform: translateX(-130%) rotate(-3deg); }
+}
+
 html[data-tema="akaza"] .swipe-row.is-eliminando {
   animation: fj-implosion 420ms cubic-bezier(0.6, 0, 0.9, 0.3) both;
 }

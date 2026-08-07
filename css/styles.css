@@ -1468,6 +1468,18 @@ button.mini-row:last-child { border-bottom: none; }
 .efecto--pantalla {
   position: fixed;
   z-index: 200;
+  /* Varios efectos se escalan hasta tres veces el tamaño de la pantalla;
+     sin esto asomarían por los bordes y aparecería barra de scroll. */
+  overflow: hidden;
+}
+
+/* La tarjeta del hero se estira y tiembla durante la entrada. Hay que
+   sacarla de su sitio para que se dibuje por encima de lo que tiene
+   alrededor mientras dura, y avisar al navegador de que la va a mover. */
+.hero.is-entrando {
+  position: relative;
+  z-index: 2;
+  will-change: transform, filter;
 }
 
 /* Mientras carga, con tema puesto el aro se agranda y lleva dentro la
@@ -1532,8 +1544,10 @@ html[data-tema] .is-cambiando {
 @media (prefers-reduced-motion: reduce) {
   .efecto { display: none; }
   .swipe-row.is-eliminando,
+  .hero.is-entrando,
   .modal::before,
   .is-cambiando,
+  #saldo-total.is-destacado,
   .loading-spinner::after { animation: none !important; }
 }
 

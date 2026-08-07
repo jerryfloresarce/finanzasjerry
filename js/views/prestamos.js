@@ -12,10 +12,11 @@ import {
   fromTimestamp,
   esPlanDePagos,
   restantePlanDePagos,
-} from "../db.js?v=42";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=42";
-import { initials, avatarColor, icon } from "../icons.js?v=42";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=42";
+} from "../db.js?v=43";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=43";
+import { initials, avatarColor, icon } from "../icons.js?v=43";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=43";
+import { efectoDeCelebracion } from "../efectos.js?v=43";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -403,6 +404,11 @@ function openLiquidarForm(prestamo, state) {
               const pendientes = state.pagosPrestamos.filter((pg) => pg.prestamo_id === prestamo.id && !pg.pagado);
               await Promise.all(pendientes.map((pg) => updatePagoPrestamo(pg.id, { pagado: true })));
             }
+            // Saldar una deuda entera merece más que el destello de guardar
+            // de siempre. Va antes de cerrar el modal para que se dispare
+            // aunque el cierre tarde: closeModal detecta que hay una
+            // celebración en marcha y se calla.
+            efectoDeCelebracion();
             closeModal();
           } catch (err) {
             root.querySelector("#form-liquidar-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";

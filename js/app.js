@@ -1,19 +1,19 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=42";
-import { state, subscribe, initStore } from "./store.js?v=42";
+import { onAuthReady } from "./auth.js?v=43";
+import { state, subscribe, initStore } from "./store.js?v=43";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=42";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=42";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=42";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=42";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=42";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=42";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=42";
-import { mountCuentaPanel } from "./views/cuenta.js?v=42";
-import { refreshAnimations } from "./animations.js?v=42";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=42";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=42";
-import { efectoEntradaHero } from "./efectos.js?v=42";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=43";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=43";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=43";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=43";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=43";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=43";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=43";
+import { mountCuentaPanel } from "./views/cuenta.js?v=43";
+import { refreshAnimations } from "./animations.js?v=43";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=43";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=43";
+import { efectoDeEntrada } from "./efectos.js?v=43";
 
 const ROUTES = {
   dashboard: renderDashboard,
@@ -61,6 +61,12 @@ function showView(route) {
   });
 }
 
+// La entrada es grande (ocupa toda la pantalla), así que se ve UNA vez por
+// apertura de la app, no cada vez que se vuelve al Dashboard: a la quinta
+// visita del día cansaría. Se espera a que haya datos porque hasta entonces
+// el hero ni siquiera está pintado y no habría nada que iluminar.
+let entradaYaMostrada = false;
+
 function renderCurrentView() {
   // El tema viaja en el documento de configuración, así que llega por el
   // mismo camino que el resto de los datos: si se cambió desde el otro
@@ -69,6 +75,11 @@ function renderCurrentView() {
   const renderFn = ROUTES[currentRoute];
   if (renderFn) renderFn(state);
   refreshAnimations();
+
+  if (!entradaYaMostrada && state.ready && currentRoute === "dashboard") {
+    entradaYaMostrada = true;
+    efectoDeEntrada();
+  }
 }
 
 // Chart.js recibe los colores ya resueltos al dibujar, así que no se entera
@@ -76,7 +87,7 @@ function renderCurrentView() {
 // paso se ve el destello del tema nuevo, que sirve de confirmación.
 document.addEventListener("tema-cambiado", () => {
   renderCurrentView();
-  efectoEntradaHero();
+  efectoDeEntrada();
 });
 
 function navigate() {
@@ -85,10 +96,6 @@ function navigate() {
   showView(currentRoute);
   closeMobileNav();
   renderCurrentView();
-  // El destello solo al ENTRAR al Dashboard, no en cada repintado: si se
-  // lanzara con cada llegada de datos volveríamos al parpadeo constante de
-  // antes.
-  if (currentRoute === "dashboard") efectoEntradaHero();
   // Quien hace scroll es la página entera, no #view-container (que solo
   // pone márgenes), así que al cambiar de apartado hay que subir la ventana.
   window.scrollTo(0, 0);
