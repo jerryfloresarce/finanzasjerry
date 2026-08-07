@@ -51,7 +51,11 @@
   /* Trama opcional por encima del ambiente (el damero del haori de
      Tanjiro, por ejemplo). "none" = sin trama, que es lo normal. */
   --atm-patron: none;
+  --atm-patron-pos: 0 0;
   --atm-patron-tam: 46px 46px;
+  --atm-patron-2: none;
+  --atm-patron-2-pos: 0 0;
+  --atm-patron-2-tam: 46px 46px;
 
   /* Imágenes de fondo. Cada tema puede traer la suya; si vale "none" se
      ve solo el ambiente hecho con CSS. Para añadir una: se sube el
@@ -139,7 +143,7 @@ input, select, textarea { font-size: 16px; }
   color: var(--text-primary);
   margin: 0;
 }
-.brand-mark span { color: var(--accent); font-style: italic; }
+.brand-mark span:not(.brand-mark__icon) { color: var(--accent); font-style: italic; }
 .brand-mark__icon {
   display: inline-flex;
   align-items: center;
@@ -152,6 +156,21 @@ input, select, textarea { font-size: 16px; }
   font-size: 15px;
   flex-shrink: 0;
 }
+/* Cada tema trae su propia marca (el sombrero de paja, las katanas, el
+   damero…) en vez de la hoja. Se pinta como máscara sobre currentColor,
+   que en este elemento es el color de acento del tema. Sin tema puesto
+   —es decir, en Original— no entra ninguna de estas dos reglas y se sigue
+   viendo la hoja de siempre. */
+html[data-tema] .brand-mark__icon > i { display: none; }
+html[data-tema] .brand-mark__icon::after {
+  content: "";
+  width: 68%;
+  height: 68%;
+  background: currentColor;
+  -webkit-mask: var(--marca) center / contain no-repeat;
+  mask: var(--marca) center / contain no-repeat;
+}
+
 .brand-mark--sidebar { padding: 28px 24px 8px; }
 .brand-mark--topbar { font-size: 1.05rem; }
 
@@ -173,7 +192,8 @@ input, select, textarea { font-size: 16px; }
    una foto real en assets/img/, basta con poner background-image ahí. */
 .atmosphere-bg {
   background:
-    var(--atm-patron) 0 0 / var(--atm-patron-tam) repeat,
+    var(--atm-patron) var(--atm-patron-pos) / var(--atm-patron-tam) repeat,
+    var(--atm-patron-2) var(--atm-patron-2-pos) / var(--atm-patron-2-tam) repeat,
     radial-gradient(55% 45% at 62% 12%, var(--atm-luz-1) 0%, transparent 62%),
     radial-gradient(70% 55% at 15% 92%, var(--atm-luz-2) 0%, transparent 68%),
     radial-gradient(90% 70% at 85% 100%, var(--atm-luz-3) 0%, transparent 70%),
