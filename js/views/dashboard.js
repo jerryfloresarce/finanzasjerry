@@ -8,9 +8,9 @@ import {
   fromTimestamp,
   esPlanDePagos,
   restantePlanDePagos,
-} from "../db.js?v=43";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=43";
-import { seedInitialData } from "../seed.js?v=43";
+} from "../db.js?v=44";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=44";
+import { seedInitialData } from "../seed.js?v=44";
 import {
   pendingCorrections,
   applyAugustCorrections,
@@ -27,10 +27,10 @@ import {
   pendingPlanPagosAna,
   activarPlanPagosAna,
   dismissPlanPagosAna,
-} from "../fixes.js?v=43";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=43";
-import { openHistorial } from "./cuentas.js?v=43";
-import { colorTema, paletaTema } from "../tema.js?v=43";
+} from "../fixes.js?v=44";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=44";
+import { openHistorial } from "./cuentas.js?v=44";
+import { colorTema, paletaTema } from "../tema.js?v=44";
 
 let chartInstance = null;
 

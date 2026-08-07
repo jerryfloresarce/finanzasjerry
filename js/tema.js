@@ -1,5 +1,5 @@
-import { updateConfig } from "./db.js?v=43";
-import { state } from "./store.js?v=43";
+import { updateConfig } from "./db.js?v=44";
+import { state } from "./store.js?v=44";
 
 // Temas de la app. El aspecto de cada uno —colores, trama de fondo y la
 // marca del personaje— vive entero en css/temas.css: aquí solo está el
@@ -198,7 +198,9 @@ export function montarSelectorTemas(contenedor) {
       .map(
         (g) => `
           <p class="temas-grupo">${g.nombre}</p>
-          <div class="temas-grid">${g.temas.map((t) => botonTema(t, t.id === actual)).join("")}</div>`
+          <div class="temas-grid ${g.temas.length === 1 ? "temas-grid--ancha" : ""}">${g.temas
+            .map((t) => botonTema(t, t.id === actual))
+            .join("")}</div>`
       )
       .join("");
   };
