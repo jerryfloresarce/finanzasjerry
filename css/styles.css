@@ -247,6 +247,7 @@ html[data-tema] .brand-mark__icon::after {
   font-size: 0.92rem;
 }
 .loading-spinner {
+  position: relative;
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -1469,6 +1470,58 @@ button.mini-row:last-child { border-bottom: none; }
   z-index: 200;
 }
 
+/* Mientras carga, con tema puesto el aro se agranda y lleva dentro la
+   marca del personaje latiendo. Es lo primero que se ve al abrir la app. */
+html[data-tema] .loading-spinner {
+  width: 46px;
+  height: 46px;
+  border-width: 2px;
+}
+html[data-tema] .loading-spinner::after {
+  content: "";
+  position: absolute;
+  inset: 26%;
+  background: var(--accent);
+  -webkit-mask: var(--marca) center / contain no-repeat;
+  mask: var(--marca) center / contain no-repeat;
+  animation: fj-latido 1.3s ease-in-out infinite;
+}
+/* El aro gira; la marca de dentro no debe girar con él, así que se
+   contrarresta con el mismo giro al revés. */
+@keyframes fj-latido {
+  0%, 100% { opacity: 0.45; transform: rotate(0deg) scale(0.86); }
+  50% { opacity: 1; transform: rotate(-180deg) scale(1); }
+}
+
+/* Un remate con el color del tema al abrirse un formulario. */
+html[data-tema] .modal-root.is-open .modal::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: fj-remate-modal 700ms var(--ease-lux) both;
+}
+@keyframes fj-remate-modal {
+  0% { opacity: 0; transform: scaleX(0.15); }
+  45% { opacity: 1; }
+  100% { opacity: 0.6; transform: scaleX(1); }
+}
+
+/* Cuando una cifra cambia, se enciende un momento con el color del tema.
+   Solo color y resplandor: nada de mover ni escalar, que es justo lo que
+   hacía que los números "bailaran" en su día. */
+html[data-tema] .is-cambiando {
+  animation: fj-cifra 700ms ease-out both;
+}
+@keyframes fj-cifra {
+  0% { color: var(--accent); text-shadow: 0 0 18px var(--accent-soft-strong); }
+  60% { color: var(--accent); text-shadow: 0 0 10px var(--accent-soft); }
+  100% { color: inherit; text-shadow: none; }
+}
+
 /* La fila que se está eliminando se anima antes de desaparecer de verdad,
    así que hay que sacarla del flujo visual sin que empuje a las demás. */
 .swipe-row.is-eliminando {
@@ -1478,7 +1531,10 @@ button.mini-row:last-child { border-bottom: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .efecto { display: none; }
-  .swipe-row.is-eliminando { animation: none !important; }
+  .swipe-row.is-eliminando,
+  .modal::before,
+  .is-cambiando,
+  .loading-spinner::after { animation: none !important; }
 }
 
 /* =========================================================

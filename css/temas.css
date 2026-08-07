@@ -65,12 +65,12 @@ html[data-tema="luffy"] {
 
   --marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M7.3%2011.7c0-4.7%202-7.4%204.7-7.4s4.7%202.7%204.7%207.4z%22%2F%3E%3Cellipse%20cx%3D%2212%22%20cy%3D%2215.9%22%20rx%3D%2211.1%22%20ry%3D%223.2%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
 
-  --hero-imagen: url("../assets/img/Imagen_Luffy.jpg");
+  --hero-imagen: url("../assets/img/hero-luffy.jpg");
   --hero-imagen-espejo: scaleX(-1);
-  --hero-imagen-zoom: 175% auto;
-  --hero-imagen-encuadre: 78% 16%;
-  --hero-imagen-filtro: brightness(0.58) saturate(0.5);
-  --hero-imagen-mascara: radial-gradient(74% 130% at 76% 46%, #000 0%, #000 30%, transparent 74%);
+  --hero-imagen-zoom: cover;
+  --hero-imagen-encuadre: 76% 34%;
+  --hero-imagen-filtro: sepia(0.55) saturate(1.9) hue-rotate(-14deg) brightness(0.95);
+  --hero-imagen-mascara: radial-gradient(78% 135% at 74% 48%, #000 0%, #000 34%, transparent 80%);
   --hero-scrim: linear-gradient(100deg, rgba(18, 10, 9, 0.5) 0%, rgba(18, 10, 9, 0.74) 55%, rgba(18, 10, 9, 0.46) 100%);
 
   --chart-rejilla: rgba(255, 228, 196, 0.07);
@@ -189,12 +189,12 @@ html[data-tema="sanji"] {
 
   --marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.4%22%20stroke-linecap%3D%22round%22%20d%3D%22M2.5%2017.5C2.5%209.5%207.6%204.8%2013.6%205.4c3.9.4%206.4%202.9%206.4%205.9%200%202.6-1.9%204.4-4.2%204.4-2%200-3.4-1.4-3.4-3.1%200-1.5%201.1-2.5%202.4-2.5%22%2F%3E%3C%2Fsvg%3E");
 
-  --hero-imagen: url("../assets/img/Imagen_Sanji.jpg");
+  --hero-imagen: url("../assets/img/hero-sanji.jpg");
   --hero-imagen-espejo: scaleX(-1);
-  --hero-imagen-zoom: 150% auto;
-  --hero-imagen-encuadre: 74% 24%;
-  --hero-imagen-filtro: brightness(0.62) saturate(0.5);
-  --hero-imagen-mascara: radial-gradient(74% 130% at 74% 46%, #000 0%, #000 28%, transparent 72%);
+  --hero-imagen-zoom: 155% auto;
+  --hero-imagen-encuadre: 30% 34%;
+  --hero-imagen-filtro: brightness(0.82) saturate(0.9);
+  --hero-imagen-mascara: radial-gradient(76% 135% at 68% 48%, #000 0%, #000 30%, transparent 76%);
   --hero-scrim: linear-gradient(100deg, rgba(7, 8, 12, 0.5) 0%, rgba(7, 8, 12, 0.76) 55%, rgba(7, 8, 12, 0.46) 100%);
 
   --chart-rejilla: rgba(222, 231, 245, 0.07);
@@ -317,12 +317,12 @@ html[data-tema="zenitsu"] {
 
   --marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M14.6%201.2%204.2%2013.6h5.6L8.9%2022.8%2019.8%209.9h-6z%22%2F%3E%3C%2Fsvg%3E");
 
-  --hero-imagen: url("../assets/img/hero-zenitsu.jpg");
+  --hero-imagen: url("../assets/img/hero-zenitsu2.jpg");
   --hero-imagen-espejo: scaleX(-1);
   --hero-imagen-zoom: cover;
-  --hero-imagen-encuadre: center 24%;
-  --hero-imagen-filtro: brightness(0.62) saturate(0.6);
-  --hero-imagen-mascara: radial-gradient(72% 130% at 64% 46%, #000 0%, #000 28%, transparent 74%);
+  --hero-imagen-encuadre: 72% 38%;
+  --hero-imagen-filtro: brightness(0.6) saturate(0.85);
+  --hero-imagen-mascara: radial-gradient(74% 135% at 70% 48%, #000 0%, #000 30%, transparent 76%);
   --hero-scrim: linear-gradient(100deg, rgba(12, 9, 4, 0.48) 0%, rgba(12, 9, 4, 0.74) 55%, rgba(12, 9, 4, 0.44) 100%);
 
   --chart-rejilla: rgba(255, 240, 200, 0.07);

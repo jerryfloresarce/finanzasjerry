@@ -2,6 +2,8 @@
 // Solo se aplican dentro del dashboard; los formularios y listados
 // del resto de vistas son instantáneos a propósito.
 
+import { destelloEnNumero } from "./efectos.js?v=42";
+
 let heroTriggers = [];
 let revealTriggers = [];
 let mouseParallaxBound = false;
@@ -202,6 +204,11 @@ export function countUpTo(el, targetValue, format) {
     countState.set(el, { value: targetValue, tween: null, target: targetValue });
     return;
   }
+
+  // Llegados aquí hay un cambio real que contar (no es el primer pintado ni
+  // una ráfaga), así que además del recuento la cifra se enciende un
+  // momento con el color del tema.
+  destelloEnNumero(el);
 
   const obj = { value: from };
   // `let` en vez de `const` porque onUpdate puede dispararse en el mismo

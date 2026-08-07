@@ -8,9 +8,12 @@
 // que los colores. Sin tema puesto (Original) no se dispara ninguno: la app
 // se queda tan sobria como estaba.
 
+const temporizadores = new WeakMap();
+
 const DURACION_HERO_MS = 1200;
 const DURACION_ACCION_MS = 900;
 const DURACION_FILA_MS = 420;
+const DURACION_NUMERO_MS = 700;
 
 // Si alguien ha pedido en su sistema que se reduzca el movimiento, no se
 // anima nada: el efecto se salta y la acción ocurre igual de rápido.
@@ -25,32 +28,36 @@ function hayTema() {
 // Reiniciar una animación de CSS obliga a quitar la clase, forzar al
 // navegador a recalcular, y volver a ponerla. Sin ese recálculo por medio
 // el navegador agrupa las dos operaciones y la animación no se repite.
-function reproducir(el, duracionMs, temporizadores) {
+function reproducir(el, duracionMs, clase = "is-activo") {
   if (!el) return;
   clearTimeout(temporizadores.get(el));
-  el.classList.remove("is-activo");
+  el.classList.remove(clase);
   void el.offsetWidth;
-  el.classList.add("is-activo");
-  temporizadores.set(
-    el,
-    setTimeout(() => el.classList.remove("is-activo"), duracionMs)
-  );
+  el.classList.add(clase);
+  temporizadores.set(el, setTimeout(() => el.classList.remove(clase), duracionMs));
 }
-
-const temporizadores = new WeakMap();
 
 // Al abrir el Dashboard o al cambiar de tema: el destello del personaje
 // cruza el hero una vez.
 export function efectoEntradaHero() {
   if (!hayTema() || prefiereQuieto()) return;
-  reproducir(document.querySelector(".hero__efecto"), DURACION_HERO_MS, temporizadores);
+  reproducir(document.querySelector(".hero__efecto"), DURACION_HERO_MS);
 }
 
 // Al guardar cualquier cosa: el mismo destello, pero sobre toda la pantalla
 // y más corto. Sirve de confirmación de que se ha guardado.
 export function efectoAlGuardar() {
   if (!hayTema() || prefiereQuieto()) return;
-  reproducir(document.getElementById("efecto-accion"), DURACION_ACCION_MS, temporizadores);
+  reproducir(document.getElementById("efecto-accion"), DURACION_ACCION_MS);
+}
+
+// Cuando una cifra cambia de valor (el saldo total, los totales del mes),
+// se enciende un momento con el color del tema. Solo en los cambios de
+// verdad: quien llama a esto ya ha decidido que hay algo que contar, así
+// que no salta al abrir la app ni con cada llegada de datos de Firestore.
+export function destelloEnNumero(el) {
+  if (!el || !hayTema() || prefiereQuieto()) return;
+  reproducir(el, DURACION_NUMERO_MS, "is-cambiando");
 }
 
 // Al eliminar: la fila se despide a la manera del personaje (cortada,
