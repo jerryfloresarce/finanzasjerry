@@ -1,9 +1,9 @@
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=43";
-import { state } from "../store.js?v=43";
-import { exportarDatos, importarDatos } from "../backup.js?v=43";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=43";
-import { montarSelectorTemas } from "../tema.js?v=43";
+import { auth } from "../firebase-init.js?v=44";
+import { state } from "../store.js?v=44";
+import { exportarDatos, importarDatos } from "../backup.js?v=44";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=44";
+import { montarSelectorTemas } from "../tema.js?v=44";
 
 let panel = null;
 let scrim = null;
@@ -13,6 +13,9 @@ function openPanel() {
   if (emailEl) emailEl.textContent = auth.currentUser?.email || "—";
   panel.classList.add("is-open");
   scrim.classList.remove("is-hidden");
+  // El panel se abre siempre por arriba: si se quedara donde lo dejaste la
+  // vez anterior, aparecería a media lista de temas sin venir a cuento.
+  panel.scrollTop = 0;
   bloquearScrollFondo("panel");
 }
 
@@ -40,6 +43,9 @@ export function mountCuentaPanel() {
   });
 
   montarSelectorTemas(document.getElementById("temas-selector"));
+  // Al elegir un tema, el panel se aparta: la animación de entrada ocupa
+  // toda la pantalla y con el panel abierto se veía a medias.
+  document.addEventListener("tema-cambiado", closePanel);
 
   document.getElementById("btn-cuenta-logout")?.addEventListener("click", () => signOut(auth));
 

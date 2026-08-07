@@ -558,14 +558,18 @@ html[data-tema] .brand-mark__icon::after {
   top: 68px;
   right: 16px;
   width: min(88vw, 320px);
-  max-height: calc(100vh - 84px);
+  /* 100dvh descuenta la barra del navegador cuando la hay; el respaldo en
+     vh es para navegadores viejos. Y el hueco de abajo es el del indicador
+     de inicio del iPhone, que si no se come el último botón. */
+  max-height: calc(100vh - 84px - env(safe-area-inset-bottom, 0px));
+  max-height: calc(100dvh - 84px - env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
   overscroll-behavior: contain;
   background: var(--bg-elevated);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-modal);
-  padding: 20px;
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
   z-index: 41;
   display: flex;
   flex-direction: column;
@@ -576,6 +580,14 @@ html[data-tema] .brand-mark__icon::after {
   pointer-events: none;
   transition: transform 0.18s var(--ease-lux), opacity 0.18s var(--ease-lux);
 }
+
+/* Este panel es una columna flexible, y en una columna flexible los hijos
+   se ENCOGEN por defecto cuando no caben. Por eso, al crecer el contenido
+   con la lista de temas, en vez de aparecer barra de desplazamiento se
+   apretaba todo y el último botón quedaba cortado sin poder llegar a él.
+   Diciéndoles que no se encojan, lo que sobra desborda y el panel se
+   puede deslizar, que es lo que se esperaba. */
+.cuenta-panel > * { flex-shrink: 0; }
 .cuenta-panel.is-open {
   transform: scale(1) translateY(0);
   opacity: 1;
