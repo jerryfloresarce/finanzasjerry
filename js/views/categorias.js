@@ -1,9 +1,9 @@
-import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js?v=40";
-import { openModal, closeModal } from "../modal.js?v=40";
-import { entityIcon, iconForCategoriaTipo, icon } from "../icons.js?v=40";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=40";
-import { emojiFieldHTML, attachEmojiPicker, CATEGORIA_EMOJIS } from "../emoji-picker.js?v=40";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=40";
+import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js?v=41";
+import { openModal, closeModal } from "../modal.js?v=41";
+import { entityIcon, iconForCategoriaTipo, icon } from "../icons.js?v=41";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=41";
+import { emojiFieldHTML, attachEmojiPicker, CATEGORIA_EMOJIS } from "../emoji-picker.js?v=41";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=41";
 
 const TIPOS = ["Fijo", "Variable", "Ocio", "PrestamoDado"];
 
@@ -53,8 +53,8 @@ export function renderCategorias(state) {
   el.querySelectorAll("[data-edit]").forEach((btn) =>
     btn.addEventListener("click", () => openForm(categorias.find((c) => c.id === btn.dataset.edit)))
   );
-  attachSwipe(el, (id) => {
-    if (confirm("¿Eliminar esta categoría?")) deleteCategoria(id);
+  attachSwipe(el, (id) => deleteCategoria(id), {
+    confirmar: "¿Eliminar esta categoría?",
   });
   attachCopyId(el);
 }

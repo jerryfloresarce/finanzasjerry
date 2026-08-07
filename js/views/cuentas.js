@@ -1,9 +1,9 @@
-import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha, fromTimestamp } from "../db.js?v=40";
-import { openModal, closeModal, todayISO } from "../modal.js?v=40";
-import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=40";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=40";
-import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=40";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=40";
+import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha, fromTimestamp } from "../db.js?v=41";
+import { openModal, closeModal, todayISO } from "../modal.js?v=41";
+import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=41";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=41";
+import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=41";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=41";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 
@@ -54,8 +54,8 @@ export function renderCuentas(state) {
   el.querySelectorAll("[data-historial]").forEach((btn) =>
     btn.addEventListener("click", () => openHistorial(cuentas.find((c) => c.id === btn.dataset.historial), state))
   );
-  attachSwipe(el, (id) => {
-    if (confirm("¿Eliminar esta cuenta? No se borrarán sus movimientos.")) deleteCuenta(id);
+  attachSwipe(el, (id) => deleteCuenta(id), {
+    confirmar: "¿Eliminar esta cuenta? No se borrarán sus movimientos.",
   });
   attachCopyId(el);
 }

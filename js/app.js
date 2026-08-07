@@ -1,18 +1,19 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=40";
-import { state, subscribe, initStore } from "./store.js?v=40";
+import { onAuthReady } from "./auth.js?v=41";
+import { state, subscribe, initStore } from "./store.js?v=41";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=40";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=40";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=40";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=40";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=40";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=40";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=40";
-import { mountCuentaPanel } from "./views/cuenta.js?v=40";
-import { refreshAnimations } from "./animations.js?v=40";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=40";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=40";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=41";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=41";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=41";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=41";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=41";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=41";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=41";
+import { mountCuentaPanel } from "./views/cuenta.js?v=41";
+import { refreshAnimations } from "./animations.js?v=41";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=41";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=41";
+import { efectoEntradaHero } from "./efectos.js?v=41";
 
 const ROUTES = {
   dashboard: renderDashboard,
@@ -71,8 +72,12 @@ function renderCurrentView() {
 }
 
 // Chart.js recibe los colores ya resueltos al dibujar, así que no se entera
-// solo de que han cambiado las variables CSS: hay que volver a pintar.
-document.addEventListener("tema-cambiado", () => renderCurrentView());
+// solo de que han cambiado las variables CSS: hay que volver a pintar. Y de
+// paso se ve el destello del tema nuevo, que sirve de confirmación.
+document.addEventListener("tema-cambiado", () => {
+  renderCurrentView();
+  efectoEntradaHero();
+});
 
 function navigate() {
   currentRoute = currentRouteFromHash();
@@ -80,6 +85,10 @@ function navigate() {
   showView(currentRoute);
   closeMobileNav();
   renderCurrentView();
+  // El destello solo al ENTRAR al Dashboard, no en cada repintado: si se
+  // lanzara con cada llegada de datos volveríamos al parpadeo constante de
+  // antes.
+  if (currentRoute === "dashboard") efectoEntradaHero();
   // Quien hace scroll es la página entera, no #view-container (que solo
   // pone márgenes), así que al cambiar de apartado hay que subir la ventana.
   window.scrollTo(0, 0);

@@ -832,10 +832,31 @@ html[data-tema] .brand-mark__icon::after {
   position: absolute;
   inset: 0;
   background-image: var(--hero-imagen);
-  background-size: cover;
-  background-position: center 45%;
+  /* Con "cover" solo se puede encuadrar en vertical: el ancho siempre se
+     ve entero, así que el personaje se queda donde venga en el archivo.
+     Ampliando por encima del 100% se puede además moverlo de lado. */
+  background-size: var(--hero-imagen-zoom, cover);
+  /* Encuadre, espejo y oscurecido los decide cada tema: las ilustraciones
+     traen al personaje a la derecha (justo donde va el saldo) y sobre un
+     fondo claro, así que casi todas se voltean y se bajan de brillo para
+     que encajen con una app oscura. */
+  background-position: var(--hero-imagen-encuadre, center 45%);
+  transform: var(--hero-imagen-espejo, none);
+  filter: var(--hero-imagen-filtro, none);
+  /* La ilustración se desvanece hacia el lado donde solo hay fondo liso.
+     Sin esto se ve un rectángulo de color pegado sobre la app: los dibujos
+     vienen sobre un fondo plano (azul, naranja…) que no casa con el negro
+     de la app por mucho que se baje el brillo. Difuminado, el personaje
+     parece salir de la oscuridad. La máscara se define en coordenadas de
+     la IMAGEN: si el tema la voltea, la máscara se voltea con ella. */
+  -webkit-mask-image: var(--hero-imagen-mascara, none);
+  mask-image: var(--hero-imagen-mascara, none);
   pointer-events: none;
 }
+
+/* Con ilustración detrás el hero crece: a 108 px solo se veía una franja
+   del centro del dibujo y quedaban las cabezas cortadas. */
+.hero--con-imagen { height: 152px; }
 
 .hero__scrim {
   position: absolute;
@@ -1427,6 +1448,40 @@ button.mini-row:last-child { border-bottom: none; }
 }
 
 /* =========================================================
+   EFECTOS DE LOS TEMAS
+   =========================================================
+   La capa donde se dibuja el destello del personaje: al abrir el
+   Dashboard, al guardar algo y al eliminar una fila. Aquí solo está el
+   armazón (dónde va, que no estorbe, que empiece invisible); el dibujo y
+   el movimiento de cada uno los pone css/temas.css. Sin tema puesto no
+   hay ninguna regla que los active, así que Original no cambia. */
+
+.efecto {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.efecto--pantalla {
+  position: fixed;
+  z-index: 200;
+}
+
+/* La fila que se está eliminando se anima antes de desaparecer de verdad,
+   así que hay que sacarla del flujo visual sin que empuje a las demás. */
+.swipe-row.is-eliminando {
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .efecto { display: none; }
+  .swipe-row.is-eliminando { animation: none !important; }
+}
+
+/* =========================================================
    RESPONSIVE
    ========================================================= */
 
@@ -1506,6 +1561,7 @@ button.mini-row:last-child { border-bottom: none; }
   .grid--kpis { grid-template-columns: repeat(1, 1fr); }
   .grid--graficos-donuts { grid-template-columns: 1fr; }
   .hero { height: auto; }
+  .hero--con-imagen { height: auto; min-height: 152px; }
   .hero__content { padding: 18px 20px; flex-wrap: wrap; }
   .hero__greeting { font-size: 0.92rem; }
   .hero__balance { font-size: 1.7rem; }
