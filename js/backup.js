@@ -29,7 +29,16 @@ export function exportarDatos(state) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `finanzas-jerry-copia-${new Date().toISOString().slice(0, 10)}.json`;
+  // El nombre del archivo sale del título de la app, no escrito a mano: si
+  // algún día se llama de otra forma, la copia se llama igual sin tener que
+  // acordarse de cambiarlo aquí.
+  const nombreApp = (document.title || "finanzas")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  a.download = `${nombreApp}-copia-${new Date().toISOString().slice(0, 10)}.json`;
   document.body.appendChild(a);
   a.click();
   a.remove();
