@@ -12,7 +12,7 @@ import {
   disableNetwork,
   enableNetwork,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=44";
+import { db } from "./firebase-init.js?v=45";
 
 // Cuando el iPhone deja la app en segundo plano (o la pantalla se apaga),
 // Safari congela la conexión abierta de Firestore. Al volver, esa conexión
@@ -104,7 +104,7 @@ export const addPagoPrestamo = (data) => addDoc(col("pagos_prestamos"), data);
 export const updatePagoPrestamo = (id, data) => updateDoc(doc(db, "pagos_prestamos", id), data);
 export const deletePagoPrestamo = (id) => deleteDoc(doc(db, "pagos_prestamos", id));
 
-// ---------- Préstamos con plan de pagos diario (ej. Ana (mamá)) ----------
+// ---------- Préstamos con plan de pagos diario ----------
 // Algunos préstamos no funcionan como "capital + un interés mensual": se
 // devuelven en cuotas diarias iguales (capital + interés ya repartidos entre
 // todos los días) hasta saldar la deuda entera. Para esos, `pagos_prestamos`

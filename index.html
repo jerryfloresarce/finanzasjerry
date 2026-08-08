@@ -21,8 +21,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=44" />
-<link rel="stylesheet" href="css/temas.css?v=44" />
+<link rel="stylesheet" href="css/styles.css?v=45" />
+<link rel="stylesheet" href="css/temas.css?v=45" />
 <script>
   /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
      desde un módulo (que se ejecuta al final), la app abriría un instante
@@ -165,55 +165,6 @@
           para que no tengas que escribirlo todo a mano.
         </p>
         <button class="btn btn--primary" id="btn-seed">Importar mis datos iniciales</button>
-      </div>
-
-      <div id="fix-banner" class="card is-hidden" style="margin-bottom: 20px;">
-        <h2 class="card__title">Correcciones pendientes</h2>
-        <p class="entity-card__meta" style="margin-bottom: 16px;">
-          Añadir a Ana (mamá) con sus 20 pagos diarios, corregir las fechas de Liz colombiana y actualizar el Pasanaco a 600€.
-        </p>
-        <button class="btn btn--primary" id="btn-apply-fixes">Aplicar correcciones</button>
-        <p class="field-error" id="fix-banner-error" style="margin-top: 10px;"></p>
-      </div>
-
-      <div id="reset-prestamos-banner" class="card is-hidden" style="margin-bottom: 20px;">
-        <h2 class="card__title">Reiniciar préstamos</h2>
-        <p class="entity-card__meta" style="margin-bottom: 16px;">
-          Voy a borrar el historial de pagos de todos los préstamos y dejar cada uno con su capital pendiente e interés
-          actuales — Silvia con 1.600€ de capital y 320€ de interés (vence 01/09/2026), Jessica con 7.464,96€ de capital
-          y 1.492,99€ de interés (vence 03/09/2026), y el resto con su capital pendiente actual congelado.
-        </p>
-        <button class="btn btn--primary" id="btn-reset-prestamos">Reiniciar préstamos</button>
-        <p class="field-error" id="reset-prestamos-banner-error" style="margin-top: 10px;"></p>
-      </div>
-
-      <div id="gastos-fijos-agosto-banner" class="card is-hidden" style="margin-bottom: 20px;">
-        <h2 class="card__title">Gastos fijos ya pagados en agosto</h2>
-        <p class="entity-card__meta" style="margin-bottom: 16px;">
-          Voy a marcar Digi, Aquaservice, Pasanaco y el gimnasio como pagados este agosto, sin descontarlo de ninguna
-          cuenta (ese dinero ya salió y tu saldo actual ya lo refleja).
-        </p>
-        <button class="btn btn--primary" id="btn-gastos-fijos-agosto">Marcar como pagados</button>
-        <p class="field-error" id="gastos-fijos-agosto-banner-error" style="margin-top: 10px;"></p>
-      </div>
-
-      <div id="liz-fecha-banner" class="card is-hidden" style="margin-bottom: 20px;">
-        <h2 class="card__title">Corregir fecha de Liz colombiana</h2>
-        <p class="entity-card__meta" style="margin-bottom: 16px;">
-          El próximo interés de Liz colombiana vence el 02/09/2026, no el 02/10/2026 que quedó guardado.
-        </p>
-        <button class="btn btn--primary" id="btn-fix-liz-fecha">Corregir fecha</button>
-        <p class="field-error" id="liz-fecha-banner-error" style="margin-top: 10px;"></p>
-      </div>
-
-      <div id="plan-pagos-ana-banner" class="card is-hidden" style="margin-bottom: 20px;">
-        <h2 class="card__title">Activar plan de pagos diario de Ana (mamá)</h2>
-        <p class="entity-card__meta" style="margin-bottom: 16px;">
-          Voy a activar el plan de pagos diario de Ana (mamá) y a generar los 20 días de 30€ (sin domingos) a partir
-          del 07/08/2026, para poder marcarlos uno a uno en vez de un interés mensual único.
-        </p>
-        <button class="btn btn--primary" id="btn-plan-pagos-ana">Activar plan de pagos</button>
-        <p class="field-error" id="plan-pagos-ana-banner-error" style="margin-top: 10px;"></p>
       </div>
 
       <div class="hero" id="hero-parallax">
@@ -486,6 +437,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=44"></script>
+<script type="module" src="js/app.js?v=45"></script>
 </body>
 </html>

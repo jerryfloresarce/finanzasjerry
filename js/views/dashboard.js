@@ -8,41 +8,14 @@ import {
   fromTimestamp,
   esPlanDePagos,
   restantePlanDePagos,
-} from "../db.js?v=44";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=44";
-import { seedInitialData } from "../seed.js?v=44";
-import {
-  pendingCorrections,
-  applyAugustCorrections,
-  dismissCorrections,
-  pendingPrestamosReset,
-  resetPrestamos,
-  dismissPrestamosReset,
-  pendingGastosFijosAgosto,
-  applyGastosFijosAgosto,
-  dismissGastosFijosAgosto,
-  pendingLizFecha,
-  fixLizFecha,
-  dismissLizFecha,
-  pendingPlanPagosAna,
-  activarPlanPagosAna,
-  dismissPlanPagosAna,
-} from "../fixes.js?v=44";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=44";
-import { openHistorial } from "./cuentas.js?v=44";
-import { colorTema, paletaTema } from "../tema.js?v=44";
+} from "../db.js?v=45";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=45";
+import { seedInitialData } from "../seed.js?v=45";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=45";
+import { openHistorial } from "./cuentas.js?v=45";
+import { colorTema, paletaTema } from "../tema.js?v=45";
 
 let chartInstance = null;
-
-// Mensaje legible para el error más probable en este banner: las reglas de
-// Firestore todavía no incluyen la colección "configuracion" porque no se
-// han vuelto a publicar tras la última actualización (ver SETUP.md 1.3).
-function mensajeError(err) {
-  if (err?.code === "permission-denied") {
-    return "Sin permiso para guardar (¿has vuelto a publicar firestore.rules? Mira SETUP.md, sección 1.3).";
-  }
-  return `Error: ${err?.message || "inténtalo de nuevo"}`;
-}
 
 export function mountDashboard() {
   const btn = document.getElementById("btn-seed");
@@ -57,95 +30,6 @@ export function mountDashboard() {
     }
   });
 
-  const fixBtn = document.getElementById("btn-apply-fixes");
-  fixBtn?.addEventListener("click", async () => {
-    fixBtn.disabled = true;
-    fixBtn.textContent = "Aplicando…";
-    document.getElementById("fix-banner-error").textContent = "";
-    try {
-      await applyAugustCorrections();
-      await dismissCorrections();
-      fixBtn.textContent = "Hecho ✓";
-      document.getElementById("fix-banner")?.classList.add("is-hidden");
-    } catch (err) {
-      console.error("Error al aplicar correcciones:", err);
-      fixBtn.textContent = "Reintentar";
-      fixBtn.disabled = false;
-      document.getElementById("fix-banner-error").textContent = mensajeError(err);
-    }
-  });
-
-  const resetBtn = document.getElementById("btn-reset-prestamos");
-  resetBtn?.addEventListener("click", async () => {
-    resetBtn.disabled = true;
-    resetBtn.textContent = "Aplicando…";
-    document.getElementById("reset-prestamos-banner-error").textContent = "";
-    try {
-      await resetPrestamos();
-      await dismissPrestamosReset();
-      resetBtn.textContent = "Hecho ✓";
-      document.getElementById("reset-prestamos-banner")?.classList.add("is-hidden");
-    } catch (err) {
-      console.error("Error al reiniciar préstamos:", err);
-      resetBtn.textContent = "Reintentar";
-      resetBtn.disabled = false;
-      document.getElementById("reset-prestamos-banner-error").textContent = mensajeError(err);
-    }
-  });
-
-  const gastosFijosBtn = document.getElementById("btn-gastos-fijos-agosto");
-  gastosFijosBtn?.addEventListener("click", async () => {
-    gastosFijosBtn.disabled = true;
-    gastosFijosBtn.textContent = "Aplicando…";
-    document.getElementById("gastos-fijos-agosto-banner-error").textContent = "";
-    try {
-      await applyGastosFijosAgosto();
-      await dismissGastosFijosAgosto();
-      gastosFijosBtn.textContent = "Hecho ✓";
-      document.getElementById("gastos-fijos-agosto-banner")?.classList.add("is-hidden");
-    } catch (err) {
-      console.error("Error al marcar gastos fijos:", err);
-      gastosFijosBtn.textContent = "Reintentar";
-      gastosFijosBtn.disabled = false;
-      document.getElementById("gastos-fijos-agosto-banner-error").textContent = mensajeError(err);
-    }
-  });
-
-  const lizFechaBtn = document.getElementById("btn-fix-liz-fecha");
-  lizFechaBtn?.addEventListener("click", async () => {
-    lizFechaBtn.disabled = true;
-    lizFechaBtn.textContent = "Aplicando…";
-    document.getElementById("liz-fecha-banner-error").textContent = "";
-    try {
-      await fixLizFecha();
-      await dismissLizFecha();
-      lizFechaBtn.textContent = "Hecho ✓";
-      document.getElementById("liz-fecha-banner")?.classList.add("is-hidden");
-    } catch (err) {
-      console.error("Error al corregir la fecha de Liz colombiana:", err);
-      lizFechaBtn.textContent = "Reintentar";
-      lizFechaBtn.disabled = false;
-      document.getElementById("liz-fecha-banner-error").textContent = mensajeError(err);
-    }
-  });
-
-  const planPagosAnaBtn = document.getElementById("btn-plan-pagos-ana");
-  planPagosAnaBtn?.addEventListener("click", async () => {
-    planPagosAnaBtn.disabled = true;
-    planPagosAnaBtn.textContent = "Aplicando…";
-    document.getElementById("plan-pagos-ana-banner-error").textContent = "";
-    try {
-      await activarPlanPagosAna();
-      await dismissPlanPagosAna();
-      planPagosAnaBtn.textContent = "Hecho ✓";
-      document.getElementById("plan-pagos-ana-banner")?.classList.add("is-hidden");
-    } catch (err) {
-      console.error("Error al activar el plan de pagos de Ana (mamá):", err);
-      planPagosAnaBtn.textContent = "Reintentar";
-      planPagosAnaBtn.disabled = false;
-      document.getElementById("plan-pagos-ana-banner-error").textContent = mensajeError(err);
-    }
-  });
 }
 
 // Los colores salen del tema activo (js/tema.js), no de una lista fija:
@@ -175,21 +59,6 @@ export function renderDashboard(state) {
 
   const seedBanner = document.getElementById("seed-banner");
   if (seedBanner) seedBanner.classList.toggle("is-hidden", !(state.ready && cuentas.length === 0));
-
-  const fixBanner = document.getElementById("fix-banner");
-  if (fixBanner) fixBanner.classList.toggle("is-hidden", !(state.ready && pendingCorrections()));
-
-  const resetBanner = document.getElementById("reset-prestamos-banner");
-  if (resetBanner) resetBanner.classList.toggle("is-hidden", !(state.ready && pendingPrestamosReset()));
-
-  const gastosFijosBanner = document.getElementById("gastos-fijos-agosto-banner");
-  if (gastosFijosBanner) gastosFijosBanner.classList.toggle("is-hidden", !(state.ready && pendingGastosFijosAgosto()));
-
-  const lizFechaBanner = document.getElementById("liz-fecha-banner");
-  if (lizFechaBanner) lizFechaBanner.classList.toggle("is-hidden", !(state.ready && pendingLizFecha()));
-
-  const planPagosAnaBanner = document.getElementById("plan-pagos-ana-banner");
-  if (planPagosAnaBanner) planPagosAnaBanner.classList.toggle("is-hidden", !(state.ready && pendingPlanPagosAna()));
 
   document.getElementById("hero-fecha").textContent = new Intl.DateTimeFormat("es-ES", {
     weekday: "long",

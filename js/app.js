@@ -1,19 +1,19 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=44";
-import { state, subscribe, initStore } from "./store.js?v=44";
+import { onAuthReady } from "./auth.js?v=45";
+import { state, subscribe, initStore } from "./store.js?v=45";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=44";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=44";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=44";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=44";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=44";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=44";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=44";
-import { mountCuentaPanel } from "./views/cuenta.js?v=44";
-import { refreshAnimations } from "./animations.js?v=44";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=44";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=44";
-import { efectoDeEntrada } from "./efectos.js?v=44";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=45";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=45";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=45";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=45";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=45";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=45";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=45";
+import { mountCuentaPanel } from "./views/cuenta.js?v=45";
+import { refreshAnimations } from "./animations.js?v=45";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=45";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=45";
+import { efectoDeEntrada } from "./efectos.js?v=45";
 
 const ROUTES = {
   dashboard: renderDashboard,

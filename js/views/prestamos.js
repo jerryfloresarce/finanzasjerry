@@ -12,11 +12,11 @@ import {
   fromTimestamp,
   esPlanDePagos,
   restantePlanDePagos,
-} from "../db.js?v=44";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=44";
-import { initials, avatarColor, icon } from "../icons.js?v=44";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=44";
-import { efectoDeCelebracion } from "../efectos.js?v=44";
+} from "../db.js?v=45";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=45";
+import { initials, avatarColor, icon } from "../icons.js?v=45";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=45";
+import { efectoDeCelebracion } from "../efectos.js?v=45";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -32,10 +32,10 @@ function unMesDespues(fechaISO) {
   return d.toISOString().slice(0, 10);
 }
 
-// El interés se puede fijar a mano (para préstamos como el de Liz
-// colombiana, donde no es un % fijo del capital) o calcularse solo con el
-// % configurado (Silvia, Jessica...). Si hay un importe manual guardado, ese
-// gana siempre sobre el %.
+// El interés se puede fijar a mano (para los préstamos en los que se pactó
+// una cantidad concreta y no un % del capital) o calcularse solo con el %
+// configurado. Si hay un importe manual guardado, ese gana siempre sobre
+// el %.
 function tieneInteresManual(p) {
   return p.interes_manual !== undefined && p.interes_manual !== null && p.interes_manual !== "";
 }
@@ -52,7 +52,7 @@ export function renderPrestamos(state) {
   const { prestamos, pagosPrestamos } = state;
 
   const activos = prestamos.filter((p) => p.estado !== "Pagado");
-  // Un préstamo con plan de pagos diario (ej. Ana (mamá)) no tiene un
+  // Un préstamo con plan de pagos diario no tiene un
   // "capital pendiente" fijo: lo que debe de verdad es lo que quede sin
   // marcar como pagado en su lista de días. El resto de préstamos siguen
   // usando su campo `capital` de siempre.
@@ -265,7 +265,7 @@ function openInteresPagadoForm(prestamo, state) {
 }
 
 // Marcar un día concreto del plan de pagos diario como cobrado: el importe
-// es editable (por defecto la cuota del día, 30€ en el caso de Ana (mamá)),
+// es editable (por defecto, la cuota que toque ese día),
 // porque un día puede pagarse de más o de menos que lo esperado.
 function openDiaPagadoForm(pago, state) {
   const prestamo = state.prestamos.find((p) => p.id === pago.prestamo_id);
@@ -428,7 +428,7 @@ function openPrestamoForm(prestamo) {
     <form id="form-prestamo" class="form-grid">
       <label class="field field--full">
         <span class="field__label">Persona</span>
-        <input type="text" name="persona" required value="${prestamo?.persona ?? ""}" placeholder="Liz colombiana" />
+        <input type="text" name="persona" required value="${prestamo?.persona ?? ""}" placeholder="Nombre de la persona" />
       </label>
       <label class="field">
         <span class="field__label">Capital pendiente</span>

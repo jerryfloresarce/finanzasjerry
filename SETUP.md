@@ -16,7 +16,7 @@ Todo el código ya está listo. Esto es lo que falta para que la web funcione de
 
 1. En Firebase Console → **Authentication** → pestaña **Sign-in method**.
 2. Activa el proveedor **Email/contraseña**.
-3. Pestaña **Users** → **Add user** → pon tu email (`arce.jerry54@gmail.com`) y una contraseña. Esa es la que usarás para entrar en la web (y, si quieres, en el Shortcut).
+3. Pestaña **Users** → **Add user** → pon tu email (`tu-correo@ejemplo.com`) y una contraseña. Esa es la que usarás para entrar en la web (y, si quieres, en el Shortcut).
 
 ### 1.3 Publicar las reglas de seguridad
 
@@ -51,8 +51,8 @@ Haz esto una vez por cada cuenta y categoría que vayas a usar desde el Shortcut
 
 ### 3.2 Datos que necesitarás a mano
 
-- **API key** de Firebase: `AIzaSyAbn6ZT3C1Toe3y8zOmcoGU1INC-FiYtRE`
-- **Project ID**: `finanzas-jerry`
+- **API key** de Firebase: `TU_API_KEY`
+- **Project ID**: `tu-proyecto`
 - Tu email y contraseña de Firebase Auth (los que usas para entrar en la web).
 - Los IDs de categorías/cuentas que hayas copiado en el paso 3.1.
 
@@ -70,7 +70,7 @@ Añade **Preguntar por entrada** ("Ask for Input"), tipo **Número**, texto "¿C
 
 **B — Iniciar sesión en Firebase**
 Añade **Obtener contenido de URL**:
-- URL: `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAbn6ZT3C1Toe3y8zOmcoGU1INC-FiYtRE`
+- URL: `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=TU_API_KEY`
 - Método `POST`, cabecera `Content-Type` = `application/json`
 - Cuerpo JSON con: `email` (el tuyo), `password` (la tuya), `returnSecureToken` = `true`
 
@@ -117,7 +117,7 @@ Después del paso D:
    ```
    (cada `[Nombre]` es la burbuja de esa variable, no texto literal)
 2. Añade **Obtener contenido de URL**:
-   - URL: `https://firestore.googleapis.com/v1/projects/finanzas-jerry/databases/(default)/documents/movimientos`
+   - URL: `https://firestore.googleapis.com/v1/projects/tu-proyecto/databases/(default)/documents/movimientos`
    - Método `POST`
    - Cabeceras: `Authorization` = `Bearer ` + burbuja `Token`, `Content-Type` = `application/json`
    - **Cuerpo de la solicitud**: cambia el tipo de "JSON" a **Archivo**, y en el campo que aparece mete la burbuja del **Texto** del paso 1.
@@ -127,7 +127,7 @@ Después del paso D:
 ### 3.3.2 Atajo "Registrar un ingreso"
 
 Más rápido: duplica el Atajo de Gasto ya terminado y cambia solo:
-- Las opciones y ramas del menú de categoría (paso E) por tus categorías de ingreso (Nómina, Paga extra, Pasanaco, Préstamos...) — puedes reutilizar el mismo ID de una categoría que ya uses en Gasto (p. ej. Pasanaco o Préstamos), la categoría no es exclusiva de un tipo.
+- Las opciones y ramas del menú de categoría (paso E) por tus categorías de ingreso (Nómina, Paga extra, Préstamos...) — puedes reutilizar el mismo ID de una categoría que ya uses en Gasto, la categoría no es exclusiva de un tipo.
 - En el Texto del JSON (paso H), `"tipo":{"stringValue":"Gasto"}` → `"tipo":{"stringValue":"Ingreso"}`.
 - Notificación final: "Ingreso añadido ✓".
 
