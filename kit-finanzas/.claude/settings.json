@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(curl:*)",
+      "Bash(open:*)",
+      "Bash(start:*)",
+      "Bash(xdg-open:*)",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(py:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(where:*)",
+      "Bash(which:*)"
+    ]
+  }
+}

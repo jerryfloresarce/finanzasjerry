@@ -1,0 +1,7 @@
+# La app de cada persona: es suya, no se distribuye con el kit. Si la vas a
+# publicar, se sube a SU propio repositorio, no a este.
+mi-app/*
+!mi-app/.gitkeep
+
+# Basura del sistema
+.DS_Store

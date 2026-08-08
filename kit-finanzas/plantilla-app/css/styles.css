@@ -1,0 +1,1666 @@
+/* =========================================================
+   MIS FINANZAS — Design System
+   Dark mode · verde bosque mate · quiet luxury
+   ========================================================= */
+
+:root {
+  /* Superficie */
+  --bg: #0a0e0c;
+  --bg-elevated: #0f1512;
+  --surface: #131a16;
+  --surface-hover: #17201b;
+  --border: rgba(233, 238, 234, 0.08);
+  --border-strong: rgba(233, 238, 234, 0.14);
+
+  /* Texto */
+  --text-primary: #eceeec;
+  --text-secondary: #9fada4;
+  --text-muted: #6d7a72;
+
+  /* Acento — verde bosque mate */
+  --accent: #7a9b81;
+  --accent-dim: #55705a;
+  --accent-soft: rgba(122, 155, 129, 0.14);
+  --accent-soft-strong: rgba(122, 155, 129, 0.24);
+
+  /* Semánticos, desaturados a propósito */
+  --success: #7a9b81;
+  --danger: #b06a63;
+  --danger-soft: rgba(176, 106, 99, 0.14);
+  --warning: #b6975f;
+  --warning-soft: rgba(182, 151, 95, 0.14);
+
+  /* Texto que va ENCIMA de un color fuerte (botón primario, avatar,
+     botón rojo de eliminar). Se separa del resto porque en los temas
+     claros de acento hace falta texto oscuro y en los oscuros, claro. */
+  --on-accent: #10150f;
+  --on-accent-dim: #eef3ee;
+  --on-danger: #ffffff;
+
+  /* Ambiente: el fondo con niebla del login y del hero del Dashboard.
+     Las tres manchas de luz y la base del degradado, por separado, para
+     que cada tema pueda tener su propia atmósfera. */
+  --atm-luz-1: rgba(216, 199, 148, 0.09);
+  --atm-luz-2: rgba(96, 138, 106, 0.18);
+  --atm-luz-3: rgba(58, 82, 64, 0.22);
+  --atm-base-1: #121810;
+  --atm-base-2: #0b0f0c;
+  --atm-base-3: #060907;
+  /* Las rayas diagonales de "lluvia" que cruzan el ambiente. */
+  --atm-lluvia: rgba(220, 230, 224, 0.06);
+  /* Trama opcional por encima del ambiente (el damero del haori de
+     Tanjiro, por ejemplo). "none" = sin trama, que es lo normal. */
+  --atm-patron: none;
+  --atm-patron-pos: 0 0;
+  --atm-patron-tam: 46px 46px;
+  --atm-patron-2: none;
+  --atm-patron-2-pos: 0 0;
+  --atm-patron-2-tam: 46px 46px;
+
+  /* Imágenes de fondo. Cada tema puede traer la suya; si vale "none" se
+     ve solo el ambiente hecho con CSS. Para añadir una: se sube el
+     archivo a assets/img/ y se apunta aquí con url("../assets/img/…"). */
+  /* Sin imagen de serie: las fotos no viajan en la plantilla. Para poner
+     la tuya, deja el archivo en assets/img/ y cambia esta línea por
+     url("../assets/img/tu-foto.jpg"). Es el fondo de la pantalla de acceso. */
+  --login-imagen: none;
+  --hero-imagen: none;
+  --hero-scrim: linear-gradient(100deg, rgba(10, 14, 12, 0.55) 0%, rgba(10, 14, 12, 0.75) 55%, rgba(10, 14, 12, 0.5) 100%);
+
+  /* Gráficos. Las paletas son listas separadas por comas que lee el JS
+     (js/tema.js), así que aquí SOLO valen colores sin comas dentro: hex
+     sí, rgba() no. */
+  --chart-rejilla: rgba(233, 238, 234, 0.06);
+  --chart-eje: #6d7a72;
+  --chart-leyenda: #9fada4;
+  --chart-borde: #131a16;
+  --paleta-gastos: #b06a63, #c48b83, #9c6a63, #8a5850, #a37c74, #7d5a53;
+  --paleta-ingresos: #7a9b81, #a8c3a0, #8a9b6e, #5f7a63, #6b8778, #9cae8f;
+  --paleta-categorias: #7a9b81, #a8c3a0, #8a9b6e, #5f7a63, #b6975f, #7d8f8a, #9c8a6f, #6b8778;
+  --paleta-avatares: #7a9b81, #8a9b6e, #7d8f8a, #9c8a6f, #6b8778, #a8935f;
+
+  /* Tipografía */
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* Layout */
+  --sidebar-w: 248px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -16px rgba(0, 0, 0, 0.6);
+  --shadow-modal: 0 24px 64px -12px rgba(0, 0, 0, 0.7);
+  --ease-lux: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { box-sizing: border-box; }
+
+html {
+  color-scheme: dark;
+  overscroll-behavior-x: none;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
+}
+
+img { max-width: 100%; display: block; }
+
+a { color: inherit; text-decoration: none; }
+
+button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+/* iOS Safari hace zoom automático al enfocar un campo si su font-size es
+   menor de 16px, y ese zoom se queda "pegado" hasta que el usuario hace
+   pellizco para quitarlo — de ahí el bug de "se me queda con mucho zoom"
+   al tocar cualquier campo de un formulario. */
+input, select, textarea { font-size: 16px; }
+
+.is-hidden { display: none !important; }
+
+::selection { background: var(--accent-soft-strong); color: var(--text-primary); }
+
+/* Scrollbar discreto */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 10px; }
+
+/* ---------------- Brand ---------------- */
+
+.brand-mark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+  margin: 0;
+}
+.brand-mark span:not(.brand-mark__icon) { color: var(--accent); font-style: italic; }
+.brand-mark__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+/* Cada tema trae su propia marca (el sombrero de paja, las katanas, el
+   damero…) en vez de la hoja. Se pinta como máscara sobre currentColor,
+   que en este elemento es el color de acento del tema. Sin tema puesto
+   —es decir, en Original— no entra ninguna de estas dos reglas y se sigue
+   viendo la hoja de siempre. */
+html[data-tema] .brand-mark__icon > i { display: none; }
+html[data-tema] .brand-mark__icon::after {
+  content: "";
+  width: 68%;
+  height: 68%;
+  background: currentColor;
+  -webkit-mask: var(--marca) center / contain no-repeat;
+  mask: var(--marca) center / contain no-repeat;
+}
+
+.brand-mark--sidebar { padding: 28px 24px 8px; }
+.brand-mark--topbar { font-size: 1.05rem; }
+
+/* =========================================================
+   LOGIN
+   ========================================================= */
+
+.login-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+/* Fondo atmosférico 100% CSS — verde bosque mate, lluvia sutil, grano.
+   Se usa en el login y en el hero del dashboard. Si más adelante añades
+   una foto real en assets/img/, basta con poner background-image ahí. */
+.atmosphere-bg {
+  background:
+    var(--atm-patron) var(--atm-patron-pos) / var(--atm-patron-tam) repeat,
+    var(--atm-patron-2) var(--atm-patron-2-pos) / var(--atm-patron-2-tam) repeat,
+    radial-gradient(55% 45% at 62% 12%, var(--atm-luz-1) 0%, transparent 62%),
+    radial-gradient(70% 55% at 15% 92%, var(--atm-luz-2) 0%, transparent 68%),
+    radial-gradient(90% 70% at 85% 100%, var(--atm-luz-3) 0%, transparent 70%),
+    linear-gradient(160deg, var(--atm-base-1) 0%, var(--atm-base-2) 52%, var(--atm-base-3) 100%);
+}
+
+.atmosphere-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.atmosphere-bg::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background-image: repeating-linear-gradient(
+    112deg,
+    var(--atm-lluvia) 0px,
+    var(--atm-lluvia) 1px,
+    transparent 1px,
+    transparent 15px
+  );
+  opacity: 0.4;
+  mix-blend-mode: screen;
+  animation: rain-drift 9s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rain-drift {
+  from { transform: translate(0, -6%); }
+  to { transform: translate(-4%, 6%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atmosphere-bg::after { animation: none; }
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 140px 20px;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+.loading-spinner {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner { animation: none; }
+}
+
+.login-screen__bg {
+  position: absolute;
+  inset: 0;
+  transform: scale(1.05);
+  background-image:
+    linear-gradient(180deg, rgba(6, 9, 7, 0.32) 0%, rgba(6, 9, 7, 0.62) 60%, rgba(6, 9, 7, 0.88) 100%),
+    var(--login-imagen);
+  background-size: cover;
+  background-position: center 62%;
+}
+
+.login-screen__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 50% 10%, rgba(10, 14, 12, 0.2) 0%, rgba(10, 14, 12, 0.86) 65%, rgba(10, 14, 12, 0.97) 100%);
+}
+
+.login-card {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  padding: 40px 32px;
+  border-radius: var(--radius-lg);
+  background: rgba(15, 21, 18, 0.72);
+  border: 1px solid var(--border-strong);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--shadow-modal);
+  text-align: center;
+  animation: rise 0.9s var(--ease-lux) both;
+}
+
+.login-card__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.6rem;
+  margin: 20px 0 4px;
+}
+
+.login-card__subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0 0 28px;
+}
+
+.login-form { display: flex; flex-direction: column; gap: 16px; text-align: left; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================
+   FORM FIELDS
+   ========================================================= */
+
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field__label { font-size: 0.78rem; color: var(--text-secondary); letter-spacing: 0.02em; }
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  color: var(--text-primary);
+  transition: border-color 0.2s var(--ease-lux), background 0.2s var(--ease-lux);
+  text-overflow: ellipsis;
+}
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--accent-dim);
+  background: var(--surface-hover);
+}
+
+/* En iOS, input[type=date] a veces ignora el width/max-width del autor y se
+   pinta con su propio ancho mínimo nativo, saliéndose del recuadro por la
+   derecha (se ve el borde redondeado pegado al borde del modal). Quitar el
+   "appearance" nativo hace que respete el box model normal sin perder el
+   selector de fecha nativo al tocarlo. */
+.field input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.field--row { flex-direction: row; gap: 12px; align-items: center; }
+
+.field-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+.field-check input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+.field-error {
+  color: var(--danger);
+  font-size: 0.82rem;
+  min-height: 1em;
+  margin: 0;
+}
+
+.susc-mes-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.susc-mes-label {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  min-width: 160px;
+  text-align: center;
+}
+.susc-row--inactiva { opacity: 0.55; }
+
+/* ---------------- Calendario de Movimientos ---------------- */
+
+.calendar { display: flex; flex-direction: column; gap: 8px; }
+
+/* En móvil, el padding normal de .card (24px) le resta a las celdas justo
+   el ancho que más falta hace en una tira de 7 columnas — se reduce solo
+   en esta tarjeta para ganar unos px por celda sin tocar el resto de la
+   app. */
+@media (max-width: 640px) {
+  .card--calendario { padding: 20px 10px; }
+}
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  text-align: center;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  padding-bottom: 6px;
+}
+
+.cal-days {
+  display: grid;
+  /* minmax(0, 1fr) en vez de 1fr: sin el mínimo explícito a 0, una columna
+     no se encoge más allá del ancho de su contenido (importes largos como
+     "-1031,04 €"), y el grid entero acaba siendo más ancho que la pantalla
+     — por eso el calendario "se salía" por la derecha en móvil. */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.cal-cell {
+  /* El ancho de cada celda está topado por el ancho de la pantalla (7
+     columnas siempre), así que la única forma real de "hacerlo más grande"
+     es dar más alto: con un ratio casi cuadrado (1/0.95, el de antes) el
+     número del día y los dos importes se apretujaban en muy poca altura.
+     1/1.4 da casi la mitad más de alto sin tocar el ancho. */
+  aspect-ratio: 1 / 1.4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease-lux), background 0.15s var(--ease-lux);
+  padding: 6px 2px;
+  overflow: hidden;
+  min-width: 0;
+}
+.cal-cell:hover { border-color: var(--border-strong); background: var(--surface-hover); }
+.cal-cell--vacia { border: none; background: none; cursor: default; }
+.cal-cell--hoy { border-color: var(--accent); }
+
+.cal-cell__num { font-family: var(--font-display); font-size: 1.05rem; color: var(--text-primary); }
+.cal-cell--hoy .cal-cell__num { color: var(--accent); }
+.cal-cell__gasto,
+.cal-cell__ingreso {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  max-width: 100%;
+  text-align: center;
+  /* En vez de recortar con "…" (que dejaba números ilegibles a medias),
+     se deja que el importe pase a una segunda línea si no cabe entero —
+     así siempre se ven todos los decimales, nunca un número cortado. */
+  overflow-wrap: anywhere;
+}
+.cal-cell__gasto { color: var(--danger); }
+.cal-cell__ingreso { color: var(--success); }
+
+@media (max-width: 640px) {
+  .cal-cell__gasto, .cal-cell__ingreso { font-size: 0.66rem; }
+  .cal-cell__num { font-size: 0.92rem; }
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.form-grid .field--full { grid-column: 1 / -1; }
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.88rem;
+  letter-spacing: 0.01em;
+  transition: transform 0.15s var(--ease-lux), background 0.2s var(--ease-lux), border-color 0.2s var(--ease-lux), opacity 0.2s;
+}
+.btn:hover:not(:disabled) { transform: translateY(-1px); }
+.btn:active:not(:disabled) { transform: scale(0.97); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn--primary {
+  background: var(--accent-dim);
+  color: var(--on-accent-dim);
+}
+.btn--primary:hover { background: var(--accent); }
+
+.btn--ghost {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text-secondary);
+}
+.btn--ghost:hover { color: var(--text-primary); border-color: var(--text-secondary); }
+
+.btn--danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+.btn--danger:hover { background: var(--danger-soft); }
+
+.btn--sm { padding: 7px 14px; font-size: 0.8rem; }
+.btn--block { width: 100%; }
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  transition: border-color 0.2s var(--ease-lux), color 0.2s var(--ease-lux);
+}
+.icon-btn:hover { border-color: var(--border-strong); color: var(--accent); }
+
+.account-fixed-btn {
+  position: fixed;
+  top: 20px;
+  right: 24px;
+  z-index: 25;
+}
+@media (max-width: 860px) {
+  .account-fixed-btn { display: none; }
+}
+
+/* =========================================================
+   MI CUENTA (panel desplegable, no una página)
+   ========================================================= */
+
+.cuenta-panel-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: transparent;
+}
+
+.cuenta-panel {
+  position: fixed;
+  top: 68px;
+  right: 16px;
+  width: min(88vw, 320px);
+  /* 100dvh descuenta la barra del navegador cuando la hay; el respaldo en
+     vh es para navegadores viejos. Y el hueco de abajo es el del indicador
+     de inicio del iPhone, que si no se come el último botón. */
+  max-height: calc(100vh - 84px - env(safe-area-inset-bottom, 0px));
+  max-height: calc(100dvh - 84px - env(safe-area-inset-bottom, 0px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-modal);
+  padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+  z-index: 41;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transform-origin: top right;
+  transform: scale(0.96) translateY(-6px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.18s var(--ease-lux), opacity 0.18s var(--ease-lux);
+}
+
+/* Este panel es una columna flexible, y en una columna flexible los hijos
+   se ENCOGEN por defecto cuando no caben. Por eso, al crecer el contenido
+   con la lista de temas, en vez de aparecer barra de desplazamiento se
+   apretaba todo y el último botón quedaba cortado sin poder llegar a él.
+   Diciéndoles que no se encojan, lo que sobra desborda y el panel se
+   puede deslizar, que es lo que se esperaba. */
+.cuenta-panel > * { flex-shrink: 0; }
+.cuenta-panel.is-open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (min-width: 861px) {
+  .cuenta-panel { top: 68px; }
+}
+
+.cuenta-panel__user { display: flex; align-items: center; gap: 12px; }
+.cuenta-panel__divider { height: 1px; background: var(--border); margin: 4px 0; }
+.cuenta-panel__subtitle {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 0.95rem;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+/* =========================================================
+   APP SHELL
+   ========================================================= */
+
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 100vh;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.app-shell > main.view-container {
+  display: flex;
+  justify-content: center;
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+.view {
+  width: 100%;
+  max-width: 1180px;
+  min-width: 0;
+}
+.view:not(.is-hidden) { animation: view-fade-in 0.28s var(--ease-lux); }
+@keyframes view-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .view:not(.is-hidden) { animation: none; }
+}
+
+@media (min-width: 1600px) {
+  .view { max-width: 1420px; }
+}
+
+@media (min-width: 2000px) {
+  .view { max-width: 1640px; }
+}
+
+.sidebar {
+  border-right: 1px solid var(--border);
+  background: var(--bg-elevated);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.nav { display: flex; flex-direction: column; gap: 2px; padding: 16px 12px; flex: 1; }
+
+.nav__link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  transition: background 0.18s var(--ease-lux), color 0.18s var(--ease-lux);
+}
+.nav__link:hover { background: var(--surface-hover); color: var(--text-primary); }
+.nav__link.is-active { background: var(--accent-soft); color: var(--text-primary); }
+.nav__icon { display: inline-flex; align-items: center; justify-content: center; color: var(--accent); flex-shrink: 0; width: 16px; }
+.icon { display: inline-block; line-height: 1; }
+
+.nav__more-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.18s var(--ease-lux), color 0.18s var(--ease-lux);
+}
+.nav__more-toggle:hover { background: var(--surface-hover); color: var(--text-primary); }
+.nav__more-caret { margin-left: auto; transition: transform 0.2s var(--ease-lux); }
+.nav__more-toggle[aria-expanded="true"] .nav__more-caret { transform: rotate(180deg); }
+
+.nav__more {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.25s var(--ease-lux);
+}
+.nav__more.is-open { max-height: 200px; }
+
+.sidebar__logout { margin: 12px; width: calc(100% - 24px); }
+
+.topbar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elevated);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.view-container {
+  padding: 32px 40px 80px;
+  width: 100%;
+}
+
+.view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+@media (min-width: 861px) {
+  /* deja hueco para que el botón flotante de "Mi cuenta" (fixed, arriba a la
+     derecha) no se monte encima de cabeceras anchas, como la de Gráficos */
+  .view-header { padding-right: 56px; }
+}
+
+.view-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.7rem;
+  margin: 0;
+}
+
+/* ---------------- Segmented control (estilo iOS) ---------------- */
+
+.segmented {
+  display: inline-flex;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.segmented__btn {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 7px 18px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.25s var(--ease-lux), color 0.25s var(--ease-lux);
+}
+.segmented__btn:hover { color: var(--text-primary); }
+.segmented__btn.is-active {
+  background: var(--accent-dim);
+  color: var(--on-accent-dim);
+}
+
+/* ---------------- KPI tiles ---------------- */
+
+.grid--kpis { grid-template-columns: repeat(3, 1fr); margin-bottom: 20px; }
+.grid--kpis-2 { grid-template-columns: repeat(2, 1fr); }
+
+.kpi-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow-card);
+}
+
+.kpi-tile__label {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kpi-tile__value {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 4vw, 1.5rem);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+.kpi-tile__value--pos { color: var(--success); }
+
+/* ---------------- Gráficos: donuts lado a lado ---------------- */
+
+.grid--graficos-donuts { grid-template-columns: 1fr 1fr; margin-bottom: 20px; }
+
+.filtro-input {
+  width: 100%;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+}
+.filtro-input:focus { outline: none; border-color: var(--accent-dim); }
+
+/* =========================================================
+   HERO / PARALLAX
+   ========================================================= */
+
+.hero {
+  position: relative;
+  height: 108px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.hero__bg {
+  position: absolute;
+  inset: -10% -10% -10% -10%;
+  will-change: transform;
+}
+
+/* Si el tema trae imagen para el hero, se pinta en su propia capa entre el
+   ambiente y el scrim. Con "none" (lo normal) esta capa no se ve y queda
+   el ambiente hecho solo con CSS, igual que antes. */
+.hero__imagen {
+  position: absolute;
+  inset: 0;
+  background-image: var(--hero-imagen);
+  /* Con "cover" solo se puede encuadrar en vertical: el ancho siempre se
+     ve entero, así que el personaje se queda donde venga en el archivo.
+     Ampliando por encima del 100% se puede además moverlo de lado. */
+  background-size: var(--hero-imagen-zoom, cover);
+  /* Encuadre, espejo y oscurecido los decide cada tema: las ilustraciones
+     traen al personaje a la derecha (justo donde va el saldo) y sobre un
+     fondo claro, así que casi todas se voltean y se bajan de brillo para
+     que encajen con una app oscura. */
+  background-position: var(--hero-imagen-encuadre, center 45%);
+  transform: var(--hero-imagen-espejo, none);
+  filter: var(--hero-imagen-filtro, none);
+  /* La ilustración se desvanece hacia el lado donde solo hay fondo liso.
+     Sin esto se ve un rectángulo de color pegado sobre la app: los dibujos
+     vienen sobre un fondo plano (azul, naranja…) que no casa con el negro
+     de la app por mucho que se baje el brillo. Difuminado, el personaje
+     parece salir de la oscuridad. La máscara se define en coordenadas de
+     la IMAGEN: si el tema la voltea, la máscara se voltea con ella. */
+  -webkit-mask-image: var(--hero-imagen-mascara, none);
+  mask-image: var(--hero-imagen-mascara, none);
+  pointer-events: none;
+}
+
+/* Con ilustración detrás el hero crece: a 108 px solo se veía una franja
+   del centro del dibujo y quedaban las cabezas cortadas. */
+.hero--con-imagen { height: 152px; }
+
+.hero__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--hero-scrim);
+}
+
+/* Con una foto detrás hace falta más sombra, y sobre todo a la DERECHA,
+   que es donde va el saldo. El velo normal está pensado para el ambiente
+   hecho con CSS, que ya es oscuro de por sí y es más claro justo por ese
+   lado. La clase la pone js/tema.js cuando el tema trae imagen. */
+.hero--con-imagen .hero__scrim {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.46) 0%,
+    rgba(0, 0, 0, 0.56) 42%,
+    rgba(0, 0, 0, 0.8) 100%
+  );
+}
+
+/* La fecha y el "Saldo total" van en un gris apagado que se pierde si la
+   foto tiene una zona clara justo detrás. Con imagen se suben a un blanco
+   translúcido, que aguanta cualquier fondo. */
+.hero--con-imagen .hero__date,
+.hero--con-imagen .hero__eyebrow {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.hero__content {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 28px;
+}
+
+.hero__brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.hero__brand-icon { width: 34px; height: 34px; font-size: 17px; border-radius: 10px; }
+.hero__brand > div { min-width: 0; overflow: hidden; }
+
+.hero__greeting {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  margin: 0;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero__balance-wrap { text-align: right; flex-shrink: 0; margin-left: auto; }
+
+.hero__eyebrow {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 0 0 2px;
+}
+
+.hero__balance {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.hero__date {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  margin: 2px 0 0;
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================================================
+   GRID / CARDS
+   ========================================================= */
+
+.grid { display: grid; gap: 20px; }
+.grid > * { min-width: 0; }
+.grid--dashboard {
+  grid-template-columns: 1fr 1.3fr 1fr;
+  grid-template-areas:
+    "l1 center r1"
+    "l2 center r2"
+    "l3 center r3";
+  gap: 16px;
+}
+.gd-l1 { grid-area: l1; }
+.gd-l2 { grid-area: l2; }
+.gd-l3 { grid-area: l3; }
+.gd-r1 { grid-area: r1; }
+.gd-r2 { grid-area: r2; }
+.gd-r3 { grid-area: r3; }
+.gd-center { grid-area: center; }
+
+.grid--dashboard .card {
+  display: flex;
+  flex-direction: column;
+  height: 230px;
+  padding: 18px 20px;
+}
+.grid--dashboard .card--chart {
+  height: auto;
+  align-self: stretch;
+}
+.grid--dashboard .card__title,
+.grid--dashboard .card__header {
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+.grid--dashboard .card__title { margin-bottom: 12px; }
+.grid--dashboard .card__header .card__title { margin-bottom: 0; }
+
+.dash-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  mask-image: linear-gradient(to bottom, black calc(100% - 16px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 16px), transparent 100%);
+}
+.grid--cards { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start; }
+.grid--prestamos { grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.25s var(--ease-lux), transform 0.25s var(--ease-lux);
+}
+.card:hover { border-color: var(--border-strong); }
+
+.card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.05rem;
+  margin: 0 0 16px;
+  color: var(--text-primary);
+}
+.card__header .card__title { margin: 0; }
+
+.card__link { font-size: 0.8rem; color: var(--accent); }
+.card__link:hover { text-decoration: underline; }
+
+.chart-wrap { position: relative; flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.chart-wrap canvas { max-height: 100%; }
+
+/* Chart.js a veces fija el atributo width/height del <canvas> a un tamaño
+   calculado antes de que el layout esté estable (sobre todo en móvil, con
+   la barra de Safari cambiando de alto al hacer scroll) — sin este límite,
+   ese canvas puede quedar más ancho que su tarjeta y empujar toda la fila
+   fuera de la pantalla por la derecha. */
+canvas { max-width: 100%; }
+
+/* Reveal-on-scroll (GSAP toggles .is-visible) */
+/* Sin translateY: las tarjetas solo se funden, no suben de sitio (ver el
+   comentario de "reveal" en animations.js). */
+.reveal { opacity: 0; }
+.reveal.is-visible { opacity: 1; }
+
+/* =========================================================
+   MINI LISTS (dashboard)
+   ========================================================= */
+
+.mini-list { display: flex; flex-direction: column; gap: 12px; }
+
+.mini-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 8px;
+  margin: 0 -8px;
+  border-radius: var(--radius-sm);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s var(--ease-lux);
+}
+.mini-row:last-child { border-bottom: none; }
+.mini-row:hover { background: var(--surface-hover); }
+
+.mini-row__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.mini-row__body { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+.mini-row__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mini-row__title { font-size: 0.9rem; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mini-row__sub { font-size: 0.78rem; color: var(--text-muted); }
+
+.mini-row__amount { font-family: var(--font-display); font-size: 1rem; white-space: nowrap; flex-shrink: 0; }
+.mini-row__amount--pos { color: var(--success); }
+.mini-row__amount--neg { color: var(--text-primary); }
+.mini-row > .btn { flex-shrink: 0; }
+
+
+.empty-state {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 24px 0;
+}
+
+/* =========================================================
+   PROGRESS BARS (límites)
+   ========================================================= */
+
+.limite-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.limite-row:last-child { margin-bottom: 0; }
+
+.limite-row__labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+.limite-row__labels .name { color: var(--text-primary); }
+.limite-row__labels .value { color: var(--text-muted); }
+
+.progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.6s var(--ease-lux);
+}
+.progress-fill--warning { background: var(--warning); }
+.progress-fill--danger { background: var(--danger); }
+
+/* =========================================================
+   ENTITY CARDS (cuentas / categorias / prestamos / suscripciones)
+   ========================================================= */
+
+.entity-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s var(--ease-lux), border-color 0.25s var(--ease-lux), box-shadow 0.25s var(--ease-lux);
+}
+.entity-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-strong);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.4), 0 20px 40px -16px rgba(0, 0, 0, 0.7);
+}
+
+.entity-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.entity-card__top-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.row-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease-lux), color 0.15s var(--ease-lux);
+}
+.row-edit-btn:hover { border-color: var(--border-strong); color: var(--accent); }
+
+/* ---------------- Deslizar para eliminar ---------------- */
+
+.swipe-row { position: relative; overflow: hidden; border-radius: var(--radius-md); }
+.swipe-row + .swipe-row { margin-top: 0; }
+
+.swipe-row__action {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 88px;
+  background: var(--danger);
+  color: var(--on-danger);
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.swipe-row__content {
+  position: relative;
+  background: inherit;
+  transition: transform 0.25s var(--ease-lux);
+  touch-action: pan-y;
+}
+.swipe-row__content--dragging { transition: none; }
+
+/* Dentro de una lista (mini-row), el fondo lo pone la tarjeta contenedora,
+   no la propia fila — hace falta un fondo opaco aquí para que al deslizar
+   se vea la fila tapando el botón rojo, en vez de verse ambos a la vez. */
+.mini-list .swipe-row__content { background: var(--surface); }
+.mini-list .swipe-row { border-radius: var(--radius-sm); }
+
+.icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--on-accent);
+  flex-shrink: 0;
+}
+
+.icon-emoji { display: inline-flex; align-items: center; justify-content: center; line-height: 1; }
+
+.emoji-picker { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.emoji-input {
+  width: 56px;
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 8px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+.emoji-picker__options { display: flex; flex-wrap: wrap; gap: 6px; }
+.emoji-opt {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s var(--ease-lux), background 0.15s var(--ease-lux);
+}
+.emoji-opt:hover { border-color: var(--border-strong); background: var(--surface-hover); }
+
+.entity-card__heading { display: flex; align-items: center; gap: 12px; }
+.entity-card__name { font-family: var(--font-display); font-size: 1.15rem; margin: 0; }
+.entity-card__tag {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.entity-card__tag--activo { color: var(--success); border-color: rgba(122,155,129,0.3); }
+.entity-card__tag--impago { color: var(--danger); border-color: rgba(176,106,99,0.3); }
+.entity-card__tag--pagado { color: var(--text-muted); }
+
+.entity-card__amount { font-family: var(--font-display); font-size: 1.7rem; margin: 2px 0; }
+.entity-card__meta { color: var(--text-secondary); font-size: 0.84rem; margin: 0; }
+
+.entity-card__actions { display: flex; gap: 8px; margin-top: 10px; }
+
+/* Cuentas / categorías / suscripciones: todas las tarjetas a la misma
+   altura, con las acciones siempre ancladas abajo. */
+.grid--cards:not(.grid--prestamos) .entity-card { height: 260px; overflow: hidden; }
+.grid--cards:not(.grid--prestamos) .entity-card__top,
+.grid--cards:not(.grid--prestamos) .entity-card__amount,
+.grid--cards:not(.grid--prestamos) .entity-card__meta {
+  flex-shrink: 0;
+}
+.grid--cards:not(.grid--prestamos) .entity-card__name {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.grid--cards:not(.grid--prestamos) .entity-card__meta {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.grid--cards:not(.grid--prestamos) .entity-card__actions {
+  margin-top: auto;
+}
+
+.pago-list {
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: 12px;
+  padding-right: 4px;
+  mask-image: linear-gradient(to bottom, transparent 0, black 14px, black calc(100% - 20px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, black 14px, black calc(100% - 20px), transparent 100%);
+}
+.pago-list .mini-row { font-size: 0.86rem; }
+.pago-list .mini-row__title { font-size: 0.86rem; }
+.pago-list .mini-row__sub { font-size: 0.74rem; }
+.pago-list .mini-row__amount { font-size: 0.92rem; }
+
+/* Préstamos: tarjeta simple, capital arriba y el bloque de interés abajo
+   (sin lista de pagos ni historial), altura libre según el contenido. */
+.grid--prestamos .entity-card {
+  height: auto;
+}
+.grid--prestamos .entity-card__meta {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.prestamo-interes {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.prestamo-interes__info { display: flex; flex-direction: column; gap: 2px; }
+.prestamo-interes__label { font-size: 0.78rem; color: var(--text-muted); }
+.prestamo-interes__amount { font-family: var(--font-display); font-size: 1.3rem; color: var(--text-primary); }
+.prestamo-interes__fecha { font-size: 0.78rem; color: var(--text-muted); }
+.prestamo-interes__actions { display: flex; gap: 8px; flex-shrink: 0; }
+.prestamo-liquidar-btn { margin-top: 10px; }
+
+.plan-pagos {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* Las filas del plan de pagos son <button>, a diferencia del resto de
+   .mini-row (divs sin interacción) — se les resetea la apariencia nativa
+   de botón para que se sigan viendo igual, pero clicables. */
+button.mini-row {
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+button.mini-row:last-child { border-bottom: none; }
+
+/* =========================================================
+   DATA TABLE (movimientos)
+   ========================================================= */
+
+.data-table { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; }
+
+.data-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 140px 130px 90px;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.88rem;
+}
+.data-row:last-child { border-bottom: none; }
+.data-row:hover { background: var(--surface-hover); }
+.data-row--head { background: var(--bg-elevated); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+
+.data-row__amount--Ingreso { color: var(--success); }
+.data-row__amount--Gasto { color: var(--text-primary); }
+
+.data-row__actions { display: flex; gap: 6px; justify-content: flex-end; }
+
+.data-row__cat { display: flex; align-items: center; gap: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.data-row__cat .mini-row__icon { width: 26px; height: 26px; border-radius: 8px; }
+
+.data-row--historial { grid-template-columns: 90px 1fr 110px; }
+.data-row--historial .data-row__cat .icon-emoji { margin-right: 4px; }
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+.modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s var(--ease-lux);
+}
+.modal-root.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-root__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 9, 7, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+.modal--wide { max-width: 640px !important; }
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  max-height: 88vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* Al llegar al final del contenido del modal, el gesto no "salta" a
+     arrastrar la página de detrás ni provoca el rebote de iOS. */
+  overscroll-behavior: contain;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-modal);
+  transform: scale(0.96) translateY(10px);
+  transition: transform 0.22s var(--ease-lux);
+}
+.modal-root.is-open .modal {
+  transform: scale(1) translateY(0);
+}
+
+.modal__title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  margin: 0 0 20px;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+/* =========================================================
+   EFECTOS DE LOS TEMAS
+   =========================================================
+   La capa donde se dibuja el destello del personaje: al abrir el
+   Dashboard, al guardar algo y al eliminar una fila. Aquí solo está el
+   armazón (dónde va, que no estorbe, que empiece invisible); el dibujo y
+   el movimiento de cada uno los pone css/temas.css. Sin tema puesto no
+   hay ninguna regla que los active, así que Original no cambia. */
+
+.efecto {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.efecto--pantalla {
+  position: fixed;
+  z-index: 200;
+  /* Varios efectos se escalan hasta tres veces el tamaño de la pantalla;
+     sin esto asomarían por los bordes y aparecería barra de scroll. */
+  overflow: hidden;
+}
+
+/* La tarjeta del hero se estira y tiembla durante la entrada. Hay que
+   sacarla de su sitio para que se dibuje por encima de lo que tiene
+   alrededor mientras dura, y avisar al navegador de que la va a mover. */
+.hero.is-entrando {
+  position: relative;
+  z-index: 2;
+  will-change: transform, filter;
+}
+
+/* Mientras carga, con tema puesto el aro se agranda y lleva dentro la
+   marca del personaje latiendo. Es lo primero que se ve al abrir la app. */
+html[data-tema] .loading-spinner {
+  width: 46px;
+  height: 46px;
+  border-width: 2px;
+}
+html[data-tema] .loading-spinner::after {
+  content: "";
+  position: absolute;
+  inset: 26%;
+  background: var(--accent);
+  -webkit-mask: var(--marca) center / contain no-repeat;
+  mask: var(--marca) center / contain no-repeat;
+  animation: fj-latido 1.3s ease-in-out infinite;
+}
+/* El aro gira; la marca de dentro no debe girar con él, así que se
+   contrarresta con el mismo giro al revés. */
+@keyframes fj-latido {
+  0%, 100% { opacity: 0.45; transform: rotate(0deg) scale(0.86); }
+  50% { opacity: 1; transform: rotate(-180deg) scale(1); }
+}
+
+/* Un remate con el color del tema al abrirse un formulario. */
+html[data-tema] .modal-root.is-open .modal::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: fj-remate-modal 700ms var(--ease-lux) both;
+}
+@keyframes fj-remate-modal {
+  0% { opacity: 0; transform: scaleX(0.15); }
+  45% { opacity: 1; }
+  100% { opacity: 0.6; transform: scaleX(1); }
+}
+
+/* Cuando una cifra cambia, se enciende un momento con el color del tema.
+   Solo color y resplandor: nada de mover ni escalar, que es justo lo que
+   hacía que los números "bailaran" en su día. */
+html[data-tema] .is-cambiando {
+  animation: fj-cifra 700ms ease-out both;
+}
+@keyframes fj-cifra {
+  0% { color: var(--accent); text-shadow: 0 0 18px var(--accent-soft-strong); }
+  60% { color: var(--accent); text-shadow: 0 0 10px var(--accent-soft); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+/* La fila que se está eliminando se anima antes de desaparecer de verdad,
+   así que hay que sacarla del flujo visual sin que empuje a las demás. */
+.swipe-row.is-eliminando {
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .efecto { display: none; }
+  .swipe-row.is-eliminando,
+  .hero.is-entrando,
+  .modal::before,
+  .is-cambiando,
+  #saldo-total.is-destacado,
+  .loading-spinner::after { animation: none !important; }
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1024px) {
+  .grid--dashboard {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-areas:
+      "center center"
+      "l1 r1"
+      "l2 r2"
+      "l3 r3";
+  }
+  .grid--dashboard .card--chart { height: 300px; }
+}
+
+.mobile-nav-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 9, 7, 0.72);
+  backdrop-filter: blur(4px);
+  z-index: 30;
+  opacity: 0;
+  transition: opacity 0.3s var(--ease-lux);
+}
+.mobile-nav-scrim.is-open { opacity: 1; }
+
+.mobile-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(78vw, 300px);
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border);
+  z-index: 31;
+  padding: 84px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transform: translateX(-100%);
+  transition: transform 0.3s var(--ease-lux);
+}
+.mobile-nav.is-open { transform: translateX(0); }
+.mobile-nav .nav__link { font-size: 1rem; padding: 13px 14px; }
+
+/* Mientras se arrastra, el transform/opacity los fija el JS en cada
+   fotograma para seguir al dedo — sin esto, la transición de 0.3s
+   competiría con cada actualización y el gesto se vería a saltos. */
+.mobile-nav.is-dragging, .mobile-nav-scrim.is-dragging { transition: none; }
+
+@media (max-width: 860px) {
+  /* Sin esto, el grid reparte el alto sobrante de min-height:100vh entre
+     TODAS sus filas (topbar incluida) cuando el contenido de la vista es
+     corto — el topbar queda centrado dentro de una fila enorme, con un
+     hueco vacío encima. "auto" fija la fila del topbar a su alto real y
+     "1fr" manda todo el sobrante a la fila del contenido. */
+  .app-shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .sidebar { display: none; }
+  .topbar { display: flex; }
+  .view-container { padding: 20px 16px 100px; }
+  .grid--dashboard { grid-template-columns: 1fr; grid-template-areas: none; }
+  .grid--dashboard .gd-l1, .grid--dashboard .gd-l2, .grid--dashboard .gd-l3,
+  .grid--dashboard .gd-r1, .grid--dashboard .gd-r2, .grid--dashboard .gd-r3,
+  .grid--dashboard .gd-center { grid-area: auto; }
+  .gd-center { order: -1; }
+  .grid--dashboard .card { height: auto; max-height: none; }
+  .grid--dashboard .card--chart { height: 280px; }
+  .grid--dashboard .dash-scroll {
+    overflow: visible;
+    max-height: none;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+  .chart-wrap { min-height: 200px; }
+  .grid--kpis { grid-template-columns: repeat(1, 1fr); }
+  .grid--graficos-donuts { grid-template-columns: 1fr; }
+  .hero { height: auto; }
+  .hero--con-imagen { height: auto; min-height: 152px; }
+  .hero__content { padding: 18px 20px; flex-wrap: wrap; }
+  .hero__greeting { font-size: 0.92rem; }
+  .hero__balance { font-size: 1.7rem; }
+  .form-grid { grid-template-columns: 1fr; }
+  .data-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 14px 16px;
+  }
+  .data-row--head { display: none; }
+  .data-row__actions { justify-content: flex-start; margin-top: 8px; }
+}
+
+@media (max-width: 480px) {
+  .login-card { padding: 32px 22px; }
+  .view-title { font-size: 1.4rem; }
+}

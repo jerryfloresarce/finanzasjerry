@@ -1,0 +1,55 @@
+rules_version = '2';
+
+// Mis Finanzas — reglas de seguridad de Firestore.
+//
+// No hay registro público en este proyecto: solo tú (y, si decides crearla,
+// una segunda cuenta dedicada al Shortcut de iPhone) tenéis usuarios en
+// Firebase Auth, creados a mano desde la consola. Por eso basta con exigir
+// que la petición venga autenticada — no hace falta comprobar un UID
+// concreto, porque nadie más puede tener una cuenta en este proyecto.
+//
+// Cómo desplegar estas reglas:
+// Firebase Console → Firestore Database → Reglas → pega este archivo → Publicar.
+// (O, si usas Firebase CLI: `firebase deploy --only firestore:rules`.)
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function autenticado() {
+      return request.auth != null;
+    }
+
+    match /cuentas/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /categorias/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /movimientos/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /suscripciones/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /prestamos/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /pagos_prestamos/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /configuracion/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    // Todo lo demás, denegado por defecto.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
