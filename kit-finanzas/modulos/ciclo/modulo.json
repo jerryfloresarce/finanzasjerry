@@ -1,0 +1,9 @@
+{
+  "titulo": "Ciclo · seguimiento menstrual",
+  "resumen": "Apuntar cuándo empieza y acaba la regla, ver la media de tus ciclos, la previsión de la siguiente y anotar cómo te has sentido cada día.",
+  "Vista": "Ciclo",
+  "colecciones": [
+    { "id": "ciclos", "Nombre": "Ciclos", "estado": "ciclos", "ordenarPor": null },
+    { "id": "ciclo_notas", "Nombre": "CicloNotas", "estado": "cicloNotas", "ordenarPor": null }
+  ]
+}

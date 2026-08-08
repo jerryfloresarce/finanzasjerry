@@ -126,8 +126,28 @@ for (const id of BANNERS_A_QUITAR) {
   html = quitarDivPorId(html, id);
   if (html.length === antes) console.warn(`  aviso: no encontré el banner ${id}`);
 }
+
+// Las paletas de color, que en la app de Jerry no existen: son los temas
+// sin temática, para quien no quiera ni One Piece ni Kimetsu. Se enlazan
+// DESPUÉS de temas.css para poder pisarlo si hiciera falta.
+const versionCss = html.match(/css\/temas\.css\?v=(\d+)/)?.[1] || "1";
+html = html.replace(
+  /(<link rel="stylesheet" href="css\/temas\.css\?v=\d+" \/>)/,
+  `$1\n<link rel="stylesheet" href="css/paletas.css?v=${versionCss}" />`
+);
+// Y sus identificadores en el guion que pinta el tema en el primer
+// fotograma. Sin esto, quien tenga puesta una paleta ve un instante de
+// verde al abrir, que es justo lo que ese guion existe para evitar.
+const idsPaletas = [...readFileSync(join(EXTRAS, "css", "paletas.css"), "utf8").matchAll(/html\[data-tema="([\w-]+)"\]/g)]
+  .map((m) => m[1])
+  .filter((v, i, a) => a.indexOf(v) === i);
+html = html.replace(
+  /(var temasValidos = \[)([^\]]*)(\])/,
+  (_, a, lista, c) => a + lista + ", " + idsPaletas.map((x) => `"${x}"`).join(", ") + c
+);
+
 writeFileSync(join(DESTINO, "index.html"), html);
-log(`· index.html: nombre neutro y ${BANNERS_A_QUITAR.length} avisos de un solo uso fuera`);
+log(`· index.html: nombre neutro, ${BANNERS_A_QUITAR.length} avisos de un solo uso fuera y ${idsPaletas.length} paletas enlazadas`);
 
 // 3 · Las imágenes: se van y las variables quedan en "none"
 const AVISO_IMAGEN = (que) =>
@@ -198,6 +218,24 @@ function renombrar(dir) {
   }
 }
 renombrar(DESTINO);
+
+// Las paletas también tienen que estar en el catálogo de js/tema.js, que es
+// de donde el selector saca la lista. Enlazar el CSS no basta: sin esto los
+// colores existen pero no hay forma de elegirlos.
+{
+  const ruta = join(DESTINO, "js", "tema.js");
+  let tema = readFileSync(ruta, "utf8");
+  const nombres = Object.fromEntries(
+    [...readFileSync(join(EXTRAS, "css", "paletas.css"), "utf8").matchAll(/\/\* (.+?) \*\/\nhtml\[data-tema="([\w-]+)"\]/g)]
+      .map((m) => [m[2], m[1]])
+  );
+  const entradas = Object.entries(nombres)
+    .map(([id, nombre]) => `  {\n    id: "${id}",\n    nombre: "${nombre}",\n    grupo: "Colores",\n  },`)
+    .join("\n");
+  tema = tema.replace(/(\n\];\n\nexport const TEMA_POR_DEFECTO)/, `\n${entradas}$1`);
+  writeFileSync(ruta, tema);
+  log(`· js/tema.js: ${Object.keys(nombres).length} paletas añadidas al selector`);
+}
 log(`· añadidos el ejemplo de configuración, el arranque de datos y el modo demostración (versión ${version})`);
 
 // 5 · demo.html: la misma app, pero con los Firebase de mentira.
@@ -221,8 +259,25 @@ const importmap = `<script type="importmap">
 // Firebase de verdad.
 let demo = html.replace("<title>", importmap + "<title>");
 demo = demo.replace(/<title>.*?<\/title>/, `<title>${NOMBRE_NEUTRO.app} · demostración</title>`);
+
+// La visita guiada solo existe aquí, no en la app de verdad: es lo que
+// hace de "vídeo" de lo que vas a tener. El guion va al final del body,
+// después de que la app se haya montado.
+demo = demo.replace(
+  "</head>",
+  `<link rel="stylesheet" href="css/visita.css?v=${version}" />\n</head>`
+);
+demo = demo.replace(
+  "</body>",
+  `<script type="module">
+  import { montarBotonDeVisita } from "./js/demo/visita.js?v=${version}";
+  montarBotonDeVisita();
+</script>
+</body>`
+);
+
 writeFileSync(join(DESTINO, "demo.html"), demo);
-log("· demo.html: la app con datos de mentira, sin cuenta de nada");
+log("· demo.html: la app con datos de mentira y la visita guiada");
 
 // 5 · Comprobaciones: la plantilla tiene que quedar sin rastro personal
 const problemas = [];

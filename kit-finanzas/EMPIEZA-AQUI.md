@@ -16,9 +16,14 @@ Abre esta carpeta en Claude Code y escribe:
 /probar
 ```
 
-Se te abrirá la app en el navegador, con datos inventados, para que la
-toques entera: añade un gasto, bórralo, cambia el tema, mira los gráficos.
-**No hace falta crear cuenta de nada** y no se guarda nada de lo que hagas.
+Se te abrirá la app en el navegador, con datos inventados. **No hace falta
+crear cuenta de nada.**
+
+Abajo a la derecha tienes un botón: **"Ver la visita guiada"**. Dale. Es como
+un vídeo de lo que vas a tener, pero es la app de verdad: va sola por las
+secciones, te enseña dónde está cada cosa, apunta un gasto delante de ti y
+te cambia los colores para que veas cómo queda. Dura un minuto y se puede
+parar cuando quieras para tocar tú.
 
 ## 2 · Si te gusta, pídela
 
@@ -26,13 +31,13 @@ toques entera: añade un gasto, bórralo, cambia el tema, mira los gráficos.
 quiero la mía
 ```
 
-Te va a preguntar cuatro cosas (tus bancos, en qué gastas, si quieres las
-categorías tuyas o unas normales) y luego te va guiando, botón por botón,
-por lo único que tienes que hacer tú: crear una cuenta gratis en Firebase,
-que es donde se guardan tus movimientos.
+Te va a preguntar unas pocas cosas —tus bancos, en qué gastas, de qué color
+la quieres— y luego te va guiando, botón por botón, por lo único que tienes
+que hacer tú: crear una cuenta gratis en Firebase, que es donde se guardan
+tus movimientos.
 
 Son unos diez minutos. Te dice exactamente dónde pulsar y comprueba cada
-paso antes de pasar al siguiente.
+paso antes de pasar al siguiente. Si algo está mal, te dice qué y lo arregla.
 
 ## 3 · Si la quieres en el móvil
 
@@ -72,6 +77,23 @@ año) y es totalmente opcional.
 | Se te cortó a la mitad | `continúa` |
 | Te sale un error | `tengo un error` y pega el mensaje tal cual |
 | No entiendes un paso | `explícamelo otra vez más despacio` |
+| No sabes por dónde ibas | `/donde-estoy` — lo mira y te lo dice |
+| Ya la tienes y quieres cambiar algo | `/personalizar`, o cuéntamelo y ya |
 
 Y si te dice que algo funciona, es porque lo ha comprobado con una llamada
 de verdad, no porque lo suponga.
+
+---
+
+## Una cosa más, la más importante
+
+Esto no es una app que te bajas y es la que es. **Cualquier cosa que quieras
+cambiar, la cuentas con tus palabras y se hace.**
+
+> "quiero que sea rosa"
+> "quiero una sección para mis hábitos"
+> "que los gastos de más de 100 € salgan en rojo"
+> "quítame lo de préstamos, que no lo uso"
+> "quiero apuntar mi ciclo también"
+
+No hace falta que sepas cómo se llama eso, ni si "se puede". Se cuenta y ya.

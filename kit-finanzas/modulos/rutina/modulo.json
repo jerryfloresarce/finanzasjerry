@@ -1,0 +1,9 @@
+{
+  "titulo": "Rutina · hábitos del día a día",
+  "resumen": "Una lista de cosas que quieres hacer cada día y un calendario que enseña cuántos días seguidos las llevas cumpliendo.",
+  "Vista": "Rutina",
+  "colecciones": [
+    { "id": "habitos", "Nombre": "Habitos", "estado": "habitos", "ordenarPor": null },
+    { "id": "habitos_hechos", "Nombre": "HabitosHechos", "estado": "habitosHechos", "ordenarPor": null }
+  ]
+}

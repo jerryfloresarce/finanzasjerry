@@ -32,6 +32,7 @@
 
 <link rel="stylesheet" href="css/styles.css?v=44" />
 <link rel="stylesheet" href="css/temas.css?v=44" />
+<link rel="stylesheet" href="css/paletas.css?v=44" />
 <script>
   /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
      desde un módulo (que se ejecuta al final), la app abriría un instante
@@ -40,7 +41,7 @@
      catálogo bueno está en js/tema.js. */
   try {
     var temaGuardado = localStorage.getItem("fj-tema");
-    var temasValidos = ["luffy", "zoro", "sanji", "tanjiro", "zenitsu", "inosuke", "akaza"];
+    var temasValidos = ["luffy", "zoro", "sanji", "tanjiro", "zenitsu", "inosuke", "akaza", "rosa", "lavanda", "menta", "oceano", "arena", "cereza", "bosque", "noche"];
     if (temaGuardado && temasValidos.indexOf(temaGuardado) !== -1) {
       document.documentElement.dataset.tema = temaGuardado;
       var fondo = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
@@ -51,6 +52,7 @@
 </script>
 <link rel="icon" href="data:,">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link rel="stylesheet" href="css/visita.css?v=44" />
 </head>
 <body>
 
@@ -447,5 +449,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
 <script type="module" src="js/app.js?v=44"></script>
+<script type="module">
+  import { montarBotonDeVisita } from "./js/demo/visita.js?v=44";
+  montarBotonDeVisita();
+</script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 ---
 name: montar-app-finanzas
-description: "Monta para el usuario su propia app de finanzas personales —cuentas, gastos, ingresos, gráficos, gastos fijos y copia de seguridad— partiendo de una plantilla ya hecha y probada: primero se la enseña funcionando con datos de mentira sin que cree cuenta de nada, luego le guía paso a paso por las pantallas de Firebase que solo puede tocar él, comprueba con llamadas reales que las claves funcionan y que sus datos están protegidos, genera su app con sus categorías y sus bancos, la arranca en su ordenador para que la vea, y si quiere la publica en internet para poder abrirla desde el móvil. Usa esta skill cuando el usuario quiera una app para controlar su dinero, llevar sus gastos, saber en qué se le va el sueldo, dejar de usar una hoja de cálculo para sus cuentas, o publicar la que ya tiene. Triggers: 'quiero una app de finanzas', 'quiero llevar mis gastos', 'hazme una app para mis cuentas', 'quiero controlar mi dinero', 'monta mi app', 'quiero probarla', 'enséñamela', 'quiero la mía', 'publícala', 'quiero verla en el móvil', 'ya tengo los archivos y quiero subirla', 'continúa con mi app'."
+description: "Monta para el usuario su propia app de finanzas personales —cuentas, gastos, ingresos, gráficos, gastos fijos y copia de seguridad— partiendo de una plantilla ya hecha y probada: primero se la enseña funcionando con datos de mentira sin que cree cuenta de nada, luego le guía paso a paso por las pantallas de Firebase que solo puede tocar él, comprueba con llamadas reales que las claves funcionan y que sus datos están protegidos, genera su app con sus categorías y sus bancos, la arranca en su ordenador para que la vea, y si quiere la publica en internet para poder abrirla desde el móvil. Usa esta skill cuando el usuario quiera una app para controlar su dinero, llevar sus gastos, saber en qué se le va el sueldo, dejar de usar una hoja de cálculo para sus cuentas, o publicar la que ya tiene. Triggers: 'quiero una app de finanzas', 'quiero llevar mis gastos', 'hazme una app para mis cuentas', 'quiero controlar mi dinero', 'monta mi app', 'quiero probarla', 'enséñamela', 'quiero la mía', 'publícala', 'quiero verla en el móvil', 'ya tengo los archivos y quiero subirla', 'continúa con mi app', 'no sé por dónde voy', 'me faltan los atajos', 'quiero otro color', 'quiero una sección para', 'quiero cambiar una cosa'."
 ---
 
 # Montar la app de finanzas
@@ -72,6 +72,13 @@ Nadie se abre una cuenta para algo que no ha visto. Antes de pedirle nada:
    nada, y que puede tocar todo — añadir un gasto, borrarlo, cambiar de tema
    en el icono de arriba a la derecha. Y que **al recargar vuelve a empezar**,
    porque en la demostración no se guarda nada.
+5. **Enséñale el botón de "Ver la visita guiada"**, abajo a la derecha. Es
+   lo más parecido a un vídeo de "esto es lo que vas a tener": va sola por
+   las secciones, señala lo que hay que mirar, apunta un gasto delante de
+   ella y cambia de color la app entera. Dura poco más de un minuto y se
+   puede parar en cualquier momento.
+
+   Si prefiere ir directa, la dirección `demo.html?visita` la arranca sola.
 
 Ese `demo.html` es la misma app; lo único que cambia es que por debajo, en
 vez de una base de datos de verdad, hay una de mentira que vive en la
@@ -119,6 +126,37 @@ Dos tandas cortas, nunca doce preguntas de golpe.
 - ¿En qué moneda? → si no es el euro, hay que tocar `formatEUR` en
   `js/db.js` (`Intl.NumberFormat` con su moneda) y decírselo.
 - ¿Cómo quieres que se llame la app y cómo quieres que te salude?
+
+### Tanda 3 — el aspecto y lo que quiera añadir
+
+Estas dos van al final a propósito: son las que más ilusión hacen y las que
+mejor sientan cuando ya se ha contestado a lo aburrido.
+
+**El color.** Ocho paletas de serie: Rosa, Lavanda, Menta, Océano, Arena,
+Cereza, Bosque y Noche. Más los siete de personajes, con sus animaciones.
+Lo más rápido es decirle que las pruebe en la demostración y se quede con la
+que le guste. Y si ninguna le encaja, **se le hace una con su color**:
+
+```sh
+node herramientas/gen-paletas.mjs "#sucolor" mio "El mío"
+```
+
+Le pides un color de donde sea —una foto, su marca, "un rosa como este"— y
+sale el tema entero, con el contraste ya comprobado.
+
+**Lo que quiera añadir.** Hay dos secciones que no vienen de serie:
+
+| Módulo | Qué es |
+|---|---|
+| `rutina` | Los hábitos que quiere cumplir cada día, con racha y calendario |
+| `ciclo` | Seguimiento del ciclo menstrual |
+
+Se ofrecen **una vez, sin insistir**, y sin dar nada por hecho por el nombre
+de nadie. Lee `referencias/modulos.md` antes de ofrecer el del ciclo: hay
+tres cosas que hay que dejarle claras y una que no se dice nunca.
+
+Y remátalo con lo importante: **que puede pedir lo que sea, aunque no esté
+en ninguna lista.** Con sus palabras, sin saber cómo se llama.
 
 ### Lo que sale de ahí
 
@@ -179,6 +217,17 @@ Ahora sí se tocan archivos, y solo dentro de `mi-app/`.
    déjala en `mi-app/assets/img/` y apunta la variable que toque
    (`--hero-imagen` en `css/temas.css`, `--login-imagen` en
    `css/styles.css`).
+5. **Los módulos que haya pedido**, uno por uno:
+
+   ```sh
+   node herramientas/instalar-modulo.mjs rutina
+   ```
+
+   El instalador toca los siete sitios que hacen falta y comprueba el
+   resultado. Si falla, lo dice: quítalo y mira qué pasó, no lo dejes a
+   medias.
+6. **Su paleta**, si le hiciste una: pega el CSS en `mi-app/css/paletas.css`
+   y añade el tema al catálogo de `mi-app/js/tema.js`, junto a los demás.
 
 Nunca escribas fuera de `mi-app/`. `plantilla-app/` no se toca: es el
 original del que salen todas las copias.
@@ -201,6 +250,10 @@ No vale con que "no dé error". Se comprueba, en este orden:
    plantilla.
 6. Repite la comprobación de las reglas del Paso 4: sin sesión, sus datos no
    se leen.
+7. **Si instalaste módulos**: que su sección salga en el menú, que se pueda
+   entrar y que el botón principal guarde de verdad. Y recuérdale que hay
+   que **volver a publicar `firestore.rules`** en Firebase, o esas secciones
+   darán "sin permiso" al guardar. Pásale tú el contenido del archivo.
 
 Si algo falla, arréglalo antes de seguir. Un "creo que ya está" que no está
 se descubre tres días después y para entonces ya no se acuerda de nada.
@@ -243,6 +296,14 @@ En seis líneas como mucho:
 - Que tiene **Exportar mis datos** en el menú de su cuenta, y que conviene
   hacerlo de vez en cuando.
 - Qué se quedó fuera y por qué, si algo se quedó fuera.
+
+Y termina siempre con esto, que es lo que más se le va a olvidar y lo más
+útil que se lleva:
+
+> A partir de ahora, cualquier cosa que quieras cambiar de tu app me la
+> dices con tus palabras y te la hago. Otro color, una sección nueva, que
+> los gastos grandes salgan en rojo, lo que sea. No hace falta que sepas
+> cómo se llama ni si se puede: cuéntamelo y lo vemos.
 
 ---
 

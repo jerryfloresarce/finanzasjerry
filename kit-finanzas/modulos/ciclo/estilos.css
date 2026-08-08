@@ -1,0 +1,142 @@
+/* Ciclo — resumen, calendario y sensaciones.
+   Reutiliza .entity-row y .rutina-rejilla del módulo de rutina; si el de
+   rutina no está instalado, estas dos reglas de abajo lo cubren. */
+
+.entity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  /* El fondo NO es decorativo: estas filas van dentro de un "deslizar para
+     eliminar", que lleva el botón rojo escondido detrás. Sin fondo propio,
+     la fila es transparente y el botón se ve siempre, como si estuviera
+     medio abierta. Es el mismo color que la tarjeta que las contiene, así
+     que a la vista no cambia nada. */
+  background: var(--surface);
+}
+.entity-row:last-child { border-bottom: none; }
+.entity-row__body { flex: 1; min-width: 0; }
+.entity-row__name { margin: 0; font-size: 0.94rem; color: var(--text-primary); }
+.entity-row__meta { margin: 2px 0 0; font-size: 0.78rem; color: var(--text-muted); }
+
+.rutina-rejilla { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.rutina-celda {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.rutina-celda.is-titulo {
+  background: transparent;
+  border: none;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.rutina-celda.is-vacia { background: transparent; border: none; }
+
+.ciclo-datos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+.ciclo-dato {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 10px;
+  text-align: center;
+}
+.ciclo-dato__valor {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+.ciclo-dato__etiqueta {
+  margin: 4px 0 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.ciclo-celda { cursor: pointer; font: inherit; font-size: 0.7rem; }
+.ciclo-celda:hover { border-color: var(--border-strong); }
+.ciclo-celda.is-regla {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+/* La previsión va rayada, no rellena: es una estimación, y tiene que
+   distinguirse a simple vista de los días que sí pasaron de verdad. */
+.ciclo-celda.is-prevista {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--accent-soft) 0 4px,
+    transparent 4px 8px
+  );
+}
+.ciclo-celda.is-hoy { outline: 2px solid var(--text-secondary); outline-offset: 1px; }
+.ciclo-celda.tiene-nota { position: relative; }
+.ciclo-celda.tiene-nota::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+}
+
+.ciclo-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 12px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+.ciclo-leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+.ciclo-punto {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  display: inline-block;
+}
+.ciclo-punto.is-regla { background: var(--accent); border-color: var(--accent); }
+.ciclo-punto.is-prevista {
+  border-color: var(--accent);
+  background: repeating-linear-gradient(-45deg, var(--accent-soft) 0 3px, transparent 3px 6px);
+}
+.ciclo-punto.tiene-nota { background: var(--text-secondary); border-radius: 50%; width: 7px; height: 7px; }
+
+.ciclo-sensaciones { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.ciclo-sensacion { cursor: pointer; }
+.ciclo-sensacion input { position: absolute; opacity: 0; pointer-events: none; }
+.ciclo-sensacion span {
+  display: inline-block;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  transition: border-color 0.18s var(--ease-lux), background 0.18s var(--ease-lux), color 0.18s var(--ease-lux);
+}
+.ciclo-sensacion input:checked + span {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+.ciclo-sensacion input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }

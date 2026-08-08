@@ -23,6 +23,7 @@
 
 <link rel="stylesheet" href="css/styles.css?v=44" />
 <link rel="stylesheet" href="css/temas.css?v=44" />
+<link rel="stylesheet" href="css/paletas.css?v=44" />
 <script>
   /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
      desde un módulo (que se ejecuta al final), la app abriría un instante
@@ -31,7 +32,7 @@
      catálogo bueno está en js/tema.js. */
   try {
     var temaGuardado = localStorage.getItem("fj-tema");
-    var temasValidos = ["luffy", "zoro", "sanji", "tanjiro", "zenitsu", "inosuke", "akaza"];
+    var temasValidos = ["luffy", "zoro", "sanji", "tanjiro", "zenitsu", "inosuke", "akaza", "rosa", "lavanda", "menta", "oceano", "arena", "cereza", "bosque", "noche"];
     if (temaGuardado && temasValidos.indexOf(temaGuardado) !== -1) {
       document.documentElement.dataset.tema = temaGuardado;
       var fondo = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();

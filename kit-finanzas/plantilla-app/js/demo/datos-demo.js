@@ -177,6 +177,52 @@ export function datosDeDemostracion() {
     },
   ];
 
+  // ---- Datos de los módulos que se pueden añadir aparte (rutina, ciclo).
+  // Van siempre: si el módulo no está instalado, la app ni los mira; y si
+  // está, la demostración lo enseña lleno en vez de vacío, que es lo que
+  // permite entender de un vistazo para qué sirve.
+
+  const habitos = [
+    { id: "h1", nombre: "Beber 2 litros de agua", icono: "💧" },
+    { id: "h2", nombre: "Moverme 30 minutos", icono: "🏃" },
+    { id: "h3", nombre: "Leer antes de dormir", icono: "📖" },
+  ];
+
+  // Rachas distintas a propósito: una larga, una a medias y una floja. Con
+  // las tres iguales no se entendería qué hace el calendario.
+  const constancia = { h1: 0.92, h2: 0.6, h3: 0.35 };
+  const habitos_hechos = [];
+  let idHecho = 0;
+  habitos.forEach((h) => {
+    for (let dia = 45; dia >= 0; dia--) {
+      // Los últimos días del más constante se marcan siempre, para que la
+      // racha que sale en pantalla sea visible y no dependa del azar.
+      const seguro = h.id === "h1" && dia <= 11;
+      if (!seguro && rnd() > constancia[h.id]) continue;
+      habitos_hechos.push({ id: `hh${++idHecho}`, habito_id: h.id, fecha: iso(diasAtras(dia)) });
+    }
+  });
+
+  // Cuatro ciclos de duración parecida pero no idéntica: suficiente para que
+  // haya previsión (hacen falta tres) y realista, porque no hay dos meses
+  // exactamente iguales.
+  const ciclos = [];
+  const cicloNotas = [];
+  let atras = 96;
+  [29, 28, 30].forEach((duracion, i) => {
+    ciclos.push({
+      id: `cc${i + 1}`,
+      inicio: iso(diasAtras(atras)),
+      fin: iso(diasAtras(atras - 4)),
+    });
+    atras -= duracion;
+  });
+  ciclos.push({ id: "cc4", inicio: iso(diasAtras(atras)), fin: iso(diasAtras(Math.max(atras - 4, 0))) });
+  cicloNotas.push(
+    { id: "cn1", fecha: iso(diasAtras(atras)), sensaciones: ["Dolor", "Cansada"], texto: "" },
+    { id: "cn2", fecha: iso(diasAtras(Math.max(atras - 2, 0))), sensaciones: ["Bien"], texto: "Mucho mejor hoy" }
+  );
+
   return {
     cuentas,
     categorias,
@@ -185,5 +231,9 @@ export function datosDeDemostracion() {
     prestamos,
     pagos_prestamos: [],
     configuracion: [{ id: "app", tema: "original" }],
+    habitos,
+    habitos_hechos,
+    ciclos,
+    ciclo_notas: cicloNotas,
   };
 }

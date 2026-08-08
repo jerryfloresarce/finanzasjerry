@@ -45,6 +45,46 @@ export const TEMAS = [
     nombre: "Akaza",
     grupo: "Kimetsu no Yaiba",
   },
+  {
+    id: "rosa",
+    nombre: "Rosa",
+    grupo: "Colores",
+  },
+  {
+    id: "lavanda",
+    nombre: "Lavanda",
+    grupo: "Colores",
+  },
+  {
+    id: "menta",
+    nombre: "Menta",
+    grupo: "Colores",
+  },
+  {
+    id: "oceano",
+    nombre: "Océano",
+    grupo: "Colores",
+  },
+  {
+    id: "arena",
+    nombre: "Arena",
+    grupo: "Colores",
+  },
+  {
+    id: "cereza",
+    nombre: "Cereza",
+    grupo: "Colores",
+  },
+  {
+    id: "bosque",
+    nombre: "Bosque",
+    grupo: "Colores",
+  },
+  {
+    id: "noche",
+    nombre: "Noche",
+    grupo: "Colores",
+  },
 ];
 
 export const TEMA_POR_DEFECTO = "original";

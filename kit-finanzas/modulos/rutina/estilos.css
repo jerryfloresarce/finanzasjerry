@@ -1,0 +1,93 @@
+/* Rutina — la lista de hoy y el calendario del mes */
+
+.entity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  /* El fondo NO es decorativo: estas filas van dentro de un "deslizar para
+     eliminar", que lleva el botón rojo escondido detrás. Sin fondo propio,
+     la fila es transparente y el botón se ve siempre, como si estuviera
+     medio abierta. Es el mismo color que la tarjeta que las contiene, así
+     que a la vista no cambia nada. */
+  background: var(--surface);
+}
+.entity-row:last-child { border-bottom: none; }
+.entity-row__body { flex: 1; min-width: 0; }
+.entity-row__name {
+  margin: 0;
+  font-size: 0.94rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.entity-row__meta { margin: 2px 0 0; font-size: 0.78rem; color: var(--text-muted); }
+
+/* El botón de marcar es grande a propósito: se pulsa con el pulgar, a
+   veces con prisa y andando. Menos de 44 px se falla más de lo que parece. */
+.habito-check {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  background: transparent;
+  color: var(--on-accent);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 0.18s var(--ease-lux), border-color 0.18s var(--ease-lux), transform 0.12s var(--ease-lux);
+}
+.habito-check:hover { border-color: var(--accent); }
+.habito-check:active { transform: scale(0.92); }
+.habito-check.is-hecho {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.habito-check:disabled { opacity: 0.5; cursor: wait; }
+
+.rutina-mes__habito { margin-top: 18px; }
+.rutina-mes__habito:first-of-type { margin-top: 10px; }
+.rutina-mes__cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.rutina-rejilla {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.rutina-celda {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.rutina-celda.is-titulo {
+  background: transparent;
+  border: none;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.rutina-celda.is-vacia { background: transparent; border: none; }
+.rutina-celda.is-futura { opacity: 0.35; }
+.rutina-celda.is-hecha {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
