@@ -29,10 +29,10 @@ import {
   addCicloNotas,
   updateCicloNotas,
   deleteCicloNotas,
-} from "../db.js?v=45";
-import { openModal, closeModal } from "../modal.js?v=45";
-import { icon } from "../icons.js?v=45";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=45";
+} from "../db.js?v=46";
+import { openModal, closeModal } from "../modal.js?v=46";
+import { icon } from "../icons.js?v=46";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=46";
 
 const SENSACIONES = [
   "Bien",

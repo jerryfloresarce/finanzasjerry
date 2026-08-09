@@ -2,7 +2,7 @@
 // Solo se aplican dentro del dashboard; los formularios y listados
 // del resto de vistas son instantáneos a propósito.
 
-import { destelloEnNumero } from "./efectos.js?v=45";
+import { destelloEnNumero } from "./efectos.js?v=46";
 
 let heroTriggers = [];
 let revealTriggers = [];
@@ -170,6 +170,59 @@ export function estaAsentando() {
 
 const countState = new WeakMap();
 
+// Escribe un número dejando que cada CIFRA ocupe siempre lo mismo.
+//
+// Fraunces —como casi toda tipografía de titular— dibuja el 1 mucho más
+// estrecho que el 0: medido en el propio archivo de la fuente, 1024 frente a
+// 1461 unidades. Con un número quieto da igual. Pero el saldo se ANIMA al
+// cambiar, y durante ese segundo pasa por sesenta cifras distintas: el ancho
+// del texto cambia en cada fotograma y el número entero tiembla de lado a
+// lado. Medido antes de esto: 55 saltos en 63 fotogramas, de hasta 13 px.
+//
+// Lo normal sería pedirle a la fuente sus dígitos de ancho fijo con
+// "font-variant-numeric: tabular-nums" (está puesto en el CSS y ayuda a
+// quien use otra fuente), pero Fraunces NO los trae: no hay nada a lo que
+// cambiar. Así que la caja se la ponemos nosotros: cada cifra dentro de un
+// hueco del ancho de un "0". Los separadores y el símbolo de la moneda se
+// quedan como están, que no cambian nunca.
+//
+// Se usa también cuando NO se anima, a propósito: si solo se usara durante
+// la animación, al terminar el número se recolocaría de golpe y se vería un
+// último salto, que es justo lo que se quería quitar.
+function pintarNumero(el, texto) {
+  const cifras = [...texto];
+  const trozos = el.__trozosNumero;
+
+  // Si ya está pintado con esta misma forma, solo se cambian las cifras que
+  // cambian. Rehacer diez nodos sesenta veces por segundo es tirar trabajo.
+  if (trozos && trozos.length === cifras.length) {
+    let sirve = true;
+    for (let i = 0; i < cifras.length; i++) {
+      const esDigito = cifras[i] >= "0" && cifras[i] <= "9";
+      if (esDigito !== trozos[i].esDigito) { sirve = false; break; }
+    }
+    if (sirve) {
+      for (let i = 0; i < cifras.length; i++) {
+        if (trozos[i].nodo.textContent !== cifras[i]) trozos[i].nodo.textContent = cifras[i];
+      }
+      return;
+    }
+  }
+
+  el.textContent = "";
+  const nuevos = [];
+  for (const c of cifras) {
+    const esDigito = c >= "0" && c <= "9";
+    const nodo = document.createElement("span");
+    if (esDigito) nodo.className = "cifra";
+    nodo.textContent = c;
+    el.appendChild(nodo);
+    nuevos.push({ nodo, esDigito });
+  }
+  el.__trozosNumero = nuevos;
+}
+
+
 export function countUpTo(el, targetValue, format) {
   if (!el) return;
   const prev = countState.get(el);
@@ -200,7 +253,7 @@ export function countUpTo(el, targetValue, format) {
   const esPrimerValor = prev === undefined;
 
   if (esPrimerValor || estaAsentando() || typeof gsap === "undefined") {
-    el.textContent = format(targetValue);
+    pintarNumero(el, format(targetValue));
     countState.set(el, { value: targetValue, tween: null, target: targetValue });
     return;
   }
@@ -221,7 +274,7 @@ export function countUpTo(el, targetValue, format) {
     duration: 1,
     ease: "power2.out",
     onUpdate: () => {
-      el.textContent = format(obj.value);
+      pintarNumero(el, format(obj.value));
       countState.set(el, { value: obj.value, tween, target: targetValue });
     },
     onComplete: () => {

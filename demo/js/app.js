@@ -1,28 +1,28 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=45";
-import { state, subscribe, initStore } from "./store.js?v=45";
+import { onAuthReady } from "./auth.js?v=46";
+import { state, subscribe, initStore } from "./store.js?v=46";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=45";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=45";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=45";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=45";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=45";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=45";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=45";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=46";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=46";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=46";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=46";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=46";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=46";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=46";
 // modulo:rutina:inicio
-import { mountRutina, renderRutina } from "./views/rutina.js?v=45";
+import { mountRutina, renderRutina } from "./views/rutina.js?v=46";
 // modulo:rutina:fin
 // modulo:ciclo:inicio
-import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=45";
+import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=46";
 // modulo:ciclo:fin
 // modulo:gimnasio:inicio
-import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=45";
+import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=46";
 // modulo:gimnasio:fin
-import { mountCuentaPanel } from "./views/cuenta.js?v=45";
-import { refreshAnimations } from "./animations.js?v=45";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=45";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=45";
-import { efectoDeEntrada } from "./efectos.js?v=45";
+import { mountCuentaPanel } from "./views/cuenta.js?v=46";
+import { refreshAnimations } from "./animations.js?v=46";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=46";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=46";
+import { efectoDeEntrada } from "./efectos.js?v=46";
 
 const ROUTES = {
   dashboard: renderDashboard,
