@@ -174,6 +174,46 @@ html[data-tema] .brand-mark__icon::after {
 .brand-mark--sidebar { padding: 28px 24px 8px; }
 .brand-mark--topbar { font-size: 1.05rem; }
 
+
+/* =========================================================
+   NÚMEROS QUE NO BAILAN
+   =========================================================
+   Fraunces, como casi todas las tipografías de titular, dibuja cada dígito
+   con un ancho distinto: el 1 es estrecho y el 8 es ancho. Da igual en un
+   número quieto, pero el saldo se ANIMA al cambiar (cuenta desde el valor
+   anterior hasta el nuevo), y en ese segundo cambia de cifras sesenta veces.
+   Como el ancho cambia con ellas, el número entero se ensancha y se encoge
+   en cada fotograma: medido, 55 saltos en 63 fotogramas, de hasta 13 px.
+   A la vista es un temblor muy desagradable.
+
+   "tabular-nums" le pide a la fuente su juego de dígitos de ANCHO FIJO, que
+   es justo para esto. El número deja de moverse y solo cambian las cifras.
+
+   Va en todo lo que enseña dinero o cantidades, no solo en el saldo: las
+   listas de movimientos también se redibujan al llegar datos nuevos. */
+.hero__balance,
+.entity-card__amount,
+.mini-row__amount,
+.data-row__amount,
+.kpi-tile__value,
+.cal-cell__num,
+.stat-value,
+[data-numero] {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Y como Fraunces no trae ese juego de dígitos (se ha mirado dentro del
+   archivo: solo tiene kern, liga y rvrn), la caja se la ponemos nosotros.
+   Cada cifra de un número que se está animando ocupa el ancho de un "0",
+   que es el más ancho, así que el número ya no se ensancha ni se encoge
+   mientras cuenta. Lo pone js/animations.js al escribir el número. */
+.cifra {
+  display: inline-block;
+  width: 1ch;
+  text-align: center;
+}
+
 /* =========================================================
    LOGIN
    ========================================================= */

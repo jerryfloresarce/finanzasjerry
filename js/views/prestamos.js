@@ -12,11 +12,11 @@ import {
   fromTimestamp,
   esPlanDePagos,
   restantePlanDePagos,
-} from "../db.js?v=45";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=45";
-import { initials, avatarColor, icon } from "../icons.js?v=45";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=45";
-import { efectoDeCelebracion } from "../efectos.js?v=45";
+} from "../db.js?v=46";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=46";
+import { initials, avatarColor, icon } from "../icons.js?v=46";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=46";
+import { efectoDeCelebracion } from "../efectos.js?v=46";
 
 const ESTADOS = ["Activo", "Pagado"];
 
