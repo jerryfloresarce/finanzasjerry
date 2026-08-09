@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<!-- Al abrirse desde el icono en la pantalla de inicio (modo standalone),
+     iOS puede servir esta misma página desde su caché durante bastante
+     tiempo sin volver a pedirla al servidor, así que una actualización
+     nueva puede tardar en llegar al teléfono aunque ya esté publicada. Esto
+     le pide explícitamente que no la guarde y compruebe siempre la última
+     versión. -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<script type="importmap">
+{
+  "imports": {
+    "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js": "./js/demo/app-falso.js?v=45",
+    "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js": "./js/demo/auth-falso.js?v=45",
+    "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js": "./js/demo/firestore-falso.js?v=45"
+  }
+}
+</script>
+<title>Mis Finanzas · demostración</title>
+<meta name="description" content="Control personal de finanzas — cuentas, gastos, préstamos y suscripciones." />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#0b0f0d" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="css/styles.css?v=45" />
+<link rel="stylesheet" href="css/temas.css?v=45" />
+<link rel="stylesheet" href="css/paletas.css?v=45" />
+<script>
+  /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
+     desde un módulo (que se ejecuta al final), la app abriría un instante
+     en verde y cambiaría de color a la vista. La lista de temas se repite
+     aquí a propósito: este script no puede importar nada todavía. El
+     catálogo bueno está en js/tema.js. */
+  try {
+    var temaGuardado = localStorage.getItem("fj-tema");
+    var temasValidos = ["ambar", "jade", "trigo", "esmeralda", "relampago", "turquesa", "escarcha", "rosa", "lavanda", "menta", "oceano", "arena", "cereza", "bosque", "noche"];
+    if (temaGuardado && temasValidos.indexOf(temaGuardado) !== -1) {
+      document.documentElement.dataset.tema = temaGuardado;
+      var fondo = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (fondo && meta) meta.setAttribute("content", fondo);
+    }
+  } catch (e) {}
+</script>
+<link rel="icon" href="data:,">
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<link rel="stylesheet" href="css/visita.css?v=45" />
+</head>
+<body>
+
+<!-- ===================== LOGIN ===================== -->
+<div id="login-screen" class="login-screen">
+  <div class="login-screen__bg" aria-hidden="true"></div>
+  <div class="login-screen__scrim" aria-hidden="true"></div>
+
+  <div class="login-card">
+    <p class="brand-mark"><span class="brand-mark__icon" aria-hidden="true"><i class="ph-thin ph-leaf"></i></span>Mis <span>Finanzas</span></p>
+    <h1 class="login-card__title">Acceso privado</h1>
+    <p class="login-card__subtitle">Tus finanzas, en un solo lugar.</p>
+
+    <form id="login-form" class="login-form" autocomplete="on">
+      <label class="field">
+        <span class="field__label">Email</span>
+        <input type="email" name="email" required autocomplete="username" placeholder="tu@email.com" />
+      </label>
+      <label class="field">
+        <span class="field__label">Contraseña</span>
+        <input type="password" name="password" required autocomplete="current-password" placeholder="••••••••" />
+      </label>
+      <p id="login-error" class="field-error" role="alert"></p>
+      <button type="submit" class="btn btn--primary btn--block">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app-shell" class="app-shell is-hidden">
+
+  <aside class="sidebar">
+    <p class="brand-mark brand-mark--sidebar"><span class="brand-mark__icon" aria-hidden="true"><i class="ph-thin ph-leaf"></i></span>Mis <span>Finanzas</span></p>
+    <nav class="nav" id="main-nav">
+      <a href="#/dashboard" class="nav__link" data-route="dashboard">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-squares-four"></i></span> Dashboard
+      </a>
+      <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Gastos fijos
+      </a>
+      <a href="#/movimientos" class="nav__link" data-route="movimientos">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-left-right"></i></span> Calendario
+      </a>
+      <a href="#/cuentas" class="nav__link" data-route="cuentas">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-wallet"></i></span> Cuentas
+      </a>
+      <a href="#/prestamos" class="nav__link" data-route="prestamos">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-hand-coins"></i></span> Préstamos
+      </a>
+      <button type="button" class="nav__more-toggle" id="nav-more-toggle" aria-expanded="false">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-dots-three"></i></span> Más
+        <i class="ph-thin ph-caret-down nav__more-caret" aria-hidden="true"></i>
+      </button>
+      <div class="nav__more" id="nav-more">
+        <a href="#/graficos" class="nav__link" data-route="graficos">
+          <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
+        </a>
+        <a href="#/categorias" class="nav__link" data-route="categorias">
+          <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
+        </a>
+      <!-- modulo:rutina:inicio -->
+        <a href="#/rutina" class="nav__link" data-route="rutina">
+          <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-check-circle"></i></span> Rutina
+        </a>
+      <!-- modulo:rutina:fin -->
+      <!-- modulo:ciclo:inicio -->
+        <a href="#/ciclo" class="nav__link" data-route="ciclo">
+          <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-drop"></i></span> Ciclo
+        </a>
+      <!-- modulo:ciclo:fin -->
+      <!-- modulo:gimnasio:inicio -->
+        <a href="#/gimnasio" class="nav__link" data-route="gimnasio">
+          <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-barbell"></i></span> Gimnasio
+        </a>
+      <!-- modulo:gimnasio:fin -->
+      </div>
+    </nav>
+    <button id="logout-btn" class="btn btn--ghost btn--block sidebar__logout">Cerrar sesión</button>
+  </aside>
+
+  <button id="btn-account-desktop" type="button" class="icon-btn account-fixed-btn" aria-label="Mi cuenta">
+    <i class="ph-thin ph-user-circle" aria-hidden="true"></i>
+  </button>
+
+  <header class="topbar">
+    <button id="topbar-menu-btn" class="icon-btn" aria-label="Abrir menú"><i class="ph-thin ph-list" aria-hidden="true"></i></button>
+    <p class="brand-mark brand-mark--topbar"><span class="brand-mark__icon" aria-hidden="true"><i class="ph-thin ph-leaf"></i></span>Mis <span>Finanzas</span></p>
+    <button id="btn-open-cuenta-topbar" type="button" class="icon-btn" aria-label="Mi cuenta"><i class="ph-thin ph-user-circle" aria-hidden="true"></i></button>
+  </header>
+
+  <div id="mobile-nav-scrim" class="mobile-nav-scrim is-hidden"></div>
+  <nav id="mobile-nav" class="mobile-nav is-hidden">
+    <a href="#/dashboard" class="nav__link" data-route="dashboard">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-squares-four"></i></span> Dashboard
+    </a>
+    <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Gastos fijos
+    </a>
+    <a href="#/movimientos" class="nav__link" data-route="movimientos">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-left-right"></i></span> Calendario
+    </a>
+    <a href="#/cuentas" class="nav__link" data-route="cuentas">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-wallet"></i></span> Cuentas
+    </a>
+    <a href="#/prestamos" class="nav__link" data-route="prestamos">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-hand-coins"></i></span> Préstamos
+    </a>
+    <button type="button" class="nav__more-toggle" id="nav-more-toggle-mobile" aria-expanded="false">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-dots-three"></i></span> Más
+      <i class="ph-thin ph-caret-down nav__more-caret" aria-hidden="true"></i>
+    </button>
+    <div class="nav__more" id="nav-more-mobile">
+      <a href="#/graficos" class="nav__link" data-route="graficos">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
+      </a>
+      <a href="#/categorias" class="nav__link" data-route="categorias">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
+      </a>
+      <!-- modulo:rutina:inicio -->
+      <a href="#/rutina" class="nav__link" data-route="rutina">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-check-circle"></i></span> Rutina
+      </a>
+      <!-- modulo:rutina:fin -->
+      <!-- modulo:ciclo:inicio -->
+      <a href="#/ciclo" class="nav__link" data-route="ciclo">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-drop"></i></span> Ciclo
+      </a>
+      <!-- modulo:ciclo:fin -->
+      <!-- modulo:gimnasio:inicio -->
+      <a href="#/gimnasio" class="nav__link" data-route="gimnasio">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-barbell"></i></span> Gimnasio
+      </a>
+      <!-- modulo:gimnasio:fin -->
+    </div>
+    <button id="mobile-logout-btn" class="btn btn--ghost btn--block" style="margin-top: 12px;">Cerrar sesión</button>
+  </nav>
+
+  <main id="view-container" class="view-container">
+
+    <!-- ---------- DASHBOARD ---------- -->
+    <section class="view" data-view="dashboard" id="view-dashboard">
+      <div id="dashboard-loading" class="loading-state">
+        <div class="loading-spinner" aria-hidden="true"></div>
+        <p>Cargando tus datos…</p>
+      </div>
+      <div id="dashboard-content" class="is-hidden">
+      <div id="seed-banner" class="card is-hidden" style="margin-bottom: 20px;">
+        <h2 class="card__title">Es tu primera vez aquí</h2>
+        <p class="entity-card__meta" style="margin-bottom: 16px;">
+          Puedo rellenar tus cuentas, categorías, suscripciones fijas y préstamos con los datos que ya me pasaste,
+          para que no tengas que escribirlo todo a mano.
+        </p>
+        <button class="btn btn--primary" id="btn-seed">Importar mis datos iniciales</button>
+      </div>
+
+      <div class="hero" id="hero-parallax">
+        <div class="hero__bg atmosphere-bg" id="hero-bg" aria-hidden="true"></div>
+        <div class="hero__imagen" aria-hidden="true"></div>
+        <div class="hero__scrim" aria-hidden="true"></div>
+        <div class="hero__efecto efecto" aria-hidden="true"></div>
+        <div class="hero__content">
+          <div class="hero__brand">
+            <span class="brand-mark__icon hero__brand-icon"><i class="ph-thin ph-leaf" aria-hidden="true"></i></span>
+            <div>
+              <p class="hero__greeting">Hola</p>
+              <p class="hero__date" id="hero-fecha"></p>
+            </div>
+          </div>
+          <div class="hero__balance-wrap">
+            <p class="hero__eyebrow">Saldo total</p>
+            <p class="hero__balance" id="saldo-total">—</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid--dashboard">
+        <article class="card gd-l1 reveal">
+          <h2 class="card__title">Cuentas</h2>
+          <div id="cuentas-resumen" class="mini-list dash-scroll"></div>
+        </article>
+
+        <article class="card gd-l2 reveal">
+          <div class="card__header">
+            <h2 class="card__title">Movimientos recientes</h2>
+            <a href="#/movimientos" class="card__link">Ver todos</a>
+          </div>
+          <div id="movimientos-recientes" class="mini-list dash-scroll"></div>
+        </article>
+
+        <article class="card gd-l3 reveal">
+          <h2 class="card__title">Límites del mes</h2>
+          <div id="limites-list" class="limites-list dash-scroll"></div>
+        </article>
+
+        <article class="card card--chart gd-center reveal">
+          <h2 class="card__title">Gastos por categoría · este mes</h2>
+          <div class="chart-wrap">
+            <canvas id="chart-categorias"></canvas>
+          </div>
+        </article>
+
+        <article class="card gd-r1 reveal">
+          <div class="card__header">
+            <h2 class="card__title">Préstamos activos</h2>
+            <a href="#/prestamos" class="card__link">Ver todos</a>
+          </div>
+          <div id="prestamos-activos" class="mini-list dash-scroll"></div>
+        </article>
+
+        <article class="card gd-r2 reveal">
+          <div class="card__header">
+            <h2 class="card__title">Suscripciones activas</h2>
+            <a href="#/suscripciones" class="card__link">Ver todas</a>
+          </div>
+          <div id="suscripciones-activas" class="mini-list dash-scroll"></div>
+        </article>
+
+        <article class="card gd-r3 reveal">
+          <h2 class="card__title">Top gastos por lugar · este mes</h2>
+          <div id="top-lugares" class="mini-list dash-scroll"></div>
+        </article>
+      </div>
+      </div>
+    </section>
+
+    <!-- ---------- MOVIMIENTOS ---------- -->
+    <section class="view is-hidden" data-view="movimientos" id="view-movimientos">
+      <div class="view-header">
+        <h1 class="view-title">Calendario</h1>
+        <button class="btn btn--primary" id="btn-add-movimiento">+ Añadir movimiento</button>
+      </div>
+
+      <div class="grid grid--kpis">
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">Ingresos del mes</span>
+          <span class="kpi-tile__value kpi-tile__value--pos" id="mov-kpi-ingresos">—</span>
+        </div>
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">Gastos del mes</span>
+          <span class="kpi-tile__value" id="mov-kpi-gastos">—</span>
+        </div>
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">Diferencia</span>
+          <span class="kpi-tile__value" id="mov-kpi-diferencia">—</span>
+        </div>
+      </div>
+
+      <article class="card" style="margin-bottom: 20px;">
+        <h2 class="card__title">Ingresos vs. Gastos este mes</h2>
+        <div class="chart-wrap" style="height: 140px;">
+          <canvas id="chart-mov-comparativa"></canvas>
+        </div>
+      </article>
+
+      <article class="card card--calendario">
+        <div class="susc-mes-nav">
+          <button type="button" class="btn btn--ghost btn--sm" id="cal-mes-prev" aria-label="Mes anterior">‹</button>
+          <span id="cal-mes-label" class="susc-mes-label"></span>
+          <button type="button" class="btn btn--ghost btn--sm" id="cal-mes-next" aria-label="Mes siguiente">›</button>
+        </div>
+        <div id="calendar-grid" class="calendar"></div>
+      </article>
+    </section>
+
+    <!-- ---------- CUENTAS ---------- -->
+    <section class="view is-hidden" data-view="cuentas" id="view-cuentas">
+      <div class="view-header">
+        <h1 class="view-title">Cuentas</h1>
+        <button class="btn btn--primary" id="btn-add-cuenta">+ Añadir cuenta</button>
+      </div>
+      <div id="cuentas-grid" class="grid grid--cards"></div>
+    </section>
+
+    <!-- ---------- CATEGORIAS ---------- -->
+    <section class="view is-hidden" data-view="categorias" id="view-categorias">
+      <div class="view-header">
+        <h1 class="view-title">Categorías</h1>
+        <button class="btn btn--primary" id="btn-add-categoria">+ Añadir categoría</button>
+      </div>
+      <div id="categorias-grid" class="grid grid--cards"></div>
+    </section>
+
+    <!-- ---------- PRESTAMOS ---------- -->
+    <section class="view is-hidden" data-view="prestamos" id="view-prestamos">
+      <div class="view-header">
+        <h1 class="view-title">Préstamos</h1>
+        <button class="btn btn--primary" id="btn-add-prestamo">+ Nuevo préstamo</button>
+      </div>
+      <div class="grid grid--kpis grid--kpis-2">
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">Total prestado</span>
+          <span class="kpi-tile__value" id="kpi-prestamos-capital">—</span>
+        </div>
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">Interés esperado el próximo mes</span>
+          <span class="kpi-tile__value kpi-tile__value--pos" id="kpi-prestamos-interes">—</span>
+        </div>
+      </div>
+      <div id="prestamos-grid" class="grid grid--cards grid--prestamos"></div>
+    </section>
+
+    <!-- ---------- SUSCRIPCIONES ---------- -->
+    <section class="view is-hidden" data-view="suscripciones" id="view-suscripciones">
+      <div class="view-header">
+        <h1 class="view-title">Gastos fijos</h1>
+        <button class="btn btn--primary" id="btn-add-suscripcion">+ Añadir gasto fijo</button>
+      </div>
+      <div class="susc-mes-nav">
+        <button type="button" class="btn btn--ghost btn--sm" id="susc-mes-prev" aria-label="Mes anterior">‹</button>
+        <span id="susc-mes-label" class="susc-mes-label"></span>
+        <button type="button" class="btn btn--ghost btn--sm" id="susc-mes-next" aria-label="Mes siguiente">›</button>
+      </div>
+      <p class="entity-card__meta" id="susc-resumen" style="margin-bottom: 16px;"></p>
+      <div id="suscripciones-grid" class="mini-list"></div>
+    </section>
+
+    <!-- ---------- GRAFICOS ---------- -->
+    <section class="view is-hidden" data-view="graficos" id="view-graficos">
+      <div class="view-header">
+        <h1 class="view-title">Gráficos</h1>
+        <div class="segmented" id="graficos-rango">
+          <button class="segmented__btn is-active" data-rango="mes">Mes</button>
+          <button class="segmented__btn" data-rango="anio">Año</button>
+          <button class="segmented__btn" data-rango="todo">Todo</button>
+        </div>
+      </div>
+
+      <div class="grid grid--kpis grid--kpis-2">
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">Ingresos</span>
+          <span class="kpi-tile__value kpi-tile__value--pos" id="kpi-ingresos">—</span>
+        </div>
+        <div class="kpi-tile">
+          <span class="kpi-tile__label">Gastos</span>
+          <span class="kpi-tile__value" id="kpi-gastos">—</span>
+        </div>
+      </div>
+
+      <article class="card" style="margin-bottom: 20px;">
+        <h2 class="card__title">Gastos fijos por cuenta</h2>
+        <div class="susc-mes-nav">
+          <button type="button" class="btn btn--ghost btn--sm" id="gf-mes-prev" aria-label="Mes anterior">‹</button>
+          <span id="gf-mes-label" class="susc-mes-label"></span>
+          <button type="button" class="btn btn--ghost btn--sm" id="gf-mes-next" aria-label="Mes siguiente">›</button>
+        </div>
+        <div class="chart-wrap" style="height: 240px; margin-top: 12px;">
+          <canvas id="chart-gastos-fijos-cuenta"></canvas>
+        </div>
+        <div id="gf-totales-cuenta" class="mini-list" style="margin-top: 16px;"></div>
+      </article>
+
+      <div class="grid grid--graficos-donuts">
+        <article class="card">
+          <h2 class="card__title">Gastos por categoría</h2>
+          <div class="chart-wrap" style="height: 220px;">
+            <canvas id="chart-gastos-cat"></canvas>
+          </div>
+        </article>
+        <article class="card">
+          <h2 class="card__title">Ingresos por categoría</h2>
+          <div class="chart-wrap" style="height: 220px;">
+            <canvas id="chart-ingresos-cat"></canvas>
+          </div>
+        </article>
+      </div>
+
+      <article class="card">
+        <div class="card__header">
+          <h2 class="card__title">Gastos por lugar</h2>
+        </div>
+        <input type="text" id="filtro-subcategoria" class="filtro-input" placeholder="Buscar: Five Guys, KFC, Taco Bell…" />
+        <div id="lista-subcategorias" class="mini-list dash-scroll" style="height: 220px; margin-top: 12px;"></div>
+      </article>
+    </section>
+
+    <!-- modulo:rutina:inicio -->
+    <section class="view is-hidden" data-view="rutina" id="view-rutina">
+      <div class="view-header">
+        <h1 class="view-title">Rutina</h1>
+        <button class="btn btn--primary" id="btn-add-habito">+ Añadir hábito</button>
+      </div>
+      <div id="rutina-hoy" class="card reveal" style="margin-bottom: 20px;"></div>
+      <div id="rutina-mes" class="card reveal"></div>
+    </section>
+    <!-- modulo:rutina:fin -->
+    <!-- modulo:ciclo:inicio -->
+    <section class="view is-hidden" data-view="ciclo" id="view-ciclo">
+      <div class="view-header">
+        <h1 class="view-title">Ciclo</h1>
+        <button class="btn btn--primary" id="btn-add-ciclo">+ Apuntar regla</button>
+      </div>
+      <div id="ciclo-resumen" class="card reveal" style="margin-bottom: 20px;"></div>
+      <div id="ciclo-calendario" class="card reveal" style="margin-bottom: 20px;"></div>
+      <div id="ciclo-historial" class="card reveal"></div>
+    </section>
+    <!-- modulo:ciclo:fin -->
+    <!-- modulo:gimnasio:inicio -->
+    <section class="view is-hidden" data-view="gimnasio" id="view-gimnasio">
+      <div class="view-header">
+        <h1 class="view-title">Gimnasio</h1>
+        <button class="btn btn--primary" id="btn-add-sesion">+ Apuntar sesión</button>
+      </div>
+      <div id="gimnasio-hoy" class="card reveal" style="margin-bottom: 20px;"></div>
+      <div id="gimnasio-mes" class="card reveal" style="margin-bottom: 20px;"></div>
+      <div id="gimnasio-metas" class="card reveal" style="margin-bottom: 20px;"></div>
+      <div id="gimnasio-peso" class="card reveal" style="margin-bottom: 20px;"></div>
+      <div id="gimnasio-suplementos" class="card reveal"></div>
+    </section>
+    <!-- modulo:gimnasio:fin -->
+  </main>
+</div>
+
+<!-- ===================== MI CUENTA (panel) ===================== -->
+<div id="cuenta-panel-scrim" class="cuenta-panel-scrim is-hidden"></div>
+<div id="cuenta-panel" class="cuenta-panel" role="dialog" aria-label="Mi cuenta">
+  <div class="cuenta-panel__user">
+    <span class="icon-badge"><i class="ph-thin ph-user-circle" style="font-size:18px" aria-hidden="true"></i></span>
+    <div>
+      <p class="entity-card__name" id="cuenta-panel-email" style="margin:0;">—</p>
+      <p class="entity-card__meta">Sesión iniciada con Firebase Auth</p>
+    </div>
+  </div>
+  <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-reset-password">Cambiar contraseña</button>
+  <p class="field-error" id="cuenta-reset-msg"></p>
+
+  <div class="cuenta-panel__divider"></div>
+
+  <h3 class="cuenta-panel__subtitle">Temas</h3>
+  <p class="entity-card__meta" style="margin: 0 0 2px;">Cambia el aspecto de toda la app. «Original» la deja como estaba.</p>
+  <div id="temas-selector"></div>
+
+  <div class="cuenta-panel__divider"></div>
+
+  <h3 class="cuenta-panel__subtitle">Configuración</h3>
+  <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-exportar-datos">Exportar mis datos</button>
+  <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-importar-datos">Importar desde una copia</button>
+  <input type="file" id="input-importar-datos" accept="application/json" class="is-hidden" />
+  <p class="field-error" id="cuenta-import-msg"></p>
+
+  <div class="cuenta-panel__divider"></div>
+
+  <button type="button" class="btn btn--danger btn--sm btn--block" id="btn-cuenta-logout">Cerrar sesión</button>
+</div>
+
+<!-- Capa donde se dibuja el destello del personaje al guardar algo.
+     Está por encima de todo y no intercepta ningún toque. -->
+<div id="efecto-accion" class="efecto efecto--pantalla" aria-hidden="true"></div>
+<div id="efecto-entrada" class="efecto efecto--pantalla" aria-hidden="true"></div>
+
+<!-- ===================== MODAL (formularios) ===================== -->
+<div id="modal-root" class="modal-root is-hidden">
+  <div class="modal-root__scrim" id="modal-scrim"></div>
+  <div class="modal" id="modal-content" role="dialog" aria-modal="true"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+<script type="module" src="js/app.js?v=45"></script>
+<script type="module">
+  import { montarBotonDeVisita } from "./js/demo/visita.js?v=45";
+  montarBotonDeVisita();
+</script>
+</body>
+</html>

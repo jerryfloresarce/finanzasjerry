@@ -1,0 +1,114 @@
+/* La visita guiada de la demostración.
+   Solo se carga en demo.html: en la app de verdad no existe. */
+
+.visita {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translate(-50%, 110%);
+  width: min(94vw, 520px);
+  margin-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-modal);
+  z-index: 300;
+  overflow: hidden;
+  transition: transform 0.35s var(--ease-lux), opacity 0.25s var(--ease-lux);
+}
+.visita.is-visible { transform: translate(-50%, 0); }
+.visita.is-saliendo { transform: translate(-50%, 110%); opacity: 0; }
+
+.visita__barra { height: 3px; background: var(--surface); }
+.visita__progreso {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  transition: width 0.4s var(--ease-lux);
+}
+
+.visita__cuerpo { padding: 18px 20px 6px; }
+.visita__titulo {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 1.08rem;
+  color: var(--text-primary);
+}
+.visita__texto {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  white-space: pre-line;
+}
+
+.visita__pie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px 16px;
+}
+.visita__salir {
+  background: none;
+  border: none;
+  padding: 6px 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.visita__salir:hover { color: var(--text-secondary); }
+.visita__siguiente {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 18px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 0.86rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.visita__siguiente:active { transform: scale(0.97); }
+.visita__siguiente:disabled {
+  opacity: 0.55;
+  cursor: default;
+  transform: none;
+}
+
+/* Lo que se está señalando. El resto no se oscurece a propósito: apagar
+   media pantalla estropea justo lo que se quiere enseñar, que es cómo se
+   ve la app entera. */
+.visita-foco {
+  position: relative;
+  z-index: 2;
+  outline: 2px solid var(--accent);
+  outline-offset: 6px;
+  border-radius: var(--radius-md);
+  animation: visita-latido 1.8s ease-in-out infinite;
+}
+@keyframes visita-latido {
+  0%, 100% { outline-color: var(--accent); }
+  50% { outline-color: var(--accent-soft-strong); }
+}
+
+.visita-lanzar {
+  position: fixed;
+  right: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  z-index: 250;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+}
+.visita-lanzar:hover { border-color: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .visita, .visita__progreso { transition: none; }
+  .visita-foco { animation: none; }
+}
