@@ -146,3 +146,6 @@ vite.config.ts.timestamp-*
 # bueno acaba pegado en css/temas.css.
 herramientas/variables*.css
 herramientas/previa-*.html
+
+# El kit vive en su propio repositorio privado: jerryfloresarce/Kit-finanzas
+kit-finanzas/
