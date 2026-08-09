@@ -1,5 +1,5 @@
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=46";
-import { efectoAlGuardar } from "./efectos.js?v=46";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=47";
+import { efectoAlGuardar } from "./efectos.js?v=47";
 
 const modalRoot = document.getElementById("modal-root");
 const modalScrim = document.getElementById("modal-scrim");

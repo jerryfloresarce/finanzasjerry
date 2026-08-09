@@ -175,6 +175,38 @@ html[data-tema] .brand-mark__icon::after {
 .brand-mark--topbar { font-size: 1.05rem; }
 
 
+
+/* =========================================================
+   COLOR DE LOS ICONOS DE CATEGORÍA Y CUENTA
+   =========================================================
+   Antes todos los iconos salían del color del tema, así que una lista de
+   doce categorías era doce veces el mismo dibujo del mismo color y no se
+   distinguía nada sin leer. Ahora cada categoría reconocida por su nombre
+   trae su icono y su color (ver NOMBRE_ICONOS en js/icons.js).
+
+   Los tonos están elegidos para leerse sobre fondo oscuro, que es donde
+   vive esta app: nada por debajo de un gris medio, o el icono desaparece.
+   Y no salen del tema a propósito — son señales para reconocer cosas de un
+   vistazo, no decoración, así que se quedan iguales al cambiar de tema. */
+.icon--rosa     { color: #f286ad; }
+.icon--coral    { color: #ff8a7a; }
+.icon--naranja  { color: #f5a961; }
+.icon--ambar    { color: #f0c968; }
+.icon--lima     { color: #bcdc76; }
+.icon--verde    { color: #7fd39d; }
+.icon--menta    { color: #62dcbb; }
+.icon--turquesa { color: #5fd0dc; }
+.icon--azul     { color: #6fb2f2; }
+.icon--indigo   { color: #99adf7; }
+.icon--lavanda  { color: #bb9bf2; }
+.icon--violeta  { color: #d79bf2; }
+.icon--arena    { color: #d9b892; }
+.icon--gris     { color: #a6b3ab; }
+
+/* En un tema claro los mismos tonos quedarían lavados, así que se bajan un
+   punto. Se hace con una sola regla en vez de repetir los catorce colores. */
+html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate(1.15); }
+
 /* =========================================================
    NÚMEROS QUE NO BAILAN
    =========================================================
