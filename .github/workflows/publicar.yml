@@ -1,0 +1,62 @@
+# Publica la web en GitHub Pages cada vez que se sube algo a main.
+#
+# Sube dos cosas: la app (que vive en la raíz) y la demostración (demo/).
+# NO sube kit-finanzas/, que son las herramientas para montar apps y no
+# tienen nada que hacer en la web.
+#
+# Por qué existe este archivo: el 6 de agosto la publicación se quedó
+# atascada porque había dos sistemas intentando publicar a la vez —el
+# automático de GitHub y uno propio— y se bloqueaban el uno al otro hasta
+# agotar el tiempo. Desde entonces la web se quedó congelada. Ahora hay uno
+# solo, y el "concurrency" de abajo se asegura de que nunca haya dos a la vez.
+
+name: Publicar la web
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Uno cada vez. Si llega otro mientras hay uno en marcha, se cancela el
+# viejo en vez de quedarse los dos esperando, que es lo que pasó antes.
+concurrency:
+  group: paginas
+  cancel-in-progress: true
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.desplegar.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar lo que se publica
+        run: |
+          mkdir -p _web
+          rsync -a ./ _web/ \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude '_web' \
+            --exclude 'kit-finanzas' \
+            --exclude 'herramientas'
+          # Sin este archivo, GitHub intenta interpretar la web con Jekyll y
+          # se salta las carpetas que empiezan por guion bajo.
+          touch _web/.nojekyll
+          echo "Se publican estos archivos:"
+          ls -la _web
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _web
+
+      - id: desplegar
+        uses: actions/deploy-pages@v4
