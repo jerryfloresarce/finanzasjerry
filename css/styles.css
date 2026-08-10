@@ -782,7 +782,12 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
   display: none;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  /* La franja de arriba del móvil —el reloj, la cobertura, la batería— se
+     come esta altura cuando la app está instalada en la pantalla de inicio.
+     Sin reservarla, los botones del menú y de la cuenta quedaban DEBAJO del
+     reloj y no se podían pulsar. En el navegador normal vale 0, así que la
+     misma regla sirve para los dos casos. */
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 20px 16px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-elevated);
   position: sticky;
@@ -792,6 +797,8 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
 
 .view-container {
   padding: 32px 40px 80px;
+  padding-left: max(40px, env(safe-area-inset-left, 0px));
+  padding-right: max(40px, env(safe-area-inset-right, 0px));
   width: 100%;
 }
 
@@ -1671,7 +1678,10 @@ html[data-tema] .is-cambiando {
   background: var(--bg-elevated);
   border-right: 1px solid var(--border);
   z-index: 31;
-  padding: 84px 16px 24px;
+  /* Igual que el topbar: instalada en la pantalla de inicio, la app llega
+     hasta arriba del todo, así que el primer enlace del menú caía debajo
+     del reloj. Y abajo, detrás de la barra de gestos del móvil. */
+  padding: calc(84px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -1697,7 +1707,11 @@ html[data-tema] .is-cambiando {
   .app-shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
   .sidebar { display: none; }
   .topbar { display: flex; }
-  .view-container { padding: 20px 16px 100px; }
+  .view-container {
+    padding: 20px 16px calc(100px + env(safe-area-inset-bottom, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
   .grid--dashboard { grid-template-columns: 1fr; grid-template-areas: none; }
   .grid--dashboard .gd-l1, .grid--dashboard .gd-l2, .grid--dashboard .gd-l3,
   .grid--dashboard .gd-r1, .grid--dashboard .gd-r2, .grid--dashboard .gd-r3,

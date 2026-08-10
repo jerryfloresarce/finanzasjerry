@@ -17,12 +17,28 @@
 <meta name="color-scheme" content="dark" />
 <meta name="theme-color" content="#0b0f0d" />
 
+<!-- Lo que le dice al móvil que esto es una app y no una página.
+     Sin esto, al añadirla a la pantalla de inicio se abre DENTRO de Safari
+     con su barra de direcciones, y esa barra que aparece y desaparece al
+     deslizar es lo que hace que todo se mueva de forma rara. -->
+<link rel="manifest" href="manifest.json?v=48" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<!-- "black-translucent" hace que la app llegue hasta arriba del todo, por
+     debajo del reloj y la batería. Eso obliga a reservar esa altura en el
+     CSS (ver .topbar), pero a cambio se ve entera y no queda una franja. -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Finanzas" />
+<link rel="apple-touch-icon" href="assets/icono-180.png" />
+<link rel="icon" type="image/svg+xml" href="assets/icono.svg" />
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icono-192.png" />
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=47" />
-<link rel="stylesheet" href="css/temas.css?v=47" />
+<link rel="stylesheet" href="css/styles.css?v=48" />
+<link rel="stylesheet" href="css/temas.css?v=48" />
 <script>
   /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
      desde un módulo (que se ejecuta al final), la app abriría un instante
@@ -437,6 +453,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=47"></script>
+<script type="module" src="js/app.js?v=48"></script>
 </body>
 </html>
