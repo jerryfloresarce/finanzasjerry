@@ -6,11 +6,12 @@ import {
   formatFecha,
   fromTimestamp,
   toTimestamp,
-} from "../db.js?v=48";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=48";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=48";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=48";
-import { colorTema } from "../tema.js?v=48";
+  fechaISO,
+} from "../db.js?v=49";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=49";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=49";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=49";
+import { colorTema } from "../tema.js?v=49";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -243,10 +244,14 @@ function openDiaDetalle(fecha, state) {
 
 function openForm(movimiento, state, fechaPrefill) {
   const isEdit = Boolean(movimiento);
+  // fechaISO y no toISOString: las dos fechas de aquí son LOCALES —la del
+  // movimiento ya viene normalizada a mediodía, y la del calendario es la
+  // medianoche local del día que se pulsó—, y pasarlas por UTC restaba un
+  // día en España. Pulsabas el 15 y el formulario ponía el 14.
   const fechaValue = movimiento
-    ? fromTimestamp(movimiento.fecha).toISOString().slice(0, 10)
+    ? fechaISO(fromTimestamp(movimiento.fecha))
     : fechaPrefill
-    ? fechaPrefill.toISOString().slice(0, 10)
+    ? fechaISO(fechaPrefill)
     : todayISO();
 
   openModal(

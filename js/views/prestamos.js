@@ -12,11 +12,12 @@ import {
   fromTimestamp,
   esPlanDePagos,
   restantePlanDePagos,
-} from "../db.js?v=48";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=48";
-import { initials, avatarColor, icon } from "../icons.js?v=48";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=48";
-import { efectoDeCelebracion } from "../efectos.js?v=48";
+  fechaISO as diaISO,
+} from "../db.js?v=49";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=49";
+import { initials, avatarColor, icon } from "../icons.js?v=49";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=49";
+import { efectoDeCelebracion } from "../efectos.js?v=49";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -29,7 +30,8 @@ export function mountPrestamos() {
 function unMesDespues(fechaISO) {
   const d = new Date(fechaISO + "T00:00:00");
   d.setMonth(d.getMonth() + 1);
-  return d.toISOString().slice(0, 10);
+  // Esa fecha es medianoche LOCAL; por UTC se iría un día atrás.
+  return diaISO(d);
 }
 
 // El interés se puede fijar a mano (para los préstamos en los que se pactó

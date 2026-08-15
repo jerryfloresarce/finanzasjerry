@@ -12,7 +12,7 @@ import {
   disableNetwork,
   enableNetwork,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=48";
+import { db } from "./firebase-init.js?v=49";
 
 // Cuando el iPhone deja la app en segundo plano (o la pantalla se apaga),
 // Safari congela la conexión abierta de Firestore. Al volver, esa conexión
@@ -50,13 +50,46 @@ function listen(name, orderField, cb) {
   });
 }
 
+// ---------- Fechas ----------
+//
+// Aquí una fecha es un DÍA DEL CALENDARIO ("el 15 de agosto"), no un
+// instante. Y eso, con las fechas de JavaScript, tiene trampa.
+//
+// Se guardan como la medianoche UTC de ese día. El problema es leerlas: si
+// se leen con la hora local, en España (UTC+2) esa medianoche son las 02:00
+// del mismo día y todo cuadra por casualidad — pero en Bolivia (UTC-4) son
+// las 20:00 del día ANTERIOR, y entonces cada movimiento aparecería un día
+// antes en el calendario, en los totales del mes y en los gráficos.
+//
+// La solución es una sola: al leer, se devuelve el MEDIODÍA LOCAL de ese
+// mismo día del calendario. Desde ahí, cualquier .getDate(), .getMonth() o
+// texto con la fecha da el día correcto en cualquier país, porque el
+// mediodía está a doce horas de distancia de los dos bordes del día.
+
 export function toTimestamp(dateString) {
   return Timestamp.fromDate(new Date(dateString));
 }
 
 export function fromTimestamp(ts) {
   if (!ts) return null;
-  return ts.toDate ? ts.toDate() : new Date(ts);
+  const bruto = ts.toDate ? ts.toDate() : new Date(ts);
+  if (Number.isNaN(bruto.getTime())) return null;
+  // El día se lee en UTC, que es como se guardó, y se reconstruye a mediodía
+  // en hora local.
+  return new Date(bruto.getUTCFullYear(), bruto.getUTCMonth(), bruto.getUTCDate(), 12, 0, 0, 0);
+}
+
+// El día del calendario de una fecha LOCAL, en texto "2026-08-15".
+//
+// No vale .toISOString().slice(0, 10): eso pasa por UTC, y una fecha creada
+// como new Date(2026, 7, 15) es la medianoche LOCAL — que en España son las
+// 22:00 del día 14 en UTC. De ahí salía el "pulso el 15 y me pone el 14".
+export function fechaISO(fecha = new Date()) {
+  const d = fecha instanceof Date ? fecha : new Date(fecha);
+  if (Number.isNaN(d.getTime())) return "";
+  const mes = String(d.getMonth() + 1).padStart(2, "0");
+  const dia = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${mes}-${dia}`;
 }
 
 // ---------- Cuentas ----------
@@ -131,7 +164,7 @@ export function generarFechasPlanDePagos(inicioISO, cantidad) {
   const fechas = [];
   const d = new Date(inicioISO + "T00:00:00");
   while (fechas.length < cantidad) {
-    if (d.getDay() !== 0) fechas.push(d.toISOString().slice(0, 10));
+    if (d.getDay() !== 0) fechas.push(fechaISO(d));
     d.setDate(d.getDate() + 1);
   }
   return fechas;

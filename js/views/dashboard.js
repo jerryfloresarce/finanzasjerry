@@ -8,12 +8,12 @@ import {
   fromTimestamp,
   esPlanDePagos,
   restantePlanDePagos,
-} from "../db.js?v=48";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=48";
-import { seedInitialData } from "../seed.js?v=48";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=48";
-import { openHistorial } from "./cuentas.js?v=48";
-import { colorTema, paletaTema } from "../tema.js?v=48";
+} from "../db.js?v=49";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=49";
+import { seedInitialData } from "../seed.js?v=49";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=49";
+import { openHistorial } from "./cuentas.js?v=49";
+import { colorTema, paletaTema } from "../tema.js?v=49";
 
 let chartInstance = null;
 

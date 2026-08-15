@@ -1,5 +1,5 @@
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=48";
-import { efectoAlGuardar } from "./efectos.js?v=48";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=49";
+import { efectoAlGuardar } from "./efectos.js?v=49";
 
 const modalRoot = document.getElementById("modal-root");
 const modalScrim = document.getElementById("modal-scrim");
@@ -74,6 +74,11 @@ export function optionsFrom(items, { value = "id", label = "nombre", selected } 
     .join("");
 }
 
+// El día de hoy SEGÚN EL RELOJ DE QUIEN LA USA. Antes salía de
+// toISOString(), que es UTC: entre medianoche y las dos de la mañana en
+// España devolvía el día anterior, así que un gasto apuntado a la 00:30 se
+// guardaba con la fecha de ayer.
 export function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }

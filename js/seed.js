@@ -9,9 +9,10 @@
 // Solo se ofrece cuando no hay ninguna cuenta creada todavía, para no
 // duplicar nada si ya has empezado a usarla.
 
-import { addCuenta, addCategoria, addSuscripcion } from "./db.js?v=48";
+import { addCuenta, addCategoria, addSuscripcion } from "./db.js?v=49";
 
-const hoy = new Date().toISOString().slice(0, 10);
+const ahora = new Date();
+const hoy = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}-${String(ahora.getDate()).padStart(2, "0")}`;
 
 // saldo_inicial es lo que tenías en esa cuenta el día fecha_inicio. A partir
 // de ahí, el saldo que ves lo calcula la app sumando tus movimientos, así
