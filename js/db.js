@@ -12,7 +12,7 @@ import {
   disableNetwork,
   enableNetwork,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=49";
+import { db } from "./firebase-init.js?v=50";
 
 // Cuando el iPhone deja la app en segundo plano (o la pantalla se apaga),
 // Safari congela la conexión abierta de Firestore. Al volver, esa conexión
@@ -211,6 +211,17 @@ export function calcularSaldoCuenta(cuenta, movimientos) {
     return acc + (m.tipo === "Ingreso" ? importe : -importe);
   }, 0);
   return inicial + delta;
+}
+
+// Cómo se llama el destino de una transferencia al enseñarla en pantalla.
+// Una transferencia normal va de una cuenta propia a otra. Pero el dinero
+// que sale al dar un préstamo también es una transferencia (sale de la
+// cuenta y no es un gasto, porque vuelve) y ahí no hay cuenta de destino:
+// se lo lleva la persona. En ese caso el destino es el texto guardado en
+// `subcategoria` ("Préstamo a Ana"), no el nombre de una cuenta.
+export function destinoTransferencia(movimiento, cuentaMap) {
+  if (movimiento.cuenta_destino_id) return cuentaMap.get(movimiento.cuenta_destino_id) || "—";
+  return movimiento.subcategoria || "—";
 }
 
 export function calcularSaldoTotal(cuentas, movimientos) {

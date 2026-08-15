@@ -6,14 +6,15 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
+  destinoTransferencia,
   esPlanDePagos,
   restantePlanDePagos,
-} from "../db.js?v=49";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=49";
-import { seedInitialData } from "../seed.js?v=49";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=49";
-import { openHistorial } from "./cuentas.js?v=49";
-import { colorTema, paletaTema } from "../tema.js?v=49";
+} from "../db.js?v=50";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=50";
+import { seedInitialData } from "../seed.js?v=50";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=50";
+import { openHistorial } from "./cuentas.js?v=50";
+import { colorTema, paletaTema } from "../tema.js?v=50";
 
 let chartInstance = null;
 
@@ -225,7 +226,7 @@ function renderRecientes(movimientos, categorias, cuentas) {
           <div class="mini-row__body">
             <span class="mini-row__icon">${icon("movimientos")}</span>
             <div class="mini-row__main">
-              <span class="mini-row__title">${cuentaMap.get(m.cuenta_id) || "—"} → ${cuentaMap.get(m.cuenta_destino_id) || "—"}</span>
+              <span class="mini-row__title">${cuentaMap.get(m.cuenta_id) || "—"} → ${destinoTransferencia(m, cuentaMap)}</span>
               <span class="mini-row__sub">Transferencia · ${formatFecha(fromTimestamp(m.fecha))}</span>
             </div>
           </div>

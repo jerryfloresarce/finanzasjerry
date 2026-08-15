@@ -13,16 +13,22 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=49";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=49";
-import { initials, avatarColor, icon } from "../icons.js?v=49";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=49";
-import { efectoDeCelebracion } from "../efectos.js?v=49";
+} from "../db.js?v=50";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=50";
+import { initials, avatarColor, icon } from "../icons.js?v=50";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=50";
+import { efectoDeCelebracion } from "../efectos.js?v=50";
 
 const ESTADOS = ["Activo", "Pagado"];
 
+// El formulario de "Nuevo préstamo" necesita la lista de cuentas para
+// preguntar de dónde sale el dinero, y el botón de arriba se engancha una
+// sola vez al arrancar (cuando todavía no hay datos), así que el estado se
+// guarda aquí y se refresca en cada pintado.
+let currentState = null;
+
 export function mountPrestamos() {
-  document.getElementById("btn-add-prestamo").addEventListener("click", () => openPrestamoForm());
+  document.getElementById("btn-add-prestamo").addEventListener("click", () => openPrestamoForm(null, currentState));
 }
 
 // Un mes exacto después de una fecha ISO ("2026-09-01" → "2026-10-01"),
@@ -50,6 +56,7 @@ function interesActualDe(p) {
 }
 
 export function renderPrestamos(state) {
+  currentState = state;
   const el = document.getElementById("prestamos-grid");
   const { prestamos, pagosPrestamos } = state;
 
@@ -116,7 +123,7 @@ export function renderPrestamos(state) {
     .join("");
 
   el.querySelectorAll("[data-edit]").forEach((btn) =>
-    btn.addEventListener("click", () => openPrestamoForm(prestamos.find((p) => p.id === btn.dataset.edit)))
+    btn.addEventListener("click", () => openPrestamoForm(prestamos.find((p) => p.id === btn.dataset.edit), state))
   );
   el.querySelectorAll("[data-pago-ok]").forEach((btn) =>
     btn.addEventListener("click", () => openInteresPagadoForm(prestamos.find((p) => p.id === btn.dataset.pagoOk), state))
@@ -133,9 +140,25 @@ export function renderPrestamos(state) {
   el.querySelectorAll("[data-dia-pagado]").forEach((btn) =>
     btn.addEventListener("click", () => deshacerDiaPagado(pagosPrestamos.find((pg) => pg.id === btn.dataset.diaPagado)))
   );
-  attachSwipe(el, (id) => deletePrestamo(id), {
-    confirmar: "¿Eliminar este préstamo?",
+  attachSwipe(el, (id) => eliminarPrestamo(prestamos.find((p) => p.id === id)), {
+    confirmar: "¿Eliminar este préstamo? Si al crearlo se descontó de una cuenta, ese movimiento también se borra.",
   });
+}
+
+// Borrar un préstamo se lleva por delante el movimiento que sacó el dinero
+// de la cuenta al crearlo. Si no, borrar un préstamo apuntado por error
+// dejaría el saldo de esa cuenta descuadrado y un movimiento suelto que
+// nadie sabría de dónde ha salido.
+async function eliminarPrestamo(prestamo) {
+  if (!prestamo) return;
+  if (prestamo.movimiento_origen_id) {
+    try {
+      await deleteMovimiento(prestamo.movimiento_origen_id);
+    } catch (err) {
+      console.error("No se pudo borrar el movimiento de origen del préstamo:", err);
+    }
+  }
+  await deletePrestamo(prestamo.id);
 }
 
 function renderInteresMensual(p, pct, interesActual, etiquetaInteres) {
@@ -421,9 +444,14 @@ function openLiquidarForm(prestamo, state) {
   );
 }
 
-function openPrestamoForm(prestamo) {
+function openPrestamoForm(prestamo, state) {
   const isEdit = Boolean(prestamo);
   const capital = prestamo ? Number(prestamo.capital ?? prestamo.capital_inicial ?? 0) : "";
+  const cuentas = state?.cuentas ?? [];
+  // De dónde sale el dinero solo se pregunta al CREAR el préstamo. Al
+  // editar uno que ya existe no aparece: el dinero ya salió en su día, y
+  // volver a preguntarlo solo serviría para descontarlo dos veces.
+  const preguntarOrigen = !isEdit && cuentas.length > 0;
   openModal(
     `
     <h2 class="modal__title">${isEdit ? "Editar préstamo" : "Nuevo préstamo"}</h2>
@@ -436,6 +464,26 @@ function openPrestamoForm(prestamo) {
         <span class="field__label">Capital pendiente</span>
         <input type="number" step="0.01" name="capital" required value="${capital}" placeholder="500.00" />
       </label>
+      ${
+        preguntarOrigen
+          ? `
+      <label class="field">
+        <span class="field__label">¿De qué cuenta sale el dinero?</span>
+        <select name="cuenta_origen_id">
+          ${optionsFrom(cuentas)}
+          <option value="">No descontarlo de ninguna cuenta</option>
+        </select>
+      </label>
+      <label class="field">
+        <span class="field__label">¿Qué día se lo diste?</span>
+        <input type="date" name="fecha_entrega" value="${todayISO()}" />
+      </label>
+      <p class="entity-card__meta field--full" style="margin:-4px 0 4px;">
+        Se descontará el capital de esa cuenta. No cuenta como gasto del mes:
+        es dinero prestado, no gastado.
+      </p>`
+          : ""
+      }
       <label class="field">
         <span class="field__label">Interés (%)</span>
         <input type="number" step="0.01" name="interes_porcentaje" value="${prestamo?.interes_porcentaje ?? 0}" placeholder="20" />
@@ -479,8 +527,37 @@ function openPrestamoForm(prestamo) {
             notas: f.notas.value.trim(),
           };
           try {
-            if (isEdit) await updatePrestamo(prestamo.id, data);
-            else await addPrestamo(data);
+            if (isEdit) {
+              await updatePrestamo(prestamo.id, data);
+            } else {
+              const cuentaOrigen = preguntarOrigen ? f.cuenta_origen_id.value : "";
+              if (cuentaOrigen) {
+                // Se guarda como "Transferencia" y no como "Gasto" a
+                // propósito: prestar dinero no es gastarlo, vuelve. Así el
+                // saldo de la cuenta baja de verdad, pero el préstamo no
+                // aparece en los gastos del mes ni en el gráfico de
+                // categorías, que es donde falsearía las cuentas.
+                const movimiento = await addMovimiento({
+                  tipo: "Transferencia",
+                  importe: data.capital,
+                  categoria_id: null,
+                  cuenta_id: cuentaOrigen,
+                  // No hay cuenta de destino: el dinero se lo lleva la
+                  // persona. Quien lo enseña en pantalla usa la
+                  // subcategoría de abajo como destino.
+                  cuenta_destino_id: null,
+                  fecha: toTimestamp(f.fecha_entrega.value || todayISO()),
+                  subcategoria: `Préstamo a ${data.persona}`,
+                  nota: "",
+                });
+                // La cuenta se queda apuntada en el préstamo: los cobros
+                // (interés, días del plan, liquidación) ya la traen puesta
+                // por defecto, que es donde suele volver el dinero.
+                data.cuenta_id = cuentaOrigen;
+                data.movimiento_origen_id = movimiento.id;
+              }
+              await addPrestamo(data);
+            }
             closeModal();
           } catch (err) {
             root.querySelector("#form-prestamo-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";

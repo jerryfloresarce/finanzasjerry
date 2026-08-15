@@ -7,11 +7,12 @@ import {
   fromTimestamp,
   toTimestamp,
   fechaISO,
-} from "../db.js?v=49";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=49";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=49";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=49";
-import { colorTema } from "../tema.js?v=49";
+  destinoTransferencia,
+} from "../db.js?v=50";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=50";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=50";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=50";
+import { colorTema } from "../tema.js?v=50";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -171,7 +172,7 @@ function openDiaDetalle(fecha, state) {
       let titulo, sub, amountClass, amountSign, iconHTML;
       if (esTransferencia) {
         iconHTML = icon("movimientos", { size: 16 });
-        titulo = `${cuentaMap.get(m.cuenta_id) || "—"} → ${cuentaMap.get(m.cuenta_destino_id) || "—"}`;
+        titulo = `${cuentaMap.get(m.cuenta_id) || "—"} → ${destinoTransferencia(m, cuentaMap)}`;
         sub = "Transferencia" + (m.nota ? " · " + m.nota : "");
         amountClass = "";
         amountSign = "";
@@ -253,6 +254,14 @@ function openForm(movimiento, state, fechaPrefill) {
     : fechaPrefill
     ? fechaISO(fechaPrefill)
     : todayISO();
+  // El dinero que sale al dar un préstamo se guarda como transferencia SIN
+  // cuenta de destino (se lo lleva la persona, no va a otra cuenta propia).
+  // Al editarlo desde aquí no se le puede exigir una cuenta de destino ni
+  // borrarle el "Préstamo a X": eso haría aparecer ese dinero entrando en
+  // otra cuenta suya y le cuadraría mal el saldo.
+  const esPrestamoDado = Boolean(
+    movimiento?.tipo === "Transferencia" && !movimiento.cuenta_destino_id && movimiento.subcategoria
+  );
 
   openModal(
     `
@@ -311,12 +320,13 @@ function openForm(movimiento, state, fechaPrefill) {
 
         function toggleCampos() {
           const esTransferencia = tipoSelect.value === "Transferencia";
+          const pideDestino = esTransferencia && !esPrestamoDado;
           campoCategoria.classList.toggle("is-hidden", esTransferencia);
-          campoCuentaDestino.classList.toggle("is-hidden", !esTransferencia);
-          campoSubcategoria.classList.toggle("is-hidden", esTransferencia);
+          campoCuentaDestino.classList.toggle("is-hidden", !pideDestino);
+          campoSubcategoria.classList.toggle("is-hidden", esTransferencia && !esPrestamoDado);
           etiquetaCuenta.textContent = esTransferencia ? "Cuenta origen" : "Cuenta";
           root.querySelector("[name=categoria_id]").required = !esTransferencia;
-          root.querySelector("[name=cuenta_destino_id]").required = esTransferencia;
+          root.querySelector("[name=cuenta_destino_id]").required = pideDestino;
         }
         tipoSelect.addEventListener("change", toggleCampos);
         toggleCampos();
@@ -326,14 +336,15 @@ function openForm(movimiento, state, fechaPrefill) {
           e.preventDefault();
           const f = e.target;
           const esTransferencia = f.tipo.value === "Transferencia";
+          const guardaDestino = esTransferencia && !esPrestamoDado;
           const data = {
             tipo: f.tipo.value,
             importe: Number(f.importe.value),
             categoria_id: esTransferencia ? null : f.categoria_id.value,
             cuenta_id: f.cuenta_id.value,
-            cuenta_destino_id: esTransferencia ? f.cuenta_destino_id.value : null,
+            cuenta_destino_id: guardaDestino ? f.cuenta_destino_id.value : null,
             fecha: toTimestamp(f.fecha.value),
-            subcategoria: esTransferencia ? "" : f.subcategoria.value.trim(),
+            subcategoria: guardaDestino ? "" : f.subcategoria.value.trim(),
             nota: f.nota.value.trim(),
           };
           try {

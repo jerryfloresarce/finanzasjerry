@@ -1,9 +1,18 @@
-import { addCuenta, updateCuenta, deleteCuenta, calcularSaldoCuenta, formatEUR, formatFecha, fromTimestamp } from "../db.js?v=49";
-import { openModal, closeModal, todayISO } from "../modal.js?v=49";
-import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=49";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=49";
-import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=49";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=49";
+import {
+  addCuenta,
+  updateCuenta,
+  deleteCuenta,
+  calcularSaldoCuenta,
+  destinoTransferencia,
+  formatEUR,
+  formatFecha,
+  fromTimestamp,
+} from "../db.js?v=50";
+import { openModal, closeModal, todayISO } from "../modal.js?v=50";
+import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=50";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=50";
+import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=50";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=50";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 
@@ -76,9 +85,14 @@ export function openHistorial(cuenta, state) {
       let descripcion;
       let signo;
       if (esTransferencia) {
-        descripcion = esOrigen
-          ? `Transferencia enviada a ${cuentaMap.get(m.cuenta_destino_id) || "—"}`
-          : `Transferencia recibida de ${cuentaMap.get(m.cuenta_id) || "—"}`;
+        // Si no hay cuenta de destino es dinero que salió al dar un
+        // préstamo, y ahí "Transferencia enviada a Préstamo a Ana" sobra:
+        // basta con "Préstamo a Ana".
+        descripcion = !esOrigen
+          ? `Transferencia recibida de ${cuentaMap.get(m.cuenta_id) || "—"}`
+          : m.cuenta_destino_id
+          ? `Transferencia enviada a ${destinoTransferencia(m, cuentaMap)}`
+          : destinoTransferencia(m, cuentaMap);
         signo = esOrigen ? -1 : 1;
       } else {
         const cat = catMap.get(m.categoria_id);
