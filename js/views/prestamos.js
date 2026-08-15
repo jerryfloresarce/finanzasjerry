@@ -13,11 +13,11 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=50";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=50";
-import { initials, avatarColor, icon } from "../icons.js?v=50";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=50";
-import { efectoDeCelebracion } from "../efectos.js?v=50";
+} from "../db.js?v=51";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=51";
+import { initials, avatarColor, icon } from "../icons.js?v=51";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=51";
+import { efectoDeCelebracion } from "../efectos.js?v=51";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -161,21 +161,39 @@ async function eliminarPrestamo(prestamo) {
   await deletePrestamo(prestamo.id);
 }
 
+// La cantidad del interés se enseña SIEMPRE que haya un interés puesto, se
+// calcule con el % o esté escrita a mano. Antes toda la caja dependía de
+// que el préstamo tuviera fecha de cobro: si no la tenía, no se veía ni
+// cuánto era el interés, y era fácil quedarse sin ella porque la fecha es
+// un campo aparte que se puede dejar vacío sin que nada avise.
+//
+// La fecha solo hace falta para lo otro: saber cuándo vence y poder marcar
+// si pagó o no. Sin ella se enseña el importe igual y un botón para
+// ponerla (lleva data-edit, que es el mismo que abre el formulario).
 function renderInteresMensual(p, pct, interesActual, etiquetaInteres) {
-  return p.fecha_interes
-    ? `
+  const hayInteres = tieneInteresManual(p) || pct > 0;
+  if (!hayInteres) {
+    return `<p class="entity-card__meta">Sin interés configurado — edita el préstamo para poner el % o una cantidad fija.</p>`;
+  }
+
+  return `
       <div class="prestamo-interes">
         <div class="prestamo-interes__info">
           <span class="prestamo-interes__label">${etiquetaInteres}</span>
           <span class="prestamo-interes__amount">${formatEUR(interesActual)}</span>
-          <span class="prestamo-interes__fecha">vence ${formatFecha(new Date(p.fecha_interes + "T00:00:00"))}</span>
+          <span class="prestamo-interes__fecha">${
+            p.fecha_interes ? `vence ${formatFecha(new Date(p.fecha_interes + "T00:00:00"))}` : "sin fecha de cobro"
+          }</span>
         </div>
         <div class="prestamo-interes__actions">
-          <button type="button" class="btn btn--primary btn--sm" data-pago-ok="${p.id}">✓ Pagó</button>
-          <button type="button" class="btn btn--ghost btn--sm" data-pago-no="${p.id}">✕ No pagó</button>
+          ${
+            p.fecha_interes
+              ? `<button type="button" class="btn btn--primary btn--sm" data-pago-ok="${p.id}">✓ Pagó</button>
+          <button type="button" class="btn btn--ghost btn--sm" data-pago-no="${p.id}">✕ No pagó</button>`
+              : `<button type="button" class="btn btn--ghost btn--sm" data-edit="${p.id}">Poner la fecha de cobro</button>`
+          }
         </div>
-      </div>`
-    : `<p class="entity-card__meta">Sin fecha de interés configurada — edita el préstamo para añadirla.</p>`;
+      </div>`;
 }
 
 // Plan de pagos diario: en vez de un interés mensual único, se muestra la
@@ -493,8 +511,8 @@ function openPrestamoForm(prestamo, state) {
         <input type="number" step="0.01" name="interes_manual" value="${prestamo?.interes_manual ?? ""}" placeholder="Vacío = se calcula con el %" />
       </label>
       <label class="field">
-        <span class="field__label">Fecha del próximo interés</span>
-        <input type="date" name="fecha_interes" value="${prestamo?.fecha_interes ?? ""}" />
+        <span class="field__label">¿Qué día te paga el interés?</span>
+        <input type="date" name="fecha_interes" value="${prestamo?.fecha_interes ?? unMesDespues(todayISO())}" />
       </label>
       <label class="field">
         <span class="field__label">Estado</span>
