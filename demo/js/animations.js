@@ -2,7 +2,7 @@
 // Solo se aplican dentro del dashboard; los formularios y listados
 // del resto de vistas son instantáneos a propósito.
 
-import { destelloEnNumero } from "./efectos.js?v=56";
+import { destelloEnNumero } from "./efectos.js?v=58";
 
 let heroTriggers = [];
 let revealTriggers = [];

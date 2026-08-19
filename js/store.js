@@ -7,7 +7,7 @@ import {
   listenPagosPrestamos,
   listenConfig,
   reconectarFirestore,
-} from "./db.js?v=56";
+} from "./db.js?v=58";
 
 export const state = {
   cuentas: [],

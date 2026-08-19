@@ -495,7 +495,39 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
   cursor: pointer;
   font: inherit;
 }
+.susc-pago-editar .mini-row__main { flex: 1; min-width: 0; }
+.susc-pago-editar .mini-row__amount { margin-left: auto; }
 .susc-pago-editar:hover .mini-row__title { color: var(--accent, var(--success)); }
+
+/* Una factura dentro de la ventana de pagos del mes: su periodo, su total y
+   los trozos con los que se pagó. Van en cajas separadas porque en un mismo
+   mes pueden llegar dos recibos del mismo gasto fijo (el de junio y el de
+   julio de la luz), y en una lista plana no se distinguirían. */
+.factura {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 12px);
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.factura__cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.factura__periodo {
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.factura__total {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  white-space: nowrap;
+}
+.factura .pago-list { margin-bottom: 8px; }
 
 /* ---------------- Calendario de Movimientos ---------------- */
 

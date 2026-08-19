@@ -11,10 +11,10 @@ import {
   toTimestamp,
   fechaISO,
   textoPeriodo,
-} from "../db.js?v=56";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=56";
-import { icon, iconForSuscripcion } from "../icons.js?v=56";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=56";
+} from "../db.js?v=58";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=58";
+import { icon, iconForSuscripcion } from "../icons.js?v=58";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=58";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).
@@ -142,9 +142,17 @@ export function renderSuscripciones(state) {
       if (!activa) {
         sub = `${catMap.get(s.categoria_id) || "—"} · Inactiva`;
       } else if (pagada) {
-        const desglose = pagos.map((m) => `${formatEUR(Number(m.importe ?? 0))} ${cuentaMap.get(m.cuenta_id) || "—"}`).join(" + ");
-        const periodo = pagos.map((m) => textoPeriodo(m)).find(Boolean);
-        sub = `${desglose}${periodo ? ` · ${periodo}` : ""}`;
+        // Con una sola factura cabe el desglose entero (de qué cuenta salió
+        // cada trozo). Con dos o más no cabe, y lo que importa saber de un
+        // vistazo es justo eso: que este mes han llegado dos recibos.
+        const facturas = agruparPorFactura(pagos);
+        if (facturas.length > 1) {
+          sub = `${facturas.length} facturas · ${facturas.map((f) => textoPeriodo({ periodo_desde: f.desde, periodo_hasta: f.hasta }) || "sin periodo").join(" y ")}`;
+        } else {
+          const desglose = pagos.map((m) => `${formatEUR(Number(m.importe ?? 0))} ${cuentaMap.get(m.cuenta_id) || "—"}`).join(" + ");
+          const periodo = textoPeriodo(pagos.find((m) => textoPeriodo(m)) ?? {});
+          sub = `${desglose}${periodo ? ` · ${periodo}` : ""}`;
+        }
       } else if (!toca) {
         const proximo = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 1);
         sub = `Cada ${cadaCuantosMeses(s)} meses · ya pagado, toca en ${nombreDeMes(proximo).toLowerCase()}`;
@@ -243,8 +251,9 @@ function openMarcarPagado(suscripcion, state, checkboxInput, { yaPagado = 0, per
       ${
         esOtroTrozo
           ? `<p class="entity-card__meta field--full" style="margin:0 0 4px;">
-        Ya llevas ${formatEUR(yaPagado)} pagados de este recibo. Apunta aquí lo
-        que hayas pagado desde otro sitio.
+        De la factura ${textoPeriodo({ periodo_desde: periodo.desde, periodo_hasta: periodo.hasta }) || "sin periodo"} ya
+        llevas ${formatEUR(yaPagado)} pagados. Apunta aquí lo que hayas pagado
+        desde otro sitio.
       </p>`
           : ""
       }
@@ -330,62 +339,96 @@ function openMarcarPagado(suscripcion, state, checkboxInput, { yaPagado = 0, per
   );
 }
 
-// Los pagos de este recibo en el mes que se está viendo. Existe porque un
-// recibo se puede pagar desde varios sitios, y entonces la fila de la lista
-// solo enseña el total: aquí se ve trozo a trozo, se puede añadir otro y se
-// puede borrar uno suelto sin cargarse los demás.
+// Los pagos agrupados por factura. Dos recibos de la luz pueden caer en el
+// mismo mes (llega el de junio y a los días el de julio), y cada uno se
+// puede pagar desde varios sitios. Lo que hace de "factura" es el periodo
+// que cubre: los pagos que cubren el mismo tramo son el mismo recibo.
+// Los pagos sin periodo se quedan juntos en un grupo aparte.
+function agruparPorFactura(pagos) {
+  const grupos = new Map();
+  pagos.forEach((m) => {
+    const clave = `${m.periodo_desde ?? ""}|${m.periodo_hasta ?? ""}`;
+    if (!grupos.has(clave)) grupos.set(clave, { clave, desde: m.periodo_desde ?? "", hasta: m.periodo_hasta ?? "", pagos: [] });
+    grupos.get(clave).pagos.push(m);
+  });
+  // Por el principio del periodo, y las que no tienen periodo al final.
+  return [...grupos.values()].sort((a, b) => (a.desde || "9999").localeCompare(b.desde || "9999"));
+}
+
+// Las facturas de este recibo en el mes que se está viendo, cada una con
+// sus pagos. Aquí se ve cuántos recibos han llegado, cuánto suma cada uno y
+// de qué cuenta salió cada trozo; se puede corregir un pago, borrarlo,
+// añadir otro a una factura, o dar de alta otra factura del mismo mes.
 function openPagosDelMes(suscripcion, state) {
   const { movimientos, cuentas } = state;
   const cuentaMap = new Map(cuentas.map((c) => [c.id, c.nombre]));
   const pagos = pagosDelMes(movimientos, suscripcion.id).sort((a, b) => (fromTimestamp(a.fecha) ?? 0) - (fromTimestamp(b.fecha) ?? 0));
+  const facturas = agruparPorFactura(pagos);
   const total = sumaPagos(pagos);
-  const precio = Number(suscripcion.precio ?? 0);
   const mesLabel = nombreDeMes(mesActual);
-  // Si ya hay un periodo apuntado, el pago siguiente lo hereda: los trozos
-  // de un mismo recibo cubren el mismo periodo.
-  const conPeriodo = pagos.find((m) => m.periodo_desde || m.periodo_hasta);
 
   openModal(
     `
-    <h2 class="modal__title">Pagos de "${suscripcion.nombre}" · ${mesLabel}</h2>
-    <div class="pago-list">
-      ${pagos
-        .map(
-          (m) => `
-        <div class="mini-row">
-          <button type="button" class="susc-pago-editar" data-editar-pago="${m.id}">
-            <span class="mini-row__main">
-              <span class="mini-row__title">${cuentaMap.get(m.cuenta_id) || "—"}</span>
-              <span class="mini-row__sub">${formatFecha(fromTimestamp(m.fecha))}${textoPeriodo(m) ? ` · ${textoPeriodo(m)}` : ""}${m.nota ? ` · ${m.nota}` : ""}</span>
-            </span>
-            <span class="mini-row__amount">${formatEUR(Number(m.importe ?? 0))}</span>
-          </button>
-          <button type="button" class="row-edit-btn" data-borrar-pago="${m.id}" title="Borrar este pago">${icon("trash", { size: 15 })}</button>
-        </div>`
-        )
-        .join("")}
-    </div>
-    <p class="entity-card__meta">
-      Toca un pago para corregirlo.<br />
-      Total pagado: <strong>${formatEUR(total)}</strong>${
-      precio > 0 ? ` · precio habitual ${formatEUR(precio)}${total < precio ? ` · faltan ${formatEUR(precio - total)}` : ""}` : ""
-    }
+    <h2 class="modal__title">${suscripcion.nombre} · ${mesLabel}</h2>
+    <p class="entity-card__meta" style="margin:-12px 0 14px;">
+      ${facturas.length === 1 ? "1 factura" : `${facturas.length} facturas`} este mes ·
+      <strong>${formatEUR(total)}</strong> en total. Toca un pago para corregirlo.
     </p>
+    ${facturas
+      .map(
+        (f) => `
+      <div class="factura">
+        <div class="factura__cabecera">
+          <span class="factura__periodo">${textoPeriodo({ periodo_desde: f.desde, periodo_hasta: f.hasta }) || "Sin periodo apuntado"}</span>
+          <span class="factura__total">${formatEUR(sumaPagos(f.pagos))}</span>
+        </div>
+        <div class="pago-list">
+          ${f.pagos
+            .map(
+              (m) => `
+            <div class="mini-row">
+              <button type="button" class="susc-pago-editar" data-editar-pago="${m.id}">
+                <span class="mini-row__main">
+                  <span class="mini-row__title">${cuentaMap.get(m.cuenta_id) || "—"}</span>
+                  <span class="mini-row__sub">${formatFecha(fromTimestamp(m.fecha))}${m.nota ? ` · ${m.nota}` : ""}</span>
+                </span>
+                <span class="mini-row__amount">${formatEUR(Number(m.importe ?? 0))}</span>
+              </button>
+              <button type="button" class="row-edit-btn" data-borrar-pago="${m.id}" title="Borrar este pago">${icon("trash", { size: 15 })}</button>
+            </div>`
+            )
+            .join("")}
+        </div>
+        <button type="button" class="btn btn--ghost btn--sm btn--block" data-pago-a-factura="${f.clave}">
+          + Añadir un pago a esta factura
+        </button>
+      </div>`
+      )
+      .join("")}
     <div class="modal__actions">
       <button type="button" class="btn btn--ghost" id="btn-cerrar-pagos">Cerrar</button>
-      <button type="button" class="btn btn--primary" id="btn-otro-pago">+ Añadir otro pago</button>
+      <button type="button" class="btn btn--primary" id="btn-otra-factura">+ Otra factura</button>
     </div>
   `,
     {
       onMount: (root) => {
         root.querySelector("#btn-cerrar-pagos").addEventListener("click", closeModal);
-        root.querySelector("#btn-otro-pago").addEventListener("click", () => {
+        // Otra factura del mismo mes: empieza de cero, con su propio periodo
+        // y el precio habitual de guía.
+        root.querySelector("#btn-otra-factura").addEventListener("click", () => {
           closeModal();
-          openMarcarPagado(suscripcion, state, null, {
-            yaPagado: total,
-            periodo: { desde: conPeriodo?.periodo_desde ?? "", hasta: conPeriodo?.periodo_hasta ?? "" },
-          });
+          openMarcarPagado(suscripcion, state, null, {});
         });
+        root.querySelectorAll("[data-pago-a-factura]").forEach((btn) =>
+          btn.addEventListener("click", () => {
+            const f = facturas.find((x) => x.clave === btn.dataset.pagoAFactura);
+            closeModal();
+            openMarcarPagado(suscripcion, state, null, {
+              yaPagado: sumaPagos(f.pagos),
+              periodo: { desde: f.desde, hasta: f.hasta },
+            });
+          })
+        );
         root.querySelectorAll("[data-editar-pago]").forEach((btn) =>
           btn.addEventListener("click", () => {
             closeModal();
