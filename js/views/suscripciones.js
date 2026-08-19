@@ -1,7 +1,7 @@
-import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=51";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=51";
-import { icon, iconForSuscripcion } from "../icons.js?v=51";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=51";
+import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=52";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=52";
+import { icon, iconForSuscripcion } from "../icons.js?v=52";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=52";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).
@@ -143,6 +143,10 @@ function openMarcarPagado(suscripcion, state, checkboxInput) {
         <span class="field__label">Fecha</span>
         <input type="date" name="fecha" value="${todayISO()}" required />
       </label>
+      <label class="field field--full">
+        <span class="field__label">Nota (opcional)</span>
+        <input type="text" name="nota" placeholder="Factura de julio" />
+      </label>
       <label class="field-check field--full">
         <input type="checkbox" name="no_afecta_saldo" />
         Ya estaba pagado — no descontar de la cuenta (solo registrarlo)
@@ -171,7 +175,12 @@ function openMarcarPagado(suscripcion, state, checkboxInput) {
             cuenta_destino_id: null,
             fecha: toTimestamp(f.fecha.value),
             subcategoria: suscripcion.nombre,
-            nota: "",
+            // La nota sirve para decir QUÉ recibo es este pago ("factura de
+            // julio"), que con la luz o el agua casi nunca es el mes en el
+            // que se paga. Va en `nota` y no en `subcategoria` a propósito:
+            // la subcategoría es la que agrupa en "Dónde más gastas", y si
+            // cambiara cada mes la luz saldría partida en doce trozos.
+            nota: f.nota.value.trim(),
             suscripcion_id: suscripcion.id,
             afecta_saldo: !f.no_afecta_saldo.checked,
           };
