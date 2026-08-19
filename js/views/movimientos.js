@@ -9,11 +9,11 @@ import {
   fechaISO,
   destinoTransferencia,
   textoPeriodo,
-} from "../db.js?v=54";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=54";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=54";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=54";
-import { colorTema } from "../tema.js?v=54";
+} from "../db.js?v=55";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=55";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=55";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=55";
+import { colorTema } from "../tema.js?v=55";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.

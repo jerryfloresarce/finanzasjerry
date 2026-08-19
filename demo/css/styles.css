@@ -478,6 +478,25 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
 }
 .susc-row__pagos:hover { color: var(--accent, var(--success)); }
 
+/* Cada pago de la lista es un botón que lo abre para corregirlo: el importe
+   viene puesto con el precio habitual y es fácil guardar la estimación en
+   vez de lo que se pagó de verdad. */
+.susc-pago-editar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.susc-pago-editar:hover .mini-row__title { color: var(--accent, var(--success)); }
+
 /* ---------------- Calendario de Movimientos ---------------- */
 
 .calendar { display: flex; flex-direction: column; gap: 8px; }

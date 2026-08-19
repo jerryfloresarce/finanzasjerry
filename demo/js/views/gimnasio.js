@@ -33,10 +33,10 @@ import {
   deleteGymSuplementos,
   addGymTomas,
   deleteGymTomas,
-} from "../db.js?v=54";
-import { openModal, closeModal } from "../modal.js?v=54";
-import { icon } from "../icons.js?v=54";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=54";
+} from "../db.js?v=55";
+import { openModal, closeModal } from "../modal.js?v=55";
+import { icon } from "../icons.js?v=55";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=55";
 
 const TIPOS = ["Pesas", "Piernas", "Torso", "Full body", "Cardio", "Clase", "Otro"];
 const SENSACIONES = ["Muy bien", "Normal", "Con poca fuerza", "Agotado"];

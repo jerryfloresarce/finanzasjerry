@@ -3,16 +3,18 @@ import {
   updateSuscripcion,
   deleteSuscripcion,
   addMovimiento,
+  updateMovimiento,
   deleteMovimiento,
   formatEUR,
   formatFecha,
   fromTimestamp,
   toTimestamp,
+  fechaISO,
   textoPeriodo,
-} from "../db.js?v=54";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=54";
-import { icon, iconForSuscripcion } from "../icons.js?v=54";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=54";
+} from "../db.js?v=55";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=55";
+import { icon, iconForSuscripcion } from "../icons.js?v=55";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=55";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).
@@ -220,15 +222,23 @@ export function renderSuscripciones(state) {
 // añadiendo un segundo trozo (40 € en efectivo y el resto con la tarjeta).
 // El importe viene puesto con lo que falta, que es lo que se va a escribir
 // nueve de cada diez veces.
-function openMarcarPagado(suscripcion, state, checkboxInput, { yaPagado = 0, periodo = {} } = {}) {
+// pago: un pago ya apuntado que se está CORRIGIENDO. Poder corregirlo
+// importa porque el importe viene puesto con el precio habitual, y una luz
+// o un agua casi nunca cuesta lo mismo dos meses seguidos: es facilísimo
+// guardar la estimación en vez de lo que se pagó de verdad. Antes eso solo
+// se podía deshacer borrando el pago entero.
+function openMarcarPagado(suscripcion, state, checkboxInput, { yaPagado = 0, periodo = {}, pago = null } = {}) {
   let saved = false;
-  const esOtroTrozo = yaPagado > 0;
+  const editando = Boolean(pago);
+  const esOtroTrozo = !editando && yaPagado > 0;
   // Redondeado a céntimos: restar decimales en JavaScript da cosas como
   // 1.490000000000002, y eso es lo que aparecería escrito en la casilla.
   const restante = Math.max(0, Math.round((Number(suscripcion.precio ?? 0) - yaPagado) * 100) / 100);
   openModal(
     `
-    <h2 class="modal__title">${esOtroTrozo ? `Otro pago de "${suscripcion.nombre}"` : `Marcar "${suscripcion.nombre}" como pagado`}</h2>
+    <h2 class="modal__title">${
+      editando ? `Corregir pago de "${suscripcion.nombre}"` : esOtroTrozo ? `Otro pago de "${suscripcion.nombre}"` : `Marcar "${suscripcion.nombre}" como pagado`
+    }</h2>
     <form id="form-susc-pago" class="form-grid">
       ${
         esOtroTrozo
@@ -240,34 +250,35 @@ function openMarcarPagado(suscripcion, state, checkboxInput, { yaPagado = 0, per
       }
       <label class="field">
         <span class="field__label">${esOtroTrozo ? "¿Cuánto más?" : "Importe"}</span>
-        <input type="number" step="0.01" name="importe" required value="${esOtroTrozo ? (restante || "") : (suscripcion.precio ?? "")}" placeholder="0.00" />
+        <input type="number" step="0.01" name="importe" required value="${
+          editando ? pago.importe : esOtroTrozo ? restante || "" : suscripcion.precio ?? ""
+        }" placeholder="0.00" />
       </label>
       <label class="field">
         <span class="field__label">¿De qué cuenta sale?</span>
-        <select name="cuenta_id">${optionsFrom(state.cuentas, { selected: suscripcion.cuenta_id })}</select>
+        <select name="cuenta_id">${optionsFrom(state.cuentas, { selected: editando ? pago.cuenta_id : suscripcion.cuenta_id })}</select>
       </label>
       <label class="field field--full">
         <span class="field__label">¿Qué día lo pagaste?</span>
-        <input type="date" name="fecha" value="${todayISO()}" required />
+        <input type="date" name="fecha" value="${editando ? fechaISO(fromTimestamp(pago.fecha)) : todayISO()}" required />
       </label>
       <p class="entity-card__meta field--full" style="margin:4px 0 -4px;">
-        Periodo que cubre la factura (opcional). Es el rango que viene en el
-        recibo, que casi nunca es el mes en el que se paga.
+        Periodo que cubre la factura (opcional), el que viene en el recibo.
       </p>
       <label class="field">
         <span class="field__label">Desde</span>
-        <input type="date" name="periodo_desde" value="${periodo.desde ?? ""}" />
+        <input type="date" name="periodo_desde" value="${editando ? pago.periodo_desde ?? "" : periodo.desde ?? ""}" />
       </label>
       <label class="field">
         <span class="field__label">Hasta</span>
-        <input type="date" name="periodo_hasta" value="${periodo.hasta ?? ""}" />
+        <input type="date" name="periodo_hasta" value="${editando ? pago.periodo_hasta ?? "" : periodo.hasta ?? ""}" />
       </label>
       <label class="field field--full">
         <span class="field__label">Nota (opcional)</span>
-        <input type="text" name="nota" placeholder="Factura de julio" />
+        <input type="text" name="nota" value="${editando ? pago.nota ?? "" : ""}" placeholder="Factura de julio" />
       </label>
       <label class="field-check field--full">
-        <input type="checkbox" name="no_afecta_saldo" />
+        <input type="checkbox" name="no_afecta_saldo" ${editando && pago.afecta_saldo === false ? "checked" : ""} />
         Ya estaba pagado — no descontar de la cuenta (solo registrarlo)
       </label>
       <p class="field-error" id="form-susc-pago-error"></p>
@@ -306,7 +317,8 @@ function openMarcarPagado(suscripcion, state, checkboxInput, { yaPagado = 0, per
             afecta_saldo: !f.no_afecta_saldo.checked,
           };
           try {
-            await addMovimiento(data);
+            if (editando) await updateMovimiento(pago.id, data);
+            else await addMovimiento(data);
             saved = true;
             closeModal();
           } catch (err) {
@@ -341,19 +353,20 @@ function openPagosDelMes(suscripcion, state) {
         .map(
           (m) => `
         <div class="mini-row">
-          <div class="mini-row__body" style="flex:1; min-width:0;">
+          <button type="button" class="susc-pago-editar" data-editar-pago="${m.id}">
             <span class="mini-row__main">
               <span class="mini-row__title">${cuentaMap.get(m.cuenta_id) || "—"}</span>
               <span class="mini-row__sub">${formatFecha(fromTimestamp(m.fecha))}${textoPeriodo(m) ? ` · ${textoPeriodo(m)}` : ""}${m.nota ? ` · ${m.nota}` : ""}</span>
             </span>
-          </div>
-          <span class="mini-row__amount">${formatEUR(Number(m.importe ?? 0))}</span>
+            <span class="mini-row__amount">${formatEUR(Number(m.importe ?? 0))}</span>
+          </button>
           <button type="button" class="row-edit-btn" data-borrar-pago="${m.id}" title="Borrar este pago">${icon("trash", { size: 15 })}</button>
         </div>`
         )
         .join("")}
     </div>
     <p class="entity-card__meta">
+      Toca un pago para corregirlo.<br />
       Total pagado: <strong>${formatEUR(total)}</strong>${
       precio > 0 ? ` · precio habitual ${formatEUR(precio)}${total < precio ? ` · faltan ${formatEUR(precio - total)}` : ""}` : ""
     }
@@ -373,6 +386,12 @@ function openPagosDelMes(suscripcion, state) {
             periodo: { desde: conPeriodo?.periodo_desde ?? "", hasta: conPeriodo?.periodo_hasta ?? "" },
           });
         });
+        root.querySelectorAll("[data-editar-pago]").forEach((btn) =>
+          btn.addEventListener("click", () => {
+            closeModal();
+            openMarcarPagado(suscripcion, state, null, { pago: pagos.find((m) => m.id === btn.dataset.editarPago) });
+          })
+        );
         root.querySelectorAll("[data-borrar-pago]").forEach((btn) =>
           btn.addEventListener("click", async () => {
             if (!confirm("¿Borrar este pago? El dinero volverá a la cuenta de la que salió.")) return;
