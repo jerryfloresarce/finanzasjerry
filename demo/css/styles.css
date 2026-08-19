@@ -1569,11 +1569,24 @@ button.mini-row:last-child { border-bottom: none; }
   margin: 0 0 20px;
 }
 
+/* Cancelar y Guardar se quedan pegados al fondo del modal, siempre a la
+   vista. Un formulario largo (el pago de un gasto fijo mide 850 px y en un
+   móvil solo se ven 740) dejaba los botones por debajo del borde: parecía
+   que la app no te dejaba guardar, cuando lo que había que hacer era seguir
+   deslizando. El fondo y el borde de arriba son para que el contenido que
+   pasa por detrás no se confunda con ellos. */
 .modal__actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 24px;
+  position: sticky;
+  bottom: -28px; /* anula el padding del modal, para llegar al borde */
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 14px 0 calc(14px + env(safe-area-inset-bottom, 0px));
+  margin-bottom: -28px;
+  z-index: 2;
 }
 
 /* =========================================================

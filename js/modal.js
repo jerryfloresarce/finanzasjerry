@@ -1,5 +1,5 @@
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=55";
-import { efectoAlGuardar } from "./efectos.js?v=55";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=56";
+import { efectoAlGuardar } from "./efectos.js?v=56";
 
 const modalRoot = document.getElementById("modal-root");
 const modalScrim = document.getElementById("modal-scrim");
@@ -38,7 +38,41 @@ export function openModal(html, { onMount, wide, onClose } = {}) {
   requestAnimationFrame(() => modalRoot.classList.add("is-open"));
   bloquearScrollFondo("modal");
   activeOnClose = onClose || null;
+  arreglarCamposDeNumero(modalContent);
   if (onMount) onMount(modalContent);
+}
+
+// El teclado del iPhone en español escribe COMA para los decimales. Y un
+// <input type="number"> se come la coma sin decir nada: al escribir "1,49"
+// el valor que queda es "149", y el campo se da por válido. O sea que un
+// pago de 1,49 € se guardaba como 149 € y no avisaba nadie.
+//
+// Se arregla aquí, en un solo sitio, y no campo a campo por las vistas:
+// cada casilla de número se convierte en una de texto con teclado numérico
+// (inputmode="decimal", que en el móvil sigue saliendo el teclado de
+// números) y se limpia lo que se escribe, cambiando la coma por el punto.
+// Así el Number(...) que hace cada formulario al guardar sigue valiendo tal
+// cual, sin tocar ninguna vista.
+function arreglarCamposDeNumero(root) {
+  root.querySelectorAll('input[type="number"]').forEach((input) => {
+    const permiteNegativos = input.min === undefined || input.min === "" || Number(input.min) < 0;
+    input.type = "text";
+    input.inputMode = "decimal";
+    input.autocomplete = "off";
+    if (input.value) input.value = String(input.value).replace(",", ".");
+    input.addEventListener("input", () => {
+      const cursorAlFinal = input.selectionStart === input.value.length;
+      let v = input.value.replace(",", ".").replace(permiteNegativos ? /[^0-9.-]/g : /[^0-9.]/g, "");
+      // Un solo punto, y el menos solo al principio.
+      const partes = v.split(".");
+      if (partes.length > 2) v = partes[0] + "." + partes.slice(1).join("");
+      if (permiteNegativos) v = (v.startsWith("-") ? "-" : "") + v.replace(/-/g, "");
+      if (v !== input.value) {
+        input.value = v;
+        if (cursorAlFinal) input.setSelectionRange(v.length, v.length);
+      }
+    });
+  });
 }
 
 export function closeModal() {
