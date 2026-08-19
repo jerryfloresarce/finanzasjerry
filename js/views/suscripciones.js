@@ -9,10 +9,10 @@ import {
   fromTimestamp,
   toTimestamp,
   textoPeriodo,
-} from "../db.js?v=53";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=53";
-import { icon, iconForSuscripcion } from "../icons.js?v=53";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=53";
+} from "../db.js?v=54";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=54";
+import { icon, iconForSuscripcion } from "../icons.js?v=54";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=54";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).
@@ -387,9 +387,25 @@ function openPagosDelMes(suscripcion, state) {
 
 function openForm(suscripcion, state) {
   const isEdit = Boolean(suscripcion);
+  // Esta pantalla es la FICHA del gasto fijo (cómo se llama, cuánto suele
+  // costar), no un pago, así que aquí no hay fecha ni la va a haber. Pero es
+  // donde se entra buscando "hacer algo con la luz", así que lleva un atajo
+  // a apuntar el pago del mes, que es lo que se suele venir a hacer.
+  const pagosDeEsteMes = isEdit ? pagosDelMes(state.movimientos, suscripcion.id) : [];
   openModal(
     `
     <h2 class="modal__title">${isEdit ? "Editar gasto fijo" : "Nuevo gasto fijo"}</h2>
+    ${
+      isEdit
+        ? `<p class="entity-card__meta" style="margin:-6px 0 8px;">
+      Esto es la ficha: cómo se llama y lo que suele costar. Lo que pagas cada
+      mes, con su fecha y el periodo de la factura, se apunta aparte.
+    </p>
+    <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-ir-a-pagar" style="margin-bottom:14px;">${
+      pagosDeEsteMes.length > 0 ? "Ver los pagos de este mes" : "Apuntar el pago de este mes"
+    }</button>`
+        : ""
+    }
     <form id="form-suscripcion" class="form-grid">
       <label class="field field--full">
         <span class="field__label">Nombre</span>
@@ -429,6 +445,13 @@ function openForm(suscripcion, state) {
     {
       onMount: (root) => {
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector("#btn-ir-a-pagar")?.addEventListener("click", () => {
+          closeModal();
+          // Si ya hay algo pagado este mes se abre la lista de pagos (desde
+          // ahí se añade otro trozo); si no, directo a apuntar el primero.
+          if (pagosDeEsteMes.length > 0) openPagosDelMes(suscripcion, state);
+          else openMarcarPagado(suscripcion, state, null);
+        });
         root.querySelector("#form-suscripcion").addEventListener("submit", async (e) => {
           e.preventDefault();
           const f = e.target;
