@@ -1,7 +1,18 @@
-import { addSuscripcion, updateSuscripcion, deleteSuscripcion, addMovimiento, deleteMovimiento, formatEUR, formatFecha, fromTimestamp, toTimestamp } from "../db.js?v=52";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=52";
-import { icon, iconForSuscripcion } from "../icons.js?v=52";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=52";
+import {
+  addSuscripcion,
+  updateSuscripcion,
+  deleteSuscripcion,
+  addMovimiento,
+  deleteMovimiento,
+  formatEUR,
+  formatFecha,
+  fromTimestamp,
+  toTimestamp,
+  textoPeriodo,
+} from "../db.js?v=53";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=53";
+import { icon, iconForSuscripcion } from "../icons.js?v=53";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=53";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).
@@ -24,15 +35,62 @@ export function mountSuscripciones() {
 }
 
 // Movimientos de tipo Gasto vinculados a una suscripción (campo
-// suscripcion_id) que caen dentro del mes que se está viendo — así se sabe
-// si esa suscripción ya está "pagada" este periodo sin necesitar un estado
-// aparte que se pueda desincronizar del movimiento real.
-function pagosDelMes(movimientos, suscripcionId) {
+// suscripcion_id) que caen dentro de un mes — así se sabe si esa
+// suscripción ya está "pagada" ese periodo sin necesitar un estado aparte
+// que se pueda desincronizar del movimiento real.
+//
+// Son varios y no uno: un recibo se puede pagar a trozos y desde sitios
+// distintos (40 € en efectivo y 1,49 € con la tarjeta), y cada trozo es su
+// propio movimiento porque sale de una cuenta distinta.
+function pagosDeMes(movimientos, suscripcionId, mes) {
   return movimientos.filter((m) => {
     if (m.suscripcion_id !== suscripcionId) return false;
     const d = fromTimestamp(m.fecha);
-    return d && d.getFullYear() === mesActual.getFullYear() && d.getMonth() === mesActual.getMonth();
+    return d && d.getFullYear() === mes.getFullYear() && d.getMonth() === mes.getMonth();
   });
+}
+
+function pagosDelMes(movimientos, suscripcionId) {
+  return pagosDeMes(movimientos, suscripcionId, mesActual);
+}
+
+function sumaPagos(pagos) {
+  return pagos.reduce((acc, m) => acc + Number(m.importe ?? 0), 0);
+}
+
+// Cada cuántos meses toca pagar cada frecuencia.
+const MESES_POR_FRECUENCIA = { Mensual: 1, Bimensual: 2, Anual: 12 };
+
+function cadaCuantosMeses(suscripcion) {
+  return MESES_POR_FRECUENCIA[suscripcion?.frecuencia] ?? 1;
+}
+
+// ¿Toca pagar esto en el mes que se está viendo?
+//
+// Lo mensual, siempre. Lo bimensual o anual, solo si no se ha pagado ya
+// dentro de su ciclo: el agua que se pagó en julio no vuelve a tocar en
+// agosto, toca en septiembre. Sin esto, un recibo de cada dos meses salía
+// como pendiente todos los meses e inflaba el total de abajo.
+function tocaEsteMes(suscripcion, movimientos) {
+  const cada = cadaCuantosMeses(suscripcion);
+  if (cada === 1) return true;
+  return mesDelUltimoPagoDelCiclo(suscripcion, movimientos) === null;
+}
+
+// El mes, dentro del ciclo que acaba en el mes visible, en el que ya se
+// pagó. null si no se pagó en ninguno.
+function mesDelUltimoPagoDelCiclo(suscripcion, movimientos) {
+  const cada = cadaCuantosMeses(suscripcion);
+  for (let atras = 1; atras < cada; atras++) {
+    const mes = new Date(mesActual.getFullYear(), mesActual.getMonth() - atras, 1);
+    if (pagosDeMes(movimientos, suscripcion.id, mes).length > 0) return mes;
+  }
+  return null;
+}
+
+function nombreDeMes(fecha) {
+  const t = new Intl.DateTimeFormat("es-ES", { month: "long" }).format(fecha);
+  return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
 export function renderSuscripciones(state) {
@@ -56,33 +114,60 @@ export function renderSuscripciones(state) {
   let pagadoTotal = 0;
   let pendienteTotal = 0;
   let pagadasCount = 0;
+  let tocanCount = 0;
 
   el.innerHTML = ordenadas
     .map((s) => {
       const pagos = pagosDelMes(movimientos, s.id);
       const pagada = pagos.length > 0;
-      const importeReal = pagada ? pagos.reduce((acc, m) => acc + Number(m.importe ?? 0), 0) : Number(s.precio ?? 0);
-      if (s.activa !== false) {
+      // Si ya se pagó este mes, cuenta como que tocaba: lo que manda es lo
+      // que pasó de verdad, no lo que decía la frecuencia.
+      const toca = pagada || tocaEsteMes(s, movimientos);
+      const importeReal = pagada ? sumaPagos(pagos) : Number(s.precio ?? 0);
+      const activa = s.activa !== false;
+      if (activa && toca) {
+        tocanCount++;
         if (pagada) {
           pagadoTotal += importeReal;
           pagadasCount++;
         } else pendienteTotal += importeReal;
       }
 
+      // Debajo del nombre: en qué se gasta y de dónde sale. Si ya está
+      // pagado se cambia por lo que pasó de verdad —de qué cuentas salió y
+      // qué periodo cubre la factura—, que es lo que interesa mirar.
+      let sub;
+      if (!activa) {
+        sub = `${catMap.get(s.categoria_id) || "—"} · Inactiva`;
+      } else if (pagada) {
+        const desglose = pagos.map((m) => `${formatEUR(Number(m.importe ?? 0))} ${cuentaMap.get(m.cuenta_id) || "—"}`).join(" + ");
+        const periodo = pagos.map((m) => textoPeriodo(m)).find(Boolean);
+        sub = `${desglose}${periodo ? ` · ${periodo}` : ""}`;
+      } else if (!toca) {
+        const proximo = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 1);
+        sub = `Cada ${cadaCuantosMeses(s)} meses · ya pagado, toca en ${nombreDeMes(proximo).toLowerCase()}`;
+      } else {
+        sub = `${catMap.get(s.categoria_id) || "—"} · ${cuentaMap.get(s.cuenta_id) || "—"}`;
+      }
+
       return wrapSwipe(
         `
-        <div class="mini-row susc-row ${s.activa === false ? "susc-row--inactiva" : ""}">
+        <div class="mini-row susc-row ${!activa || !toca ? "susc-row--inactiva" : ""}">
           <label class="field-check" style="flex:1; min-width:0;">
-            <input type="checkbox" data-toggle-susc="${s.id}" ${pagada ? "checked" : ""} ${s.activa === false ? "disabled" : ""} />
+            <input type="checkbox" data-toggle-susc="${s.id}" ${pagada ? "checked" : ""} ${!activa || !toca ? "disabled" : ""} />
             <span class="mini-row__body" style="min-width:0;">
               <span class="mini-row__icon">${icon(iconForSuscripcion(s.nombre))}</span>
               <span class="mini-row__main">
                 <span class="mini-row__title">${s.nombre}</span>
-                <span class="mini-row__sub">${catMap.get(s.categoria_id) || "—"} · ${cuentaMap.get(s.cuenta_id) || "—"}${s.activa === false ? " · Inactiva" : ""}</span>
+                <span class="mini-row__sub">${sub}</span>
               </span>
             </span>
           </label>
-          <span class="mini-row__amount">${formatEUR(importeReal)}</span>
+          ${
+            pagada
+              ? `<button type="button" class="mini-row__amount susc-row__pagos" data-pagos="${s.id}" title="Ver los pagos de este mes">${formatEUR(importeReal)}</button>`
+              : `<span class="mini-row__amount">${toca ? formatEUR(importeReal) : "—"}</span>`
+          }
           <button type="button" class="row-edit-btn" data-edit="${s.id}" title="Editar">${icon("edit", { size: 15 })}</button>
         </div>`,
         s.id
@@ -90,9 +175,8 @@ export function renderSuscripciones(state) {
     })
     .join("");
 
-  const totalActivas = suscripciones.filter((s) => s.activa !== false).length;
   document.getElementById("susc-resumen").textContent =
-    `Pagado este mes: ${formatEUR(pagadoTotal)} (${pagadasCount}/${totalActivas}) · Pendiente: ${formatEUR(pendienteTotal)}`;
+    `Pagado este mes: ${formatEUR(pagadoTotal)} (${pagadasCount}/${tocanCount}) · Pendiente: ${formatEUR(pendienteTotal)}`;
 
   el.querySelectorAll("[data-edit]").forEach((btn) =>
     btn.addEventListener("click", () => openForm(suscripciones.find((s) => s.id === btn.dataset.edit), currentState))
@@ -102,6 +186,9 @@ export function renderSuscripciones(state) {
       if (confirm("¿Eliminar este gasto fijo? No se borrarán los gastos ya registrados.")) deleteSuscripcion(btn.dataset.delete);
     })
   );
+  el.querySelectorAll("[data-pagos]").forEach((btn) =>
+    btn.addEventListener("click", () => openPagosDelMes(suscripciones.find((s) => s.id === btn.dataset.pagos), currentState))
+  );
   el.querySelectorAll("[data-toggle-susc]").forEach((input) =>
     input.addEventListener("change", () => {
       const s = suscripciones.find((x) => x.id === input.dataset.toggleSusc);
@@ -109,7 +196,11 @@ export function renderSuscripciones(state) {
       else {
         input.checked = true; // se revierte visualmente hasta que se confirme el borrado
         const pagos = pagosDelMes(movimientos, s.id);
-        if (pagos.length > 0 && confirm(`¿Deshacer el pago de "${s.nombre}" este mes? Se borrará el gasto registrado.`)) {
+        const aviso =
+          pagos.length > 1
+            ? `¿Deshacer el pago de "${s.nombre}" este mes? Se borrarán los ${pagos.length} gastos registrados. Para borrar solo uno, toca el importe.`
+            : `¿Deshacer el pago de "${s.nombre}" este mes? Se borrará el gasto registrado.`;
+        if (pagos.length > 0 && confirm(aviso)) {
           pagos.forEach((m) => deleteMovimiento(m.id));
         }
       }
@@ -125,23 +216,51 @@ export function renderSuscripciones(state) {
 // los datos reales, pero la casilla se quedaría marcada visualmente hasta
 // el próximo render. onClose la revierte en ese caso (y no hace nada si
 // se guardó con éxito, gracias a la bandera `saved`).
-function openMarcarPagado(suscripcion, state, checkboxInput) {
+// yaPagado: lo que ya se ha pagado de este recibo este mes, cuando se está
+// añadiendo un segundo trozo (40 € en efectivo y el resto con la tarjeta).
+// El importe viene puesto con lo que falta, que es lo que se va a escribir
+// nueve de cada diez veces.
+function openMarcarPagado(suscripcion, state, checkboxInput, { yaPagado = 0, periodo = {} } = {}) {
   let saved = false;
+  const esOtroTrozo = yaPagado > 0;
+  // Redondeado a céntimos: restar decimales en JavaScript da cosas como
+  // 1.490000000000002, y eso es lo que aparecería escrito en la casilla.
+  const restante = Math.max(0, Math.round((Number(suscripcion.precio ?? 0) - yaPagado) * 100) / 100);
   openModal(
     `
-    <h2 class="modal__title">Marcar "${suscripcion.nombre}" como pagado</h2>
+    <h2 class="modal__title">${esOtroTrozo ? `Otro pago de "${suscripcion.nombre}"` : `Marcar "${suscripcion.nombre}" como pagado`}</h2>
     <form id="form-susc-pago" class="form-grid">
+      ${
+        esOtroTrozo
+          ? `<p class="entity-card__meta field--full" style="margin:0 0 4px;">
+        Ya llevas ${formatEUR(yaPagado)} pagados de este recibo. Apunta aquí lo
+        que hayas pagado desde otro sitio.
+      </p>`
+          : ""
+      }
       <label class="field">
-        <span class="field__label">Importe</span>
-        <input type="number" step="0.01" name="importe" required value="${suscripcion.precio ?? ""}" placeholder="0.00" />
+        <span class="field__label">${esOtroTrozo ? "¿Cuánto más?" : "Importe"}</span>
+        <input type="number" step="0.01" name="importe" required value="${esOtroTrozo ? (restante || "") : (suscripcion.precio ?? "")}" placeholder="0.00" />
       </label>
       <label class="field">
-        <span class="field__label">Cuenta</span>
+        <span class="field__label">¿De qué cuenta sale?</span>
         <select name="cuenta_id">${optionsFrom(state.cuentas, { selected: suscripcion.cuenta_id })}</select>
       </label>
       <label class="field field--full">
-        <span class="field__label">Fecha</span>
+        <span class="field__label">¿Qué día lo pagaste?</span>
         <input type="date" name="fecha" value="${todayISO()}" required />
+      </label>
+      <p class="entity-card__meta field--full" style="margin:4px 0 -4px;">
+        Periodo que cubre la factura (opcional). Es el rango que viene en el
+        recibo, que casi nunca es el mes en el que se paga.
+      </p>
+      <label class="field">
+        <span class="field__label">Desde</span>
+        <input type="date" name="periodo_desde" value="${periodo.desde ?? ""}" />
+      </label>
+      <label class="field">
+        <span class="field__label">Hasta</span>
+        <input type="date" name="periodo_hasta" value="${periodo.hasta ?? ""}" />
       </label>
       <label class="field field--full">
         <span class="field__label">Nota (opcional)</span>
@@ -181,6 +300,8 @@ function openMarcarPagado(suscripcion, state, checkboxInput) {
             // la subcategoría es la que agrupa en "Dónde más gastas", y si
             // cambiara cada mes la luz saldría partida en doce trozos.
             nota: f.nota.value.trim(),
+            periodo_desde: f.periodo_desde.value || null,
+            periodo_hasta: f.periodo_hasta.value || null,
             suscripcion_id: suscripcion.id,
             afecta_saldo: !f.no_afecta_saldo.checked,
           };
@@ -192,6 +313,73 @@ function openMarcarPagado(suscripcion, state, checkboxInput) {
             root.querySelector("#form-susc-pago-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
           }
         });
+      },
+    }
+  );
+}
+
+// Los pagos de este recibo en el mes que se está viendo. Existe porque un
+// recibo se puede pagar desde varios sitios, y entonces la fila de la lista
+// solo enseña el total: aquí se ve trozo a trozo, se puede añadir otro y se
+// puede borrar uno suelto sin cargarse los demás.
+function openPagosDelMes(suscripcion, state) {
+  const { movimientos, cuentas } = state;
+  const cuentaMap = new Map(cuentas.map((c) => [c.id, c.nombre]));
+  const pagos = pagosDelMes(movimientos, suscripcion.id).sort((a, b) => (fromTimestamp(a.fecha) ?? 0) - (fromTimestamp(b.fecha) ?? 0));
+  const total = sumaPagos(pagos);
+  const precio = Number(suscripcion.precio ?? 0);
+  const mesLabel = nombreDeMes(mesActual);
+  // Si ya hay un periodo apuntado, el pago siguiente lo hereda: los trozos
+  // de un mismo recibo cubren el mismo periodo.
+  const conPeriodo = pagos.find((m) => m.periodo_desde || m.periodo_hasta);
+
+  openModal(
+    `
+    <h2 class="modal__title">Pagos de "${suscripcion.nombre}" · ${mesLabel}</h2>
+    <div class="pago-list">
+      ${pagos
+        .map(
+          (m) => `
+        <div class="mini-row">
+          <div class="mini-row__body" style="flex:1; min-width:0;">
+            <span class="mini-row__main">
+              <span class="mini-row__title">${cuentaMap.get(m.cuenta_id) || "—"}</span>
+              <span class="mini-row__sub">${formatFecha(fromTimestamp(m.fecha))}${textoPeriodo(m) ? ` · ${textoPeriodo(m)}` : ""}${m.nota ? ` · ${m.nota}` : ""}</span>
+            </span>
+          </div>
+          <span class="mini-row__amount">${formatEUR(Number(m.importe ?? 0))}</span>
+          <button type="button" class="row-edit-btn" data-borrar-pago="${m.id}" title="Borrar este pago">${icon("trash", { size: 15 })}</button>
+        </div>`
+        )
+        .join("")}
+    </div>
+    <p class="entity-card__meta">
+      Total pagado: <strong>${formatEUR(total)}</strong>${
+      precio > 0 ? ` · precio habitual ${formatEUR(precio)}${total < precio ? ` · faltan ${formatEUR(precio - total)}` : ""}` : ""
+    }
+    </p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--ghost" id="btn-cerrar-pagos">Cerrar</button>
+      <button type="button" class="btn btn--primary" id="btn-otro-pago">+ Añadir otro pago</button>
+    </div>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cerrar-pagos").addEventListener("click", closeModal);
+        root.querySelector("#btn-otro-pago").addEventListener("click", () => {
+          closeModal();
+          openMarcarPagado(suscripcion, state, null, {
+            yaPagado: total,
+            periodo: { desde: conPeriodo?.periodo_desde ?? "", hasta: conPeriodo?.periodo_hasta ?? "" },
+          });
+        });
+        root.querySelectorAll("[data-borrar-pago]").forEach((btn) =>
+          btn.addEventListener("click", async () => {
+            if (!confirm("¿Borrar este pago? El dinero volverá a la cuenta de la que salió.")) return;
+            await deleteMovimiento(btn.dataset.borrarPago);
+            closeModal();
+          })
+        );
       },
     }
   );

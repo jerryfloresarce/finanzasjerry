@@ -12,7 +12,7 @@ import {
   disableNetwork,
   enableNetwork,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=52";
+import { db } from "./firebase-init.js?v=53";
 
 // Cuando el iPhone deja la app en segundo plano (o la pantalla se apaga),
 // Safari congela la conexión abierta de Firestore. Al volver, esa conexión
@@ -262,6 +262,27 @@ export function calcularSaldoCuenta(cuenta, movimientos) {
     return acc + (m.tipo === "Ingreso" ? importe : -importe);
   }, 0);
   return inicial + delta;
+}
+
+// El periodo que cubre una factura, en corto: "1 jul – 31 jul".
+//
+// La luz, el agua o el gas se pagan un mes y cubren otro, así que el día
+// del pago no dice de qué factura es. Estos dos campos guardan el rango
+// que viene impreso en el recibo, y son opcionales: si no hay nada, no se
+// enseña nada.
+export function textoPeriodo(movimiento) {
+  const desde = movimiento?.periodo_desde;
+  const hasta = movimiento?.periodo_hasta;
+  if (!desde && !hasta) return "";
+  const corto = (iso) => {
+    // Mediodía y no medianoche, por lo mismo de siempre: que el día no se
+    // vaya al anterior según el país.
+    const d = new Date(iso + "T12:00:00");
+    if (Number.isNaN(d.getTime())) return "";
+    return new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short" }).format(d).replace(".", "");
+  };
+  if (desde && hasta) return `${corto(desde)} – ${corto(hasta)}`;
+  return corto(desde || hasta);
 }
 
 // Cómo se llama el destino de una transferencia al enseñarla en pantalla.

@@ -460,6 +460,21 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
 }
 .susc-row--inactiva { opacity: 0.55; }
 
+/* El importe de un gasto fijo ya pagado es pulsable: abre sus pagos del mes,
+   que pueden ser varios si el recibo se pagó desde sitios distintos. Se
+   subraya de puntos para que se note que se puede tocar sin meter otro
+   botón más en una fila que ya va justa de sitio. */
+.susc-row__pagos {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+.susc-row__pagos:hover { color: var(--accent, var(--success)); }
+
 /* ---------------- Calendario de Movimientos ---------------- */
 
 .calendar { display: flex; flex-direction: column; gap: 8px; }

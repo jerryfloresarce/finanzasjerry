@@ -8,11 +8,12 @@ import {
   toTimestamp,
   fechaISO,
   destinoTransferencia,
-} from "../db.js?v=52";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=52";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=52";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=52";
-import { colorTema } from "../tema.js?v=52";
+  textoPeriodo,
+} from "../db.js?v=53";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=53";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=53";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=53";
+import { colorTema } from "../tema.js?v=53";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -180,7 +181,8 @@ function openDiaDetalle(fecha, state) {
         const cat = catMap.get(m.categoria_id);
         iconHTML = entityIcon(cat, iconForCategoriaTipo(cat?.tipo), { size: 16 });
         titulo = m.subcategoria || cat?.nombre || "Movimiento";
-        sub = `${cat?.nombre || "—"} · ${cuentaMap.get(m.cuenta_id) || "—"}${m.nota ? " · " + m.nota : ""}`;
+        const periodo = textoPeriodo(m);
+        sub = `${cat?.nombre || "—"} · ${cuentaMap.get(m.cuenta_id) || "—"}${periodo ? " · " + periodo : ""}${m.nota ? " · " + m.nota : ""}`;
         amountClass = m.tipo === "Ingreso" ? "mini-row__amount--pos" : "mini-row__amount--neg";
         amountSign = m.tipo === "Ingreso" ? "+ " : "− ";
       }
