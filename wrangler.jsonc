@@ -1,0 +1,19 @@
+// La configuración del Worker de Cloudflare que sirve la app.
+//
+// No hay código de Worker: es un despliegue solo de archivos estáticos
+// (assets). El build de Cloudflare ejecuta antes `node generar-web.mjs`,
+// que deja en _site/ la app, la demo y la página de Gaby — y esto le dice
+// a wrangler que publique esa carpeta.
+//
+// El nombre tiene que coincidir con el del proyecto que ya existe en el
+// panel (finanzasjerry) para que cada despliegue actualice ese mismo
+// Worker y su URL de siempre.
+{
+  "name": "finanzasjerry",
+  "compatibility_date": "2026-08-01",
+  "assets": {
+    "directory": "_site",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "single-page-application"
+  }
+}
