@@ -16,7 +16,6 @@ import {
   diaPorFecha,
   etiquetaSueno,
   calcularRacha,
-  guardarDia,
   sugerenciaDelDia,
   ROTACION_COMIDAS,
   ROTACION_CENAS,
@@ -28,11 +27,14 @@ import {
   rutinaEmpezada,
   diaDeRutina,
   guardarSistema,
-} from "../vida.js?v=65";
-import { abrirReceta } from "./vida-menu.js?v=65";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=65";
-import { fechaISO, formatFecha } from "../db.js?v=65";
-import { efectoDeCelebracion } from "../efectos.js?v=65";
+  guardarDia,
+  avisoDeEntrenoSinHueco,
+} from "../vida.js?v=66";
+import { abrirReceta } from "./vida-menu.js?v=66";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=66";
+import { fechaISO, formatFecha } from "../db.js?v=66";
+import { efectoDeCelebracion } from "../efectos.js?v=66";
+import { openModal, closeModal } from "../modal.js?v=66";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -121,6 +123,14 @@ export function mountVidaHoy() {
         const aviso = document.getElementById("hoy-error-arranque");
         if (aviso) aviso.textContent = "No se pudo crear todo. Revisa la conexión y vuelve a intentarlo.";
       }
+      return;
+    }
+    if (e.target.closest("#btn-editar-horario")) {
+      abrirEditorHorario(new Date((fechaEditando ?? fechaISO()) + "T12:00:00"));
+      return;
+    }
+    if (e.target.closest("#btn-cita-dia")) {
+      abrirAgendaDia(fechaEditando ?? fechaISO());
       return;
     }
     if (e.target.closest("#btn-start")) {
@@ -254,18 +264,22 @@ export function renderVidaHoy(state) {
             .map((bl, i) => {
               const esAhora = !editandoAyer && i === indiceAhora;
               return `
-            <div class="dia-bloque ${esAhora ? "dia-bloque--ahora" : ""} ${!editandoAyer && i < indiceAhora ? "dia-bloque--pasado" : ""}">
+            <div class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${!editandoAyer && i < indiceAhora ? "dia-bloque--pasado" : ""}">
               <span class="dia-bloque__hora">${bl.h}</span>
               <span class="dia-bloque__punto" aria-hidden="true"></span>
               <span class="dia-bloque__cuerpo">
-                <span class="dia-bloque__titulo">${bl.titulo}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
+                <span class="dia-bloque__titulo">${bl.cita ? "📌 " : ""}${bl.titulo}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
                 ${bl.detalle ? `<span class="dia-bloque__detalle">${bl.detalle}</span>` : ""}
               </span>
             </div>`;
             })
             .join("")}
         </div>
-        <a class="btn btn--ghost btn--sm btn--block" href="#/progreso" style="margin-top:14px;">Ver mi progreso y el bote →</a>
+        <div class="horario-acciones">
+          <button type="button" class="btn btn--ghost btn--sm" id="btn-editar-horario">✎ Ajustar este horario</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="btn-cita-dia">＋ Cita o imprevisto (solo hoy)</button>
+        </div>
+        <a class="btn btn--ghost btn--sm btn--block" href="#/progreso" style="margin-top:10px;">Ver mi progreso y el bote →</a>
       </article>`;
 
   // Antes del Start la app está en modo "preparándose": se puede mirar
@@ -311,9 +325,12 @@ export function renderVidaHoy(state) {
     return;
   }
 
+  const avisoHueco = editandoAyer ? null : avisoDeEntrenoSinHueco(fecha);
+
   el.innerHTML = `
     ${avisoPermisos}
     ${cardArranque}
+    ${avisoHueco ? `<div class="card hoy-aviso"><p class="entity-card__meta" style="margin:0;">⚠️ ${avisoHueco}</p></div>` : ""}
     ${
       ayerAbierto
         ? `<div class="card hoy-aviso"><p class="entity-card__meta" style="margin:0;">
@@ -384,3 +401,164 @@ export function renderVidaHoy(state) {
   `;
 }
 // vida:fin
+
+// ---------- Editar el horario del día de la semana ----------
+//
+// Cambia la PLANTILLA de ese día de la semana (todos los martes, todos los
+// sábados…) para el perfil que se está viendo. Se guarda en
+// sistema.horario; vaciarlo devuelve el horario de serie.
+
+const DIAS_SEMANA = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+
+const minutosDeHora = (h) => {
+  const [hh, mm] = String(h || "0:0").split(":").map(Number);
+  const min = (hh || 0) * 60 + (mm || 0);
+  return min === 0 ? 24 * 60 : min; // el 00:00 de un horario es el tope del día
+};
+
+function filaBloque(b = {}) {
+  return `
+    <div class="horario-fila">
+      <input type="time" class="hor-hora" value="${b.h || ""}" />
+      <input type="text" class="hor-titulo" placeholder="Qué toca" value="${b.titulo || ""}" />
+      <input type="text" class="hor-detalle" placeholder="Detalle (opcional)" value="${b.detalle || ""}" />
+      <button type="button" class="row-edit-btn hor-quitar" title="Quitar">✕</button>
+    </div>`;
+}
+
+function abrirEditorHorario(fecha) {
+  const dia = fecha.getDay();
+  const propio = vida.sistema.horario?.[dia];
+  const base = Array.isArray(propio) && propio.length ? propio : bloquesDelDia(fecha).filter((b) => !b.cita);
+  openModal(
+    `
+    <h2 class="modal__title">El horario de los ${DIAS_SEMANA[dia]}s</h2>
+    <p class="entity-card__meta">Esto cambia la plantilla de TODOS los ${DIAS_SEMANA[dia]}s. Para algo de un solo día, usa "Cita o imprevisto".</p>
+    <form id="form-horario">
+      <div id="horario-bloques">${base.map(filaBloque).join("")}</div>
+      <button type="button" class="btn btn--ghost btn--sm" id="btn-mas-bloque">+ Otro bloque</button>
+      <p class="field-error" id="horario-error"></p>
+      <div class="modal__actions">
+        ${Array.isArray(propio) && propio.length ? `<button type="button" class="btn btn--ghost" id="btn-horario-serie">Volver al de serie</button>` : ""}
+        <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>`,
+    {
+      wide: true,
+      onMount: (root) => {
+        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector("#btn-mas-bloque").addEventListener("click", () => {
+          root.querySelector("#horario-bloques").insertAdjacentHTML("beforeend", filaBloque());
+        });
+        root.querySelector("#horario-bloques").addEventListener("click", (e) => {
+          const quitar = e.target.closest(".hor-quitar");
+          if (quitar) quitar.closest(".horario-fila").remove();
+        });
+        root.querySelector("#btn-horario-serie")?.addEventListener("click", async () => {
+          await guardarSistema({ horario: { ...(vida.sistema.horario || {}), [dia]: [] } });
+          closeModal();
+        });
+        root.querySelector("#form-horario").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const bloques = [...root.querySelectorAll(".horario-fila")]
+            .map((fila) => ({
+              h: fila.querySelector(".hor-hora").value,
+              titulo: fila.querySelector(".hor-titulo").value.trim(),
+              detalle: fila.querySelector(".hor-detalle").value.trim(),
+            }))
+            .filter((b) => b.h && b.titulo)
+            .sort((a, b) => minutosDeHora(a.h) - minutosDeHora(b.h));
+          if (!bloques.length) {
+            root.querySelector("#horario-error").textContent = "Pon al menos un bloque con hora y título (o usa Volver al de serie).";
+            return;
+          }
+          try {
+            await guardarSistema({ horario: { ...(vida.sistema.horario || {}), [dia]: bloques } });
+            closeModal();
+          } catch (err) {
+            root.querySelector("#horario-error").textContent = "No se pudo guardar. Revisa la conexión.";
+          }
+        });
+      },
+    }
+  );
+}
+
+// ---------- Citas e imprevistos de UN día concreto ----------
+//
+// Van en la agenda del documento de ese día (dias/fecha) y se intercalan
+// en la línea del día con su 📌. Un médico, un recado, una visita: cosas
+// que no cambian la plantilla de la semana.
+
+function abrirAgendaDia(fechaId) {
+  let agenda = [...(diaPorFecha(fechaId)?.agenda || [])];
+  const fecha = new Date(fechaId + "T12:00:00");
+  const titulo = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(fecha);
+
+  const listaHTML = () =>
+    agenda.length
+      ? agenda
+          .map(
+            (a, i) => `
+        <div class="mini-row">
+          <span class="mini-row__title">📌 ${a.h} · ${a.titulo}${a.detalle ? ` <span class="entity-card__meta">— ${a.detalle}</span>` : ""}</span>
+          <button type="button" class="row-edit-btn" data-quitar-cita="${i}" title="Quitar">✕</button>
+        </div>`
+          )
+          .join("")
+      : `<p class="empty-state" style="padding:8px 0;">Nada apuntado para este día.</p>`;
+
+  openModal(
+    `
+    <h2 class="modal__title">Solo el ${titulo}</h2>
+    <div id="agenda-lista">${listaHTML()}</div>
+    <div class="horario-fila" style="margin-top:10px;">
+      <input type="time" id="cita-hora" />
+      <input type="text" id="cita-titulo" placeholder="Médico, recado, visita…" />
+      <input type="text" id="cita-detalle" placeholder="Detalle (opcional)" />
+      <button type="button" class="btn btn--ghost btn--sm" id="btn-add-cita">Añadir</button>
+    </div>
+    <p class="field-error" id="cita-error"></p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
+      <button type="button" class="btn btn--primary" id="btn-guardar-agenda">Guardar</button>
+    </div>`,
+    {
+      onMount: (root) => {
+        const repintar = () => (root.querySelector("#agenda-lista").innerHTML = listaHTML());
+        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector("#agenda-lista").addEventListener("click", (e) => {
+          const quitar = e.target.closest("[data-quitar-cita]");
+          if (quitar) {
+            agenda.splice(Number(quitar.dataset.quitarCita), 1);
+            repintar();
+          }
+        });
+        root.querySelector("#btn-add-cita").addEventListener("click", () => {
+          const h = root.querySelector("#cita-hora").value;
+          const tituloCita = root.querySelector("#cita-titulo").value.trim();
+          if (!h || !tituloCita) {
+            root.querySelector("#cita-error").textContent = "Hora y título, como mínimo.";
+            return;
+          }
+          agenda.push({ h, titulo: tituloCita, detalle: root.querySelector("#cita-detalle").value.trim() });
+          agenda.sort((a, b) => minutosDeHora(a.h) - minutosDeHora(b.h));
+          root.querySelector("#cita-hora").value = "";
+          root.querySelector("#cita-titulo").value = "";
+          root.querySelector("#cita-detalle").value = "";
+          root.querySelector("#cita-error").textContent = "";
+          repintar();
+        });
+        root.querySelector("#btn-guardar-agenda").addEventListener("click", async () => {
+          try {
+            await guardarDia(fechaId, { agenda });
+            closeModal();
+          } catch (err) {
+            root.querySelector("#cita-error").textContent = "No se pudo guardar. Revisa la conexión.";
+          }
+        });
+      },
+    }
+  );
+}

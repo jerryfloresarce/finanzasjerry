@@ -14,9 +14,13 @@ import {
   sugerenciaProgresion,
   addEntreno,
   deleteEntreno,
-} from "../vida.js?v=65";
-import { fechaISO, formatFecha } from "../db.js?v=65";
-import { efectoAlGuardar } from "../efectos.js?v=65";
+  esRutinaPropia,
+  rutinaPorTipo,
+  guardarSistema,
+} from "../vida.js?v=66";
+import { fechaISO, formatFecha } from "../db.js?v=66";
+import { efectoAlGuardar } from "../efectos.js?v=66";
+import { openModal, closeModal } from "../modal.js?v=66";
 
 let tipoActivo = null;
 
@@ -52,7 +56,122 @@ export function mountVidaEntreno() {
       await guardarSesion(root);
       return;
     }
+    if (e.target.closest("#btn-nueva-rutina")) {
+      abrirEditorRutina(null);
+      return;
+    }
+    if (e.target.closest("#btn-editar-rutina")) {
+      abrirEditorRutina(rutinaPorTipo(tipoActivo));
+      return;
+    }
+    if (e.target.closest("#btn-borrar-rutina")) {
+      const r = rutinaPorTipo(tipoActivo);
+      if (r && confirm(`¿Borrar la rutina "${r.nombre}"? Los entrenos ya registrados con ella se quedan en el historial.`)) {
+        const rutinas = (vida.sistema.rutinas || []).filter((x) => String(x.id) !== String(r.id));
+        await guardarSistema({ rutinas });
+        tipoActivo = null;
+        renderVidaEntreno(null, true);
+      }
+      return;
+    }
   });
+}
+
+// ---------- El editor de rutinas propias ----------
+//
+// Para que cada uno se monte lo suyo (calistenia, máquinas, estiramientos…)
+// sin pedirlo: nombre, y o bien una lista de ejercicios con series/reps/peso
+// (funciona como los planes de fuerza, doble progresión incluida) o bien
+// una sesión simple de duración y nota, como la caminata.
+
+function filaEjercicio(ej = {}) {
+  return `
+    <div class="rutina-ejercicio">
+      <input type="text" class="rut-nombre" placeholder="Ejercicio (ej. Flexiones)" value="${ej.nombre || ""}" />
+      <input type="number" class="rut-series" placeholder="Series" min="1" value="${ej.series ?? ""}" title="Series" />
+      <input type="number" class="rut-min" placeholder="Reps mín" min="1" value="${ej.repsMin ?? ""}" title="Repeticiones mínimas" />
+      <input type="number" class="rut-max" placeholder="Reps máx" min="1" value="${ej.repsMax ?? ""}" title="Repeticiones máximas" />
+      <input type="number" class="rut-peso" placeholder="kg (0 si sin peso)" step="0.5" value="${ej.pesoInicial ?? ""}" title="Peso de partida" />
+      <button type="button" class="row-edit-btn rut-quitar" title="Quitar">✕</button>
+    </div>`;
+}
+
+function abrirEditorRutina(rutina) {
+  const conEjercicios = !rutina || (Array.isArray(rutina.ejercicios) && rutina.ejercicios.length > 0);
+  openModal(
+    `
+    <h2 class="modal__title">${rutina ? "Editar rutina" : "Nueva rutina"}</h2>
+    <form id="form-rutina">
+      <label class="field field--full">
+        <span class="field__label">Nombre de la rutina</span>
+        <input type="text" id="rutina-nombre" required placeholder="Calistenia, Máquinas, Estiramientos…" value="${rutina?.nombre || ""}" />
+      </label>
+      <label class="field-check" style="margin: 6px 0 10px;">
+        <input type="checkbox" id="rutina-con-ejercicios" ${conEjercicios ? "checked" : ""} />
+        Con lista de ejercicios (series, reps y peso — con subida automática)
+      </label>
+      <div id="rutina-ejercicios" class="${conEjercicios ? "" : "is-hidden"}">
+        ${(rutina?.ejercicios?.length ? rutina.ejercicios : [{}]).map(filaEjercicio).join("")}
+        <button type="button" class="btn btn--ghost btn--sm" id="btn-mas-ejercicio">+ Otro ejercicio</button>
+        <p class="entity-card__meta" style="margin-top:6px;">Sin peso (calistenia, estiramientos): pon 0 kg. La app sugiere subir cuando completes el rango alto en todas las series.</p>
+      </div>
+      <p class="field-error" id="rutina-error"></p>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>`,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector("#rutina-con-ejercicios").addEventListener("change", (e) => {
+          root.querySelector("#rutina-ejercicios").classList.toggle("is-hidden", !e.target.checked);
+        });
+        root.querySelector("#rutina-ejercicios").addEventListener("click", (e) => {
+          const quitar = e.target.closest(".rut-quitar");
+          if (quitar) quitar.closest(".rutina-ejercicio").remove();
+        });
+        root.querySelector("#btn-mas-ejercicio").addEventListener("click", (e) => {
+          e.target.insertAdjacentHTML("beforebegin", filaEjercicio());
+        });
+        root.querySelector("#form-rutina").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const nombre = root.querySelector("#rutina-nombre").value.trim();
+          if (!nombre) return;
+          let ejercicios = null;
+          if (root.querySelector("#rutina-con-ejercicios").checked) {
+            ejercicios = [...root.querySelectorAll(".rutina-ejercicio")]
+              .map((fila) => ({
+                nombre: fila.querySelector(".rut-nombre").value.trim(),
+                series: Number(fila.querySelector(".rut-series").value) || 3,
+                repsMin: Number(fila.querySelector(".rut-min").value) || 8,
+                repsMax: Number(fila.querySelector(".rut-max").value) || Number(fila.querySelector(".rut-min").value) || 12,
+                pesoInicial: Number(fila.querySelector(".rut-peso").value) || 0,
+              }))
+              .filter((ej) => ej.nombre);
+            if (!ejercicios.length) {
+              root.querySelector("#rutina-error").textContent = "Pon al menos un ejercicio con nombre (o desmarca la casilla para una sesión simple).";
+              return;
+            }
+          }
+          const id = rutina?.id ?? Date.now().toString(36);
+          const rutinas = [...(vida.sistema.rutinas || [])];
+          const idx = rutinas.findIndex((r) => String(r.id) === String(id));
+          const nueva = { id, nombre, ejercicios };
+          if (idx >= 0) rutinas[idx] = nueva;
+          else rutinas.push(nueva);
+          try {
+            await guardarSistema({ rutinas });
+            tipoActivo = "rut_" + id;
+            closeModal();
+            renderVidaEntreno(null, true);
+          } catch (err) {
+            root.querySelector("#rutina-error").textContent = "No se pudo guardar. Revisa la conexión.";
+          }
+        });
+      },
+    }
+  );
 }
 
 async function guardarSesion(root) {
@@ -107,11 +226,10 @@ export function renderVidaEntreno(_state, forzar = false) {
   const deHoy = vida.entrenos.filter((e) => e.fecha === fechaISO());
   const toca = SEMANA_TIPO[new Date().getDay()];
 
-  const chips = TIPOS_ENTRENO
-    .map(
-      (t) => `<button type="button" class="chip ${t === tipoActivo ? "chip--on" : ""}" data-tipo-entreno="${t}">${NOMBRE_TIPO_ENTRENO[t]}</button>`
-    )
-    .join("");
+  const chips =
+    TIPOS_ENTRENO.map(
+      (t) => `<button type="button" class="chip ${t === tipoActivo ? "chip--on" : ""}" data-tipo-entreno="${t}">${NOMBRE_TIPO_ENTRENO[t] || t}</button>`
+    ).join("") + `<button type="button" class="chip chip--nueva" id="btn-nueva-rutina" title="Crear una rutina propia">＋ Rutina</button>`;
 
   let cuerpo;
   if (esFuerza) {
@@ -149,7 +267,9 @@ export function renderVidaEntreno(_state, forzar = false) {
           ? "10 min suave · 20 min de series (8×50 m, 30 s de descanso) · 10 min suave. Cuenta como entreno cumplido."
           : tipoActivo === "yoga"
             ? "La clase con la abuela (o una sesión en casa con un vídeo). Moverse cuenta, el nivel da igual."
-            : "Cinta al 10–12 %, 5–5,5 km/h, sin agarrarse a las barras. Cualquier cuesta de la calle vale igual."
+            : esRutinaPropia(tipoActivo)
+              ? "Sesión simple: apunta los minutos y, si quieres, una nota de qué hiciste."
+              : "Cinta al 10–12 %, 5–5,5 km/h, sin agarrarse a las barras. Cualquier cuesta de la calle vale igual."
       }</p>
       <label class="field field--full">
         <span class="field__label">Nota (opcional)</span>
@@ -160,6 +280,13 @@ export function renderVidaEntreno(_state, forzar = false) {
   el.innerHTML = `
     <p class="entity-card__meta" style="margin-top:-6px;">Hoy toca: <strong>${toca.nombre}</strong></p>
     <div class="chips">${chips}</div>
+    ${
+      esRutinaPropia(tipoActivo)
+        ? `<p class="entity-card__meta" style="margin:2px 0 10px;">Rutina tuya ·
+            <button type="button" class="btn btn--ghost btn--sm" id="btn-editar-rutina">✎ Editar</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="btn-borrar-rutina">Borrar</button></p>`
+        : ""
+    }
 
     ${deHoy.length ? `<div class="card hoy-aviso"><p class="entity-card__meta" style="margin:0;">✓ Hoy ya has registrado: ${deHoy.map((e) => NOMBRE_TIPO_ENTRENO[e.tipo] || e.tipo).join(" + ")}</p></div>` : ""}
 

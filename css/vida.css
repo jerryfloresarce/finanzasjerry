@@ -433,4 +433,38 @@ a.hoy-toca__fila:hover strong { color: var(--success); }
 }
 .start-card__lista li i { color: var(--success); font-size: 18px; }
 #btn-start { font-size: 16px; letter-spacing: 0.04em; }
+
+/* --- Editores: rutinas propias y horario --- */
+.rutina-ejercicio,
+.horario-fila {
+  display: grid;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.rutina-ejercicio { grid-template-columns: minmax(120px, 2fr) repeat(4, minmax(52px, 1fr)) auto; }
+.horario-fila { grid-template-columns: auto minmax(110px, 1.2fr) minmax(110px, 1.6fr) auto; }
+.rutina-ejercicio input,
+.horario-fila input {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 9px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.86rem;
+}
+@media (max-width: 560px) {
+  .rutina-ejercicio { grid-template-columns: 1fr 1fr 1fr; }
+  .rutina-ejercicio .rut-nombre { grid-column: 1 / -1; }
+  .horario-fila { grid-template-columns: auto 1fr auto; }
+  .horario-fila .hor-detalle { grid-column: 1 / -1; }
+}
+.chip--nueva { border-style: dashed; opacity: 0.85; }
+.horario-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+
+/* Una cita puntual en la línea del día: se nota que no es rutina. */
+.dia-bloque--cita .dia-bloque__titulo { color: var(--accent); }
+.dia-bloque--cita .dia-bloque__punto { background: var(--accent); border-color: var(--accent); }
 /* vida:fin */

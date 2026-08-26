@@ -11,8 +11,8 @@
 //
 // Este archivo es PERSONAL (vida-*): el kit lo excluye entero.
 
-import { registrarGanchosDeDatos } from "./db.js?v=65";
-import { usarClaveDeTema, aplicarTema, temaGuardadoEnLocal } from "./tema.js?v=65";
+import { registrarGanchosDeDatos } from "./db.js?v=66";
+import { usarClaveDeTema, aplicarTema, temaGuardadoEnLocal } from "./tema.js?v=66";
 
 export const PERFILES = {
   jerry: {
@@ -69,10 +69,19 @@ export const crudos = {};
 
 function perfilDeEscritura(coleccion, data) {
   // Un movimiento que toca una cuenta compartida es de los dos: así el
-  // saldo de la conjunta cuadra se mire desde el perfil que se mire.
+  // saldo de la conjunta cuadra se mire desde el perfil que se mire. Y un
+  // Bizum entre los dos (origen de uno, destino del otro) también: tiene
+  // que restar en un perfil y sumar en el otro sin apuntarlo dos veces.
   if (coleccion === "movimientos") {
-    const compartidas = new Set((crudos.cuentas || []).filter((c) => c.perfil === "ambos").map((c) => c.id));
-    if (compartidas.has(data.cuenta_id) || compartidas.has(data.cuenta_destino_id)) return "ambos";
+    const cuentas = crudos.cuentas || [];
+    const de = (id) => {
+      const c = cuentas.find((x) => x.id === id);
+      return c ? c.perfil || "jerry" : null;
+    };
+    const origen = de(data.cuenta_id);
+    const destino = de(data.cuenta_destino_id);
+    if (origen === "ambos" || destino === "ambos") return "ambos";
+    if (origen && destino && origen !== destino) return "ambos";
   }
   return perfilVisto();
 }
@@ -83,6 +92,14 @@ registrarGanchosDeDatos({
     return items.filter(esVisible);
   },
   crear: (coleccion, data) => ({ ...data, perfil: perfilDeEscritura(coleccion, data) }),
+  // El nombre de una cuenta del OTRO perfil, para que un Bizum no enseñe
+  // "—" como destino: se busca en los crudos y se firma con su dueño.
+  nombrarCuenta: (id) => {
+    const c = (crudos.cuentas || []).find((x) => x.id === id);
+    if (!c) return null;
+    const dueno = PERFILES[c.perfil || "jerry"];
+    return dueno && c.perfil !== "ambos" ? `${c.nombre} · ${dueno.nombre}` : c.nombre;
+  },
 });
 
 // ---------- El tema de cada uno ----------

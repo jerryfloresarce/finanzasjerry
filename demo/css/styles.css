@@ -462,6 +462,9 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
   text-align: center;
 }
 .susc-row--inactiva { opacity: 0.55; }
+/* La casilla de "pagado" respira por la izquierda: pegada al borde de la
+   tarjeta parecía un fallo (y en el tema claro, encima, se veía negra). */
+.susc-row .field-check > input[type="checkbox"] { margin-left: 6px; flex-shrink: 0; }
 
 /* El importe de un gasto fijo ya pagado es pulsable: abre sus pagos del mes,
    que pueden ser varios si el recibo se pagó desde sitios distintos. Se

@@ -7,12 +7,13 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=65";
-import { openModal, closeModal, todayISO } from "../modal.js?v=65";
-import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=65";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=65";
-import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=65";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=65";
+  nombreDeCuenta,
+} from "../db.js?v=66";
+import { openModal, closeModal, todayISO } from "../modal.js?v=66";
+import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=66";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=66";
+import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=66";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=66";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 
@@ -89,7 +90,7 @@ export function openHistorial(cuenta, state) {
         // préstamo, y ahí "Transferencia enviada a Préstamo a Ana" sobra:
         // basta con "Préstamo a Ana".
         descripcion = !esOrigen
-          ? `Transferencia recibida de ${cuentaMap.get(m.cuenta_id) || "—"}`
+          ? `Transferencia recibida de ${nombreDeCuenta(cuentaMap, m.cuenta_id)}`
           : m.cuenta_destino_id
           ? `Transferencia enviada a ${destinoTransferencia(m, cuentaMap)}`
           : destinoTransferencia(m, cuentaMap);

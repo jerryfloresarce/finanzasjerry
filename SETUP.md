@@ -193,6 +193,29 @@ Son exactamente los mismos 3 Atajos, montados en su teléfono. La forma más rá
 
 **La Revolut conjunta**: un movimiento que toque la cuenta conjunta debería llevar `"perfil":{"stringValue":"ambos"}` para que el saldo cuadre desde los dos perfiles. Como el Atajo no distingue de cuentas, lo más simple es que los movimientos de la conjunta se apunten desde la app (que los sella como "ambos" ella sola), y los Atajos se usen para el día a día de las cuentas propias.
 
+### 3.7 El Atajo del Bizum entre vosotros
+
+Un solo apunte que **resta en la cuenta de uno y suma en la del otro**, sin que el que recibe tenga que hacer nada. Es una Transferencia normal con dos particularidades: la cuenta de destino es DEL OTRO perfil, y el movimiento va sellado como de los dos (`"perfil":"ambos"`), que es lo que hace que cada uno lo vea en su app y su saldo cuadre.
+
+Cómo montarlo (en tu iPhone, "Bizum a Gaby"):
+
+1. Duplica tu Atajo de **Transferencia**.
+2. Quita las preguntas de cuenta origen/destino: aquí van FIJAS.
+3. En el JSON (paso H), deja los IDs escritos a mano y añade el perfil:
+
+   ```
+   {"fields":{"importe":{"doubleValue":[Importe]},"tipo":{"stringValue":"Transferencia"},"cuenta_id":{"stringValue":"TU_CUENTA_ID"},"cuenta_destino_id":{"stringValue":"CUENTA_DE_GABY_ID"},"fecha":{"timestampValue":"[FechaISO]"},"nota":{"stringValue":"Bizum"},"perfil":{"stringValue":"ambos"}}}
+   ```
+
+   - `TU_CUENTA_ID`: el ID de TU cuenta de la que sale el dinero (tu Revolut, por ejemplo) — cópialo de tu perfil, en Cuentas.
+   - `CUENTA_DE_GABY_ID`: el ID de la cuenta de ella donde entra — se copia **viendo su perfil** (botón "Ver la app de Gaby"), en Cuentas.
+
+4. En el iPhone de ella, el espejo ("Bizum a Jerry"): sus IDs de origen, los tuyos de destino, y el mismo `"perfil":"ambos"`.
+
+En pantalla, cada uno lo ve con nombre y apellido: "Revolut → Imagin · Gaby". Un Bizum entre vosotros no cuenta como gasto ni como ingreso en los gráficos (es mover dinero de casa, no gastarlo): solo mueve los saldos, que es lo que tiene que hacer.
+
+De momento el Atajo es el camino: el formulario de transferencias de la app solo enseña tus propias cuentas como destino. (La app ya sabe sellar como "ambos" una transferencia cruzada si algún día le llega una — el Atajo se lo demuestra.)
+
 ## 4. Orden recomendado
 
 1. Me pasas el `firebaseConfig` → lo conecto.

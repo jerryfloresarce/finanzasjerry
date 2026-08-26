@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=65";
-import { fechaISO } from "./db.js?v=65";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=65";
+import { db } from "./firebase-init.js?v=66";
+import { fechaISO } from "./db.js?v=66";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=66";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -232,6 +232,37 @@ if (esGaby()) {
   PESO_OBJETIVO_KG = PESO_OBJETIVO_GABY;
 }
 
+// ---------- Rutinas propias ----------
+//
+// Cada uno puede crearse sus rutinas desde la pantalla Entreno (calistenia,
+// máquinas, estiramientos, lo que sea) sin pedirle nada a nadie: viven en
+// SU configuración (sistema.rutinas) y aquí se suman a las de serie cada
+// vez que llega el documento. Una rutina con ejercicios funciona como los
+// planes de fuerza (series, rango de reps y doble progresión incluida);
+// una sin ejercicios es una sesión simple, como la caminata.
+const BASE_PLANES = PLANES;
+const BASE_TIPOS = TIPOS_ENTRENO;
+
+export const esRutinaPropia = (tipo) => typeof tipo === "string" && tipo.startsWith("rut_");
+
+export function rutinaPorTipo(tipo) {
+  if (!esRutinaPropia(tipo)) return null;
+  const id = tipo.slice(4);
+  return (vida.sistema.rutinas || []).find((r) => String(r.id) === id) || null;
+}
+
+function aplicarRutinasPropias() {
+  const rutinas = Array.isArray(vida.sistema.rutinas) ? vida.sistema.rutinas : [];
+  PLANES = { ...BASE_PLANES };
+  TIPOS_ENTRENO = [...BASE_TIPOS];
+  for (const r of rutinas) {
+    const tipo = "rut_" + r.id;
+    TIPOS_ENTRENO.push(tipo);
+    NOMBRE_TIPO_ENTRENO[tipo] = r.nombre || "Rutina";
+    if (Array.isArray(r.ejercicios) && r.ejercicios.length) PLANES[tipo] = r.ejercicios;
+  }
+}
+
 // ---------- Estado y listeners propios ----------
 
 export const vida = {
@@ -282,6 +313,7 @@ function aplicarFiltros() {
   vida.recompensas = crudosVida.recompensas.filter((r) => esDelPerfil(r));
   vida.inversiones = crudosVida.inversiones.filter((p) => esDelPerfil(p)).sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
   vida.sistema = sistemas[perfilVisto()];
+  aplicarRutinasPropias();
 }
 
 export const rutinaEmpezada = () => Boolean(vida.sistema.fecha_inicio);
@@ -781,7 +813,8 @@ function bloquesGaby(fecha) {
   ];
 }
 
-export function bloquesDelDia(fecha = new Date()) {
+// El horario de serie de cada perfil (lo que había hasta ahora).
+function bloquesDeSerie(fecha = new Date()) {
   if (esGaby()) return bloquesGaby(fecha);
   const dia = fecha.getDay();
   if (dia === 1 || dia === 3) return horarioLaborable(SEMANA_TIPO[dia].nombre);
@@ -822,6 +855,55 @@ export function bloquesDelDia(fecha = new Date()) {
     { h: "21:00", titulo: "Preparar la semana", detalle: "Mochila del gimnasio hecha · menú a la vista" },
     { h: "23:15", titulo: "Dormir", detalle: "" },
   ];
+}
+
+// Minutos de un bloque para ordenar y comparar. El "00:00" que no es el
+// primer bloque del día es el final (medianoche de cierre), no el
+// principio: cuenta como las 24:00.
+function minutosDeBloque(h, esPrimero) {
+  const [hh, mm] = String(h || "0:0").split(":").map(Number);
+  let min = (hh || 0) * 60 + (mm || 0);
+  if (!esPrimero && min === 0) min = 24 * 60;
+  return min;
+}
+
+// El día, hora a hora, con las tres capas por orden:
+// 1. El horario PROPIO de ese día de la semana, si se ha editado desde Hoy
+//    (vive en sistema.horario, por perfil). Si no, el de serie.
+// 2. Las citas e imprevistos SOLO de esa fecha (agenda del documento del
+//    día), intercalados donde les toca por hora y marcados como cita.
+export function bloquesDelDia(fecha = new Date()) {
+  const propios = vida.sistema.horario?.[fecha.getDay()];
+  const base = Array.isArray(propios) && propios.length ? propios : bloquesDeSerie(fecha);
+  const agenda = diaPorFecha(fechaISO(fecha))?.agenda;
+  if (!Array.isArray(agenda) || !agenda.length) return base;
+  const todos = [
+    ...base.map((b, i) => ({ b, min: minutosDeBloque(b.h, i === 0) })),
+    ...agenda.map((a) => ({ b: { ...a, cita: true }, min: minutosDeBloque(a.h, false) })),
+  ];
+  todos.sort((x, y) => x.min - y.min);
+  return todos.map((x) => x.b);
+}
+
+// ¿El horario de hoy es personalizado (editado o con citas)? Para saber
+// cuándo tiene sentido avisar de que el entreno se quedó sin hueco.
+export function horarioPersonalizado(fecha = new Date()) {
+  const propios = vida.sistema.horario?.[fecha.getDay()];
+  const agenda = diaPorFecha(fechaISO(fecha))?.agenda;
+  return (Array.isArray(propios) && propios.length > 0) || (Array.isArray(agenda) && agenda.length > 0);
+}
+
+// Aviso suave: si el día está personalizado, hoy tocaba moverse y ningún
+// bloque deja hueco para ello, se dice — porque un hueco que desaparece
+// del horario es una meta que se resiente sin darse cuenta.
+export function avisoDeEntrenoSinHueco(fecha = new Date()) {
+  if (!horarioPersonalizado(fecha)) return null;
+  const toca = SEMANA_TIPO[fecha.getDay()];
+  if (!toca || toca.tipo === "descanso" || toca.tipo === "libre") return null;
+  const MOVERSE = /entren|gim|fuerza|piscina|yoga|caminat|pase[oa]|calisten|estir/i;
+  const hayHueco = bloquesDelDia(fecha).some((b) => MOVERSE.test(`${b.titulo || ""} ${b.detalle || ""}`));
+  if (hayHueco) return null;
+  return `Hoy tocaba ${toca.nombre} y el horario de hoy no le deja hueco. Si puedes, muévelo a otro rato — que un imprevisto no se lleve la meta por delante.`;
 }
 
 // En qué bloque estás ahora: el último cuya hora ya ha pasado. Antes del

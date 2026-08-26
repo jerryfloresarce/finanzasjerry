@@ -497,6 +497,10 @@ html[data-tema="akaza"] {
    cargado, como una libreta bonita. Rosa pastel de acento, beige de
    fondo y marrón para leer. */
 html[data-tema="rosa"] {
+  /* La app declara color-scheme dark en global; sin esto, los controles
+     nativos (checkboxes, selects, scrollbars) salen NEGROS sobre el
+     fondo claro de este tema. */
+  color-scheme: light;
   --bg: #f6efe7;
   --bg-elevated: #f9f4ed;
   --surface: #fdf9f3;

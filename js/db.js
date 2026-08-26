@@ -12,7 +12,7 @@ import {
   disableNetwork,
   enableNetwork,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=65";
+import { db } from "./firebase-init.js?v=66";
 
 // Cuando el iPhone deja la app en segundo plano (o la pantalla se apaga),
 // Safari congela la conexión abierta de Firestore. Al volver, esa conexión
@@ -48,9 +48,19 @@ function col(name) {
 // siempre — son un punto de extensión, no una dependencia.
 let alCrear = (coleccion, data) => data;
 let alLeer = (coleccion, items) => items;
-export function registrarGanchosDeDatos({ crear, leer } = {}) {
+let alNombrarCuenta = (id) => null;
+export function registrarGanchosDeDatos({ crear, leer, nombrarCuenta } = {}) {
   if (crear) alCrear = crear;
   if (leer) alLeer = leer;
+  if (nombrarCuenta) alNombrarCuenta = nombrarCuenta;
+}
+
+// El nombre de una cuenta para pintar en pantalla. Normalmente sale del
+// mapa de cuentas de la vista; si no está ahí, el gancho puede resolverlo
+// (una cuenta que existe pero la vista no la lista) antes de rendirse.
+export function nombreDeCuenta(cuentaMap, id) {
+  if (!id) return "—";
+  return cuentaMap.get(id) || alNombrarCuenta(id) || "—";
 }
 
 function listen(name, orderField, cb) {
@@ -271,7 +281,7 @@ export function textoPeriodo(movimiento) {
 // se lo lleva la persona. En ese caso el destino es el texto guardado en
 // `subcategoria` ("Préstamo a Ana"), no el nombre de una cuenta.
 export function destinoTransferencia(movimiento, cuentaMap) {
-  if (movimiento.cuenta_destino_id) return cuentaMap.get(movimiento.cuenta_destino_id) || "—";
+  if (movimiento.cuenta_destino_id) return nombreDeCuenta(cuentaMap, movimiento.cuenta_destino_id);
   return movimiento.subcategoria || "—";
 }
 
