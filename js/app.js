@@ -1,21 +1,32 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=58";
-import { state, subscribe, initStore } from "./store.js?v=58";
+import { onAuthReady } from "./auth.js?v=59";
+import { state, subscribe, initStore } from "./store.js?v=59";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=58";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=58";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=58";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=58";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=58";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=58";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=58";
-import { mountCuentaPanel } from "./views/cuenta.js?v=58";
-import { refreshAnimations } from "./animations.js?v=58";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=58";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=58";
-import { efectoDeEntrada } from "./efectos.js?v=58";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=59";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=59";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=59";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=59";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=59";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=59";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=59";
+import { mountCuentaPanel } from "./views/cuenta.js?v=59";
+import { refreshAnimations } from "./animations.js?v=59";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=59";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=59";
+import { efectoDeEntrada } from "./efectos.js?v=59";
+// vida:inicio
+import { initVida } from "./vida.js?v=59";
+import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=59";
+import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=59";
+import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=59";
+// vida:fin
 
 const ROUTES = {
+  // vida:inicio
+  hoy: renderVidaHoy,
+  entreno: renderVidaEntreno,
+  progreso: renderVidaProgreso,
+  // vida:fin
   dashboard: renderDashboard,
   graficos: renderGraficos,
   movimientos: renderMovimientos,
@@ -25,7 +36,10 @@ const ROUTES = {
   suscripciones: renderSuscripciones,
 };
 
-const DEFAULT_ROUTE = "dashboard";
+let DEFAULT_ROUTE = "dashboard";
+// vida:inicio
+DEFAULT_ROUTE = "hoy";
+// vida:fin
 let currentRoute = DEFAULT_ROUTE;
 
 function currentRouteFromHash() {
@@ -299,8 +313,18 @@ onAuthReady(() => {
     mountPrestamos();
     mountSuscripciones();
     mountCuentaPanel();
+    // vida:inicio
+    mountVidaHoy();
+    mountVidaEntreno();
+    mountVidaProgreso();
+    // Sus colecciones llegan por listeners propios (no pasan por el store):
+    // cuando cambian, se repinta la vista de vida que esté abierta.
+    initVida(() => {
+      if (["hoy", "entreno", "progreso"].includes(currentRoute)) renderCurrentView();
+    });
+    // vida:fin
   }
 
-  if (!window.location.hash) history.replaceState(null, "", "#/dashboard");
+  if (!window.location.hash) history.replaceState(null, "", `#/${DEFAULT_ROUTE}`);
   navigate();
 });

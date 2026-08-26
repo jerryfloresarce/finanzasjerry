@@ -47,6 +47,21 @@ service cloud.firestore {
       allow read, write: if autenticado();
     }
 
+    // vida:inicio
+    // El sistema de estilo de vida: días cumplidos, entrenos y recompensas.
+    match /dias/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /entrenos/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /recompensas/{docId} {
+      allow read, write: if autenticado();
+    }
+    // vida:fin
+
     // Todo lo demás, denegado por defecto.
     match /{document=**} {
       allow read, write: if false;

@@ -21,7 +21,7 @@
      Sin esto, al añadirla a la pantalla de inicio se abre DENTRO de Safari
      con su barra de direcciones, y esa barra que aparece y desaparece al
      deslizar es lo que hace que todo se mueva de forma rara. -->
-<link rel="manifest" href="manifest.json?v=58" />
+<link rel="manifest" href="manifest.json?v=59" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <!-- "black-translucent" hace que la app llegue hasta arriba del todo, por
@@ -37,8 +37,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=58" />
-<link rel="stylesheet" href="css/temas.css?v=58" />
+<link rel="stylesheet" href="css/styles.css?v=59" />
+<!-- vida:inicio -->
+<link rel="stylesheet" href="css/vida.css?v=59" />
+<!-- vida:fin -->
+<link rel="stylesheet" href="css/temas.css?v=59" />
 <script>
   /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
      desde un módulo (que se ejecuta al final), la app abriría un instante
@@ -92,6 +95,18 @@
   <aside class="sidebar">
     <p class="brand-mark brand-mark--sidebar"><span class="brand-mark__icon" aria-hidden="true"><i class="ph-thin ph-leaf"></i></span>Finanzas <span>Jerry</span></p>
     <nav class="nav" id="main-nav">
+      <!-- vida:inicio -->
+      <a href="#/hoy" class="nav__link" data-route="hoy">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-sun"></i></span> Hoy
+      </a>
+      <a href="#/entreno" class="nav__link" data-route="entreno">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-barbell"></i></span> Entreno
+      </a>
+      <a href="#/progreso" class="nav__link" data-route="progreso">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-trophy"></i></span> Progreso
+      </a>
+      <div class="nav__separador" aria-hidden="true"></div>
+      <!-- vida:fin -->
       <a href="#/dashboard" class="nav__link" data-route="dashboard">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-squares-four"></i></span> Dashboard
       </a>
@@ -135,7 +150,19 @@
 
   <div id="mobile-nav-scrim" class="mobile-nav-scrim is-hidden"></div>
   <nav id="mobile-nav" class="mobile-nav is-hidden">
-    <a href="#/dashboard" class="nav__link" data-route="dashboard">
+    <!-- vida:inicio -->
+      <a href="#/hoy" class="nav__link" data-route="hoy">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-sun"></i></span> Hoy
+      </a>
+      <a href="#/entreno" class="nav__link" data-route="entreno">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-barbell"></i></span> Entreno
+      </a>
+      <a href="#/progreso" class="nav__link" data-route="progreso">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-trophy"></i></span> Progreso
+      </a>
+      <div class="nav__separador" aria-hidden="true"></div>
+      <!-- vida:fin -->
+      <a href="#/dashboard" class="nav__link" data-route="dashboard">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-squares-four"></i></span> Dashboard
     </a>
     <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
@@ -166,6 +193,29 @@
   </nav>
 
   <main id="view-container" class="view-container">
+    <!-- vida:inicio -->
+    <section class="view is-hidden" data-view="hoy" id="view-hoy">
+      <div class="view-header">
+        <h1 class="view-title">Hoy</h1>
+      </div>
+      <div id="hoy-content"></div>
+    </section>
+
+    <section class="view is-hidden" data-view="entreno" id="view-entreno">
+      <div class="view-header">
+        <h1 class="view-title">Entreno</h1>
+      </div>
+      <div id="entreno-content"></div>
+    </section>
+
+    <section class="view is-hidden" data-view="progreso" id="view-progreso">
+      <div class="view-header">
+        <h1 class="view-title">Progreso</h1>
+      </div>
+      <div id="progreso-content"></div>
+    </section>
+    <!-- vida:fin -->
+
 
     <!-- ---------- DASHBOARD ---------- -->
     <section class="view" data-view="dashboard" id="view-dashboard">
@@ -453,6 +503,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=58"></script>
+<script type="module" src="js/app.js?v=59"></script>
 </body>
 </html>
