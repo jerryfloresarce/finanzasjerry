@@ -11,8 +11,8 @@
 //
 // Este archivo es PERSONAL (vida-*): el kit lo excluye entero.
 
-import { registrarGanchosDeDatos } from "./db.js?v=66";
-import { usarClaveDeTema, aplicarTema, temaGuardadoEnLocal } from "./tema.js?v=66";
+import { registrarGanchosDeDatos, refiltrarColeccion } from "./db.js?v=67";
+import { usarClaveDeTema, aplicarTema, temaGuardadoEnLocal } from "./tema.js?v=67";
 
 export const PERFILES = {
   jerry: {
@@ -67,31 +67,43 @@ export const esVisible = (d) => duenoDe(d) === perfilVisto() || d.perfil === "am
 // como compartida, la comparativa de rachas).
 export const crudos = {};
 
-function perfilDeEscritura(coleccion, data) {
-  // Un movimiento que toca una cuenta compartida es de los dos: así el
-  // saldo de la conjunta cuadra se mire desde el perfil que se mire. Y un
-  // Bizum entre los dos (origen de uno, destino del otro) también: tiene
-  // que restar en un perfil y sumar en el otro sin apuntarlo dos veces.
+const duenoDeCuenta = (id) => {
+  const c = (crudos.cuentas || []).find((x) => x.id === id);
+  return c ? c.perfil || "jerry" : null;
+};
+
+// El dueño REAL de un movimiento no siempre es el que lleva escrito: los
+// Atajos del iPhone no saben de perfiles. Si toca una cuenta compartida es
+// de los dos (así el saldo de la conjunta cuadra se mire desde donde se
+// mire), y un Bizum entre los dos (origen de uno, destino del otro)
+// también: tiene que restar en un perfil y sumar en el otro con un solo
+// apunte. Se decide mirando las CUENTAS, ponga lo que ponga el campo — por
+// eso el Atajo de transferencia de siempre sirve tal cual: basta con
+// elegir una cuenta del otro como destino.
+function duenoEfectivo(coleccion, d) {
   if (coleccion === "movimientos") {
-    const cuentas = crudos.cuentas || [];
-    const de = (id) => {
-      const c = cuentas.find((x) => x.id === id);
-      return c ? c.perfil || "jerry" : null;
-    };
-    const origen = de(data.cuenta_id);
-    const destino = de(data.cuenta_destino_id);
+    const origen = duenoDeCuenta(d.cuenta_id);
+    const destino = duenoDeCuenta(d.cuenta_destino_id);
     if (origen === "ambos" || destino === "ambos") return "ambos";
     if (origen && destino && origen !== destino) return "ambos";
   }
-  return perfilVisto();
+  return duenoDe(d);
 }
 
 registrarGanchosDeDatos({
   leer: (coleccion, items) => {
     crudos[coleccion] = items;
-    return items.filter(esVisible);
+    // El dueño efectivo de un movimiento depende de las cuentas, y las
+    // colecciones llegan en el orden que quiera Firestore: cuando llegan
+    // (o cambian) las cuentas, los movimientos ya filtrados se repasan
+    // con la información nueva.
+    if (coleccion === "cuentas") queueMicrotask(() => refiltrarColeccion("movimientos"));
+    return items.filter((d) => {
+      const dueno = duenoEfectivo(coleccion, d);
+      return dueno === perfilVisto() || dueno === "ambos";
+    });
   },
-  crear: (coleccion, data) => ({ ...data, perfil: perfilDeEscritura(coleccion, data) }),
+  crear: (coleccion, data) => ({ ...data, perfil: duenoEfectivo(coleccion, { ...data, perfil: perfilVisto() }) }),
   // El nombre de una cuenta del OTRO perfil, para que un Bizum no enseñe
   // "—" como destino: se busca en los crudos y se firma con su dueño.
   nombrarCuenta: (id) => {

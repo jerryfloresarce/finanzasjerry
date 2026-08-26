@@ -12,7 +12,7 @@ import {
   disableNetwork,
   enableNetwork,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=66";
+import { db } from "./firebase-init.js?v=67";
 
 // Cuando el iPhone deja la app en segundo plano (o la pantalla se apaga),
 // Safari congela la conexión abierta de Firestore. Al volver, esa conexión
@@ -63,11 +63,27 @@ export function nombreDeCuenta(cuentaMap, id) {
   return cuentaMap.get(id) || alNombrarCuenta(id) || "—";
 }
 
+// Lo último que llegó de cada colección, tal cual vino, junto con a quién
+// avisar. Permite volver a pasar el filtro de lectura sin esperar a otra
+// entrega de Firestore: hace falta cuando el criterio del filtro depende de
+// OTRA colección que puede llegar después (a qué perfil pertenece cada
+// cuenta, por ejemplo).
+const ultimaLectura = new Map();
+
+export function refiltrarColeccion(name) {
+  const u = ultimaLectura.get(name);
+  if (u) u.cb(alLeer(name, u.items));
+}
+
+function entregar(name, items, cb) {
+  ultimaLectura.set(name, { items, cb });
+  cb(alLeer(name, items));
+}
+
 function listen(name, orderField, cb) {
   const q = orderField ? query(col(name), orderBy(orderField, "desc")) : col(name);
   return onSnapshot(q, (snap) => {
-    const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    cb(alLeer(name, items));
+    entregar(name, snap.docs.map((d) => ({ id: d.id, ...d.data() })), cb);
   });
 }
 
@@ -203,7 +219,7 @@ export function generarFechasPlanDePagos(inicioISO, cantidad) {
 export const listenMetasAhorro = (cb) =>
   onSnapshot(
     col("metas_ahorro"),
-    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    (snap) => entregar("metas_ahorro", snap.docs.map((d) => ({ id: d.id, ...d.data() })), cb),
     () => cb([])
   );
 export const addMetaAhorro = (data) => crear("metas_ahorro", data);

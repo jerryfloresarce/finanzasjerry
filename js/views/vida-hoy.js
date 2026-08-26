@@ -29,12 +29,12 @@ import {
   guardarSistema,
   guardarDia,
   avisoDeEntrenoSinHueco,
-} from "../vida.js?v=66";
-import { abrirReceta } from "./vida-menu.js?v=66";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=66";
-import { fechaISO, formatFecha } from "../db.js?v=66";
-import { efectoDeCelebracion } from "../efectos.js?v=66";
-import { openModal, closeModal } from "../modal.js?v=66";
+} from "../vida.js?v=67";
+import { abrirReceta } from "./vida-menu.js?v=67";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=67";
+import { fechaISO, formatFecha } from "../db.js?v=67";
+import { efectoDeCelebracion } from "../efectos.js?v=67";
+import { openModal, closeModal } from "../modal.js?v=67";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
