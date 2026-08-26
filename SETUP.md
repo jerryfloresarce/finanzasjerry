@@ -169,6 +169,30 @@ Con los 3 Atajos ya creados y probados:
 
 Desde ahora, deslizando desde arriba a la derecha (o desde abajo, según el modelo) para abrir el Centro de Control, tienes los 3 a un toque — sin desbloquear del todo ni abrir ninguna app.
 
+### 3.6 Los Atajos de Gaby (en SU iPhone)
+
+Son exactamente los mismos 3 Atajos, montados en su teléfono. La forma más rápida: **compártele los tuyos** (Atajos → mantener pulsado el Atajo → Compartir → AirDrop o enlace de iCloud) y en su iPhone cambiáis solo tres cosas en cada uno:
+
+1. **El login (paso B)**: en el cuerpo de la petición a `signInWithPassword`, su email (`gabryela.knauft.mrg@gmail.com`) y su contraseña, en vez de los tuyos. Así cada movimiento entra firmado con su cuenta.
+2. **Los IDs de sus cuentas y categorías**: cada cuenta y categoría tiene su propio ID de Firestore, también las de ella. Se copian igual que los tuyos: en la web, **viendo el perfil de Gaby**, ir a Cuentas / Categorías y tocar el botoncito de copiar de cada una (Imagin, Efectivo, Uñas…). Sus IDs son distintos de los tuyos — no vale reutilizar los tuyos.
+3. **Un campo nuevo en el JSON (paso H), y este es EL importante**: los Atajos escriben directo en Firestore, sin pasar por la app, así que no llevan el sello de perfil automático. Los tuyos no hay que tocarlos (un movimiento sin perfil cuenta como tuyo, a propósito). Los de ella tienen que añadir al final del JSON, dentro de `fields`:
+
+   ```
+   ,"perfil":{"stringValue":"gaby"}
+   ```
+
+   Ejemplo del gasto completo:
+
+   ```
+   {"fields":{"importe":{"doubleValue":[Importe]},"tipo":{"stringValue":"Gasto"},"categoria_id":{"stringValue":"[CategoriaID]"},"cuenta_id":{"stringValue":"[CuentaID]"},"fecha":{"timestampValue":"[FechaISO]"},"subcategoria":{"stringValue":"[Subcategoria]"},"nota":{"stringValue":""},"perfil":{"stringValue":"gaby"}}}
+   ```
+
+   Lo mismo en el de Ingreso y el de Transferencia.
+
+**Si se le olvida el campo `perfil`**: el movimiento no desaparece — aparece en TU perfil en vez del suyo (sin campo = tuyo). Se arregla en un momento: se borra desde tu perfil y se vuelve a apuntar, o me lo dices y lo recoloco.
+
+**La Revolut conjunta**: un movimiento que toque la cuenta conjunta debería llevar `"perfil":{"stringValue":"ambos"}` para que el saldo cuadre desde los dos perfiles. Como el Atajo no distingue de cuentas, lo más simple es que los movimientos de la conjunta se apunten desde la app (que los sella como "ambos" ella sola), y los Atajos se usen para el día a día de las cuentas propias.
+
 ## 4. Orden recomendado
 
 1. Me pasas el `firebaseConfig` → lo conecto.
