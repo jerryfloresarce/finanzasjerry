@@ -22,9 +22,13 @@ import {
   ROTACION_CENAS,
   FASES_ESTUDIO,
   faseEstudio,
-} from "../vida.js?v=60";
-import { fechaISO, formatFecha } from "../db.js?v=60";
-import { efectoDeCelebracion } from "../efectos.js?v=60";
+  bloquesDelDia,
+  bloqueActual,
+  menuDeHoy,
+} from "../vida.js?v=61";
+import { abrirReceta } from "./vida-menu.js?v=61";
+import { fechaISO, formatFecha } from "../db.js?v=61";
+import { efectoDeCelebracion } from "../efectos.js?v=61";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -56,6 +60,12 @@ export function mountVidaHoy() {
   // Todo el enganche va por delegación sobre la sección, porque el
   // contenido se repinta entero con cada render.
   const root = document.getElementById("view-hoy");
+  // El indicador de "AHORA" del horario se mueve solo: cada medio minuto se
+  // repinta si la pantalla está abierta. El checklist no pierde nada porque
+  // vive en el borrador.
+  setInterval(() => {
+    if (window.location.hash.startsWith("#/hoy")) renderVidaHoy(currentState);
+  }, 30000);
   // Lo tecleado va al borrador al momento: si llega un dato de Firestore y
   // la pantalla se repinta a mitad de escribir, no se pierde nada.
   root.addEventListener("input", (e) => {
@@ -64,6 +74,11 @@ export function mountVidaHoy() {
     if (e.target.id === "hoy-cadera") b.cadera = e.target.value;
   });
   root.addEventListener("click", async (e) => {
+    const receta = e.target.closest("[data-receta]");
+    if (receta) {
+      abrirReceta(receta.dataset.receta);
+      return;
+    }
     const toggle = e.target.closest("[data-check]");
     if (toggle) {
       const [grupo, id] = toggle.dataset.check.split(":");
@@ -139,6 +154,11 @@ export function renderVidaHoy(state) {
   const ayerAbierto = !diaPorFecha(ayerISO()) && vida.dias.some((d) => d.id < ayerISO()) && !editandoAyer;
 
   const tituloFecha = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(fecha);
+  const ahora = new Date();
+  const bloques = bloquesDelDia(fecha);
+  const indiceAhora = bloqueActual(ahora);
+  const horaTxt = `${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}`;
+  const menuHoy = editandoAyer ? null : menuDeHoy(fecha);
 
   const filaCheck = (grupo, item, marcado, extra = "") => `
     <button type="button" class="hoy-check ${marcado ? "hoy-check--on" : ""} ${grupo === "bonus" ? "hoy-check--bonus" : ""}" data-check="${grupo}:${item.id}" ${cerradoSinEditar ? "disabled" : ""}>
@@ -209,7 +229,7 @@ export function renderVidaHoy(state) {
               <input type="number" step="0.1" id="hoy-peso" value="${b.peso_kg}" placeholder="—" ${cerradoSinEditar ? "disabled" : ""} />
             </label>
             <label class="field">
-              <span class="field__label">Ingle al acabar el día (0–10)</span>
+              <span class="field__label">¿Te ha molestado la ingle hoy? 0 = nada · 10 = mucho</span>
               <input type="number" min="0" max="10" id="hoy-cadera" value="${b.cadera}" placeholder="0" ${cerradoSinEditar ? "disabled" : ""} />
             </label>
           </div>
@@ -235,19 +255,43 @@ export function renderVidaHoy(state) {
             <span class="hoy-check__icon"><i class="ph ph-barbell" aria-hidden="true"></i></span>
             <span><strong>${entrenoDelDia.nombre}</strong><br /><span class="entity-card__meta">Tocar para registrarlo</span></span>
           </a>
+          ${
+            menuHoy?.comida || menuHoy?.cena
+              ? `
+          ${menuHoy.comida ? `<button type="button" class="hoy-toca__fila hoy-toca__fila--boton" data-receta="${menuHoy.comida.id}">
+            <span class="hoy-check__icon"><i class="ph ph-fork-knife" aria-hidden="true"></i></span>
+            <span><strong>Comida:</strong> ${menuHoy.comida.nombre}<br /><span class="entity-card__meta">Toca y sale la guía rápida · ≈ ${menuHoy.comida.proteina} g de proteína</span></span>
+          </button>` : ""}
+          ${menuHoy.cena ? `<button type="button" class="hoy-toca__fila hoy-toca__fila--boton" data-receta="${menuHoy.cena.id}">
+            <span class="hoy-check__icon"><i class="ph ph-moon-stars" aria-hidden="true"></i></span>
+            <span><strong>Cena:</strong> ${menuHoy.cena.nombre}<br /><span class="entity-card__meta">Déjala hecha por la mañana · toca para la guía</span></span>
+          </button>` : ""}`
+              : `
           <div class="hoy-toca__fila">
             <span class="hoy-check__icon"><i class="ph ph-cooking-pot" aria-hidden="true"></i></span>
             <span><strong>Comida:</strong> ${sugerenciaDelDia(ROTACION_COMIDAS, fecha)}<br />
-            <strong>Cena:</strong> ${sugerenciaDelDia(ROTACION_CENAS, fecha)} <span class="entity-card__meta">(déjala hecha por la mañana)</span></span>
-          </div>
-          <div class="hoy-toca__fila">
-            <span class="hoy-check__icon"><i class="ph ph-orange-slice" aria-hidden="true"></i></span>
-            <span><strong>Fruta:</strong> 11:00 · postre de la comida · camino al gym · postre de la cena</span>
-          </div>
-          <div class="hoy-toca__fila">
-            <span class="hoy-check__icon"><i class="ph ph-graduation-cap" aria-hidden="true"></i></span>
-            <span><strong>Estudio:</strong> ${FASES_ESTUDIO[fase]} min después de comer (15:40)</span>
-          </div>
+            <strong>Cena:</strong> ${sugerenciaDelDia(ROTACION_CENAS, fecha)}<br />
+            <a href="#/menu" class="entity-card__meta" style="text-decoration:underline dotted;">Haz tu menú de la semana con TUS ingredientes →</a></span>
+          </div>`
+          }
+        </div>
+
+        <h2 class="card__title" style="margin-top:18px;">El día, hora a hora</h2>
+        <div class="dia-linea">
+          ${bloques
+            .map((bl, i) => {
+              const esAhora = !editandoAyer && i === indiceAhora;
+              return `
+            <div class="dia-bloque ${esAhora ? "dia-bloque--ahora" : ""} ${!editandoAyer && i < indiceAhora ? "dia-bloque--pasado" : ""}">
+              <span class="dia-bloque__hora">${bl.h}</span>
+              <span class="dia-bloque__punto" aria-hidden="true"></span>
+              <span class="dia-bloque__cuerpo">
+                <span class="dia-bloque__titulo">${bl.titulo}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
+                ${bl.detalle ? `<span class="dia-bloque__detalle">${bl.detalle}</span>` : ""}
+              </span>
+            </div>`;
+            })
+            .join("")}
         </div>
         <a class="btn btn--ghost btn--sm btn--block" href="#/progreso" style="margin-top:14px;">Ver mi progreso y el bote →</a>
       </article>

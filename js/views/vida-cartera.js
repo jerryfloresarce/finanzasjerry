@@ -14,15 +14,15 @@ import {
   updateInversion,
   deleteInversion,
   guardarSistema,
-} from "../vida.js?v=60";
-import { formatEUR } from "../db.js?v=60";
+} from "../vida.js?v=61";
+import { formatEUR } from "../db.js?v=61";
+import { openModal, closeModal } from "../modal.js?v=61";
+import { colorTema } from "../tema.js?v=61";
+import { efectoAlGuardar } from "../efectos.js?v=61";
 
 // Un porcentaje y unas unidades a la española: coma decimal, no punto.
 const pctTxt = (n) => Math.abs(n).toFixed(1).replace(".", ",");
 const udsTxt = (n) => String(n).replace(".", ",");
-import { openModal, closeModal } from "../modal.js?v=60";
-import { colorTema } from "../tema.js?v=60";
-import { efectoAlGuardar } from "../efectos.js?v=60";
 
 let chartProyeccion = null;
 let actualizando = false;

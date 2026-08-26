@@ -16,8 +16,8 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=60";
-import { fechaISO } from "./db.js?v=60";
+import { db } from "./firebase-init.js?v=61";
+import { fechaISO } from "./db.js?v=61";
 
 // ---------- Las reglas del sistema ----------
 
@@ -96,16 +96,16 @@ export const ROTACION_COMIDAS = [
   "Lentejas con chorizo",
   "Albóndigas en salsa + patata",
   "Pasta boloñesa (verdura en la salsa)",
-  "Garbanzos con espinaca triturada",
+  "Arroz a la cubana",
   "Merluza o salmón al horno + patata",
 ];
 
 export const ROTACION_CENAS = [
-  "Tortilla de patata con atún",
+  "Tortilla de patata",
   "Pechuga a la plancha + huevo",
   "Crema de calabacín + jamón",
   "Sándwich integral de pollo",
-  "Revuelto de huevo con atún",
+  "Revuelto de huevos con jamón",
   "Yogur griego + fruta + frutos secos",
 ];
 
@@ -138,6 +138,7 @@ export const vida = {
   recompensas: [],
   inversiones: [],   // posiciones de la cartera (Trade Republic, apuntadas a mano)
   sistema: {},       // configuracion/sistema
+  menu: {},          // configuracion/menu: ingredientes marcados y el menú de la semana
   sinPermisos: false, // true si las reglas nuevas aún no están publicadas
   listo: false,
 };
@@ -174,6 +175,14 @@ export function initVida(cb) {
   escucha("recompensas", (docs) => (vida.recompensas = docs));
   escucha("inversiones", (docs) => (vida.inversiones = docs.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""))));
   onSnapshot(
+    doc(db, "configuracion", "menu"),
+    (snap) => {
+      vida.menu = snap.exists() ? snap.data() : {};
+      onChange?.();
+    },
+    () => onChange?.()
+  );
+  onSnapshot(
     doc(db, "configuracion", "sistema"),
     (snap) => {
       vida.sistema = snap.exists() ? snap.data() : {};
@@ -191,6 +200,7 @@ export const addRecompensa = (data) => addDoc(col("recompensas"), data);
 export const updateRecompensa = (id, data) => updateDoc(doc(db, "recompensas", id), data);
 export const deleteRecompensa = (id) => deleteDoc(doc(db, "recompensas", id));
 export const guardarSistema = (data) => setDoc(doc(db, "configuracion", "sistema"), data, { merge: true });
+export const guardarMenu = (data) => setDoc(doc(db, "configuracion", "menu"), data, { merge: true });
 export const addInversion = (data) => addDoc(col("inversiones"), data);
 export const updateInversion = (id, data) => updateDoc(doc(db, "inversiones", id), data);
 export const deleteInversion = (id) => deleteDoc(doc(db, "inversiones", id));
@@ -482,6 +492,225 @@ export function calcularLogros(pesoInicial) {
     { id: "estudio_fase2", nombre: "Fase 2 de estudio", icono: "graduation-cap", ok: faseEstudio() >= 2 },
     { id: "estudio_fase4", nombre: "Fase 4: una hora al día", icono: "graduation-cap", ok: faseEstudio() >= 4 },
   ];
+}
+
+// ---------- El día, hora a hora ----------
+//
+// El horario de cada tipo de día, con las tareas de casa metidas en los
+// huecos del trabajo (que es donde de verdad se hacen). La pantalla Hoy lo
+// pinta y marca en qué bloque estás ahora mismo.
+
+function horarioLaborable(nombreEntreno) {
+  return [
+    { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
+    { h: "08:00", titulo: "Trabajo", detalle: "Desayuno en la primera hora: proteína + fruta" },
+    { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
+    { h: "11:00", titulo: "Fruta 1", detalle: "Y la lavadora: poner, tender o recoger la ropa" },
+    { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
+    { h: "15:00", titulo: "Comer", detalle: "Dientes (2) · fruta 2 de postre" },
+    { h: "15:40", titulo: "Estudio", detalle: "El bloque de verdad, en la mesa" },
+    { h: "16:10", titulo: "Siesta corta o libre", detalle: "Alarma: nunca más allá de las 17:00" },
+    { h: "17:30", titulo: "Salir al gimnasio", detalle: "Mochila hecha · fruta 3 por el camino" },
+    { h: "17:55", titulo: nombreEntreno, detalle: "Ducha allí" },
+    { h: "20:00", titulo: "Tienda", detalle: "" },
+    { h: "22:40", titulo: "En casa · cenar", detalle: "La cena ya estaba hecha: solo calentar" },
+    { h: "23:15", titulo: "Dormir", detalle: "Dientes (3) · móvil fuera de la cama" },
+  ];
+}
+
+function horarioTardeLibre(queToca) {
+  return [
+    { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
+    { h: "08:00", titulo: "Trabajo", detalle: "Desayuno en la primera hora: proteína + fruta" },
+    { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
+    { h: "11:00", titulo: "Fruta 1", detalle: "Y la lavadora: poner, tender o recoger la ropa" },
+    { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
+    { h: "15:00", titulo: "Comer", detalle: "Dientes (2) · fruta 2 de postre" },
+    { h: "15:40", titulo: "Estudio", detalle: "El bloque de verdad, en la mesa" },
+    { h: "16:10", titulo: "Tarde libre", detalle: queToca },
+    { h: "20:45", titulo: "Salir hacia la tienda", detalle: "Como muy tarde" },
+    { h: "22:40", titulo: "En casa · cenar", detalle: "La cena ya estaba hecha" },
+    { h: "23:15", titulo: "Dormir", detalle: "Dientes (3) · móvil fuera de la cama" },
+  ];
+}
+
+export function bloquesDelDia(fecha = new Date()) {
+  const dia = fecha.getDay();
+  if (dia === 1 || dia === 3) return horarioLaborable(SEMANA_TIPO[dia].nombre);
+  if (dia === 2) return horarioTardeLibre("Caminata con elevación (35 min) cuando mejor te venga");
+  if (dia === 4) return horarioTardeLibre("Piscina con tu hermano");
+  if (dia === 5)
+    return [
+      { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
+      { h: "08:00", titulo: "Trabajo (hasta las 14:30)", detalle: "Desayuno en la primera hora" },
+      { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
+      { h: "11:00", titulo: "Fruta 1", detalle: "Y la lavadora: poner, tender o recoger" },
+      { h: "13:30", titulo: "Hueco de cocina", detalle: "Cena preparada · platos" },
+      { h: "14:45", titulo: "Comer", detalle: "Dientes (2) · fruta de postre" },
+      { h: "15:30", titulo: "Estudio", detalle: "" },
+      { h: "16:15", titulo: "Compra de fruta", detalle: "Para media semana — se compra dos veces, no una" },
+      { h: "17:30", titulo: "Salir al gimnasio", detalle: "Fruta por el camino" },
+      { h: "17:55", titulo: SEMANA_TIPO[5].nombre, detalle: "Ducha allí" },
+      { h: "20:00", titulo: "Tienda", detalle: "" },
+      { h: "22:40", titulo: "En casa · cenar", detalle: "" },
+      { h: "23:15", titulo: "Dormir", detalle: "Dientes (3)" },
+    ];
+  if (dia === 6)
+    return [
+      { h: "09:30", titulo: "Levantarte con calma", detalle: "Hoy se recupera sueño" },
+      { h: "11:00", titulo: "Tareas de casa", detalle: "Doblar la ropa · ordenar la casa" },
+      { h: "13:00", titulo: "Libre", detalle: "Caminata suave si apetece" },
+      { h: "15:00", titulo: "Comer", detalle: "" },
+      { h: "16:00", titulo: "Tarde libre", detalle: "" },
+      { h: "23:20", titulo: "Llegáis a casa", detalle: "Tu pareja sale a las 23:00" },
+      { h: "00:00", titulo: "Tope para dormir", detalle: "El sábado el innegociable es no pasar de las 00:00" },
+    ];
+  return [
+    { h: "09:30", titulo: "Levantarte con calma", detalle: "" },
+    { h: "11:00", titulo: "Batch cooking (hasta las 13:00)", detalle: "Las comidas de la semana, del menú" },
+    { h: "13:30", titulo: "Platos y cocina recogida", detalle: "" },
+    { h: "15:00", titulo: "Comer", detalle: "" },
+    { h: "16:00", titulo: "Descanso de verdad", detalle: "Es el día que sostiene la semana" },
+    { h: "21:00", titulo: "Preparar la semana", detalle: "Mochila del gimnasio hecha · menú a la vista" },
+    { h: "23:15", titulo: "Dormir", detalle: "" },
+  ];
+}
+
+// En qué bloque estás ahora: el último cuya hora ya ha pasado. Antes del
+// primero (madrugada) no hay bloque activo.
+export function bloqueActual(fecha = new Date()) {
+  const bloques = bloquesDelDia(fecha);
+  const ahora = fecha.getHours() * 60 + fecha.getMinutes();
+  let indice = -1;
+  bloques.forEach((b, i) => {
+    const [hh, mm] = b.h.split(":").map(Number);
+    let min = hh * 60 + mm;
+    // El "00:00" del sábado es el final del día, no el principio.
+    if (i > 0 && min === 0) min = 24 * 60;
+    if (ahora >= min) indice = i;
+  });
+  return indice;
+}
+
+// ---------- Ingredientes y menú semanal ----------
+//
+// Jerry marca qué ingredientes comería esta semana y el menú se genera solo
+// con recetas cuyas piezas estén todas marcadas. Sin garbanzos ni atún de
+// serie (no le gustan) y la verdura solo camuflada. Vive en
+// configuracion/menu, así que no necesita reglas nuevas.
+
+export const GRUPOS_INGREDIENTES = ["Proteína", "Hidratos", "Legumbres", "Verdura camuflada", "Lácteos y más"];
+
+export const INGREDIENTES = [
+  { id: "pollo", nombre: "Pollo", grupo: "Proteína" },
+  { id: "ternera", nombre: "Ternera picada", grupo: "Proteína" },
+  { id: "lomo", nombre: "Lomo de cerdo", grupo: "Proteína" },
+  { id: "salmon", nombre: "Salmón", grupo: "Proteína" },
+  { id: "merluza", nombre: "Merluza", grupo: "Proteína" },
+  { id: "huevos", nombre: "Huevos", grupo: "Proteína" },
+  { id: "jamon", nombre: "Jamón / fiambre de pavo", grupo: "Proteína" },
+  { id: "chorizo", nombre: "Chorizo", grupo: "Proteína" },
+  { id: "atun", nombre: "Atún en lata", grupo: "Proteína" },
+  { id: "arroz", nombre: "Arroz", grupo: "Hidratos" },
+  { id: "pasta", nombre: "Pasta", grupo: "Hidratos" },
+  { id: "patata", nombre: "Patatas", grupo: "Hidratos" },
+  { id: "pan", nombre: "Pan", grupo: "Hidratos" },
+  { id: "avena", nombre: "Avena", grupo: "Hidratos" },
+  { id: "wraps", nombre: "Tortillas de trigo (wraps)", grupo: "Hidratos" },
+  { id: "lentejas", nombre: "Lentejas", grupo: "Legumbres" },
+  { id: "alubias", nombre: "Alubias", grupo: "Legumbres" },
+  { id: "garbanzos", nombre: "Garbanzos", grupo: "Legumbres" },
+  { id: "tomate", nombre: "Tomate frito / triturado", grupo: "Verdura camuflada" },
+  { id: "cebolla", nombre: "Cebolla (en la salsa)", grupo: "Verdura camuflada" },
+  { id: "zanahoria", nombre: "Zanahoria (triturada)", grupo: "Verdura camuflada" },
+  { id: "calabacin", nombre: "Calabacín (en crema)", grupo: "Verdura camuflada" },
+  { id: "espinacas", nombre: "Espinacas (trituradas)", grupo: "Verdura camuflada" },
+  { id: "yogur", nombre: "Yogur griego", grupo: "Lácteos y más" },
+  { id: "queso", nombre: "Queso", grupo: "Lácteos y más" },
+  { id: "frutossecos", nombre: "Frutos secos", grupo: "Lácteos y más" },
+];
+
+// Lo que arranca marcado: todo menos lo que ya sabemos que no le gusta.
+const INGREDIENTES_OFF = new Set(["atun", "garbanzos", "calabacin", "espinacas"]);
+export const INGREDIENTES_POR_DEFECTO = INGREDIENTES.filter((i) => !INGREDIENTES_OFF.has(i.id)).map((i) => i.id);
+
+// Las recetas: req = lo que tiene que estar marcado; opc = mejora el plato
+// si está, pero no bloquea. Cada una con su guía rápida.
+export const RECETAS = [
+  { id: "pollo_arroz", nombre: "Pollo al horno con arroz", momento: "comida", req: ["pollo", "arroz"], opc: ["tomate"], proteina: 34,
+    pasos: ["Salpimienta el pollo y al horno: 200 °C, 35–40 min, vuelta a mitad.", "Hierve el arroz 12 min y escúrrelo.", "Si hay tomate frito, una cucharada sobre el arroz.", "Ración: 150 g de pollo ≈ 34 g de proteína."] },
+  { id: "arroz_cubana", nombre: "Arroz a la cubana", momento: "comida", req: ["arroz", "huevos", "tomate"], opc: [], proteina: 16,
+    pasos: ["Hierve el arroz 12 min.", "Fríe 2 huevos.", "Monta: arroz + tomate frito caliente + huevos encima.", "2 huevos ≈ 14 g de proteína; añade jamón si quieres más."] },
+  { id: "macarrones", nombre: "Macarrones con carne", momento: "comida", req: ["pasta", "ternera", "tomate"], opc: ["cebolla", "zanahoria", "queso"], proteina: 32,
+    pasos: ["Sofríe la ternera (150 g) hasta que pierda el rosa.", "Si hay cebolla o zanahoria: triturada dentro del tomate, ni la notas.", "Añade el tomate y deja 5 min a fuego bajo.", "Mezcla con la pasta cocida (10-11 min). Queso por encima si hay."] },
+  { id: "albondigas", nombre: "Albóndigas en salsa con patatas", momento: "comida", req: ["ternera", "huevos", "patata", "tomate"], opc: ["cebolla", "zanahoria"], proteina: 35,
+    pasos: ["Mezcla la ternera con 1 huevo y forma bolas.", "Dóralas en la sartén 5 min.", "Tritura tomate (+ zanahoria/cebolla si hay) y cuécelas 15 min dentro.", "Patatas cocidas o al microondas (8 min pinchadas) de guarnición."] },
+  { id: "lentejas_chorizo", nombre: "Lentejas con chorizo", momento: "comida", req: ["lentejas", "chorizo"], opc: ["cebolla", "zanahoria", "patata"], proteina: 25,
+    pasos: ["De bote: enjuaga las lentejas y calienta con el chorizo en rodajas 10 min.", "Si hay zanahoria/cebolla, triturada en el caldo.", "De domingo (batch): olla 30-35 min con todo dentro.", "Un plato grande ≈ 25 g de proteína entre lentejas y chorizo."] },
+  { id: "salmon_patatas", nombre: "Salmón al horno con patatas", momento: "comida", req: ["salmon", "patata"], opc: [], proteina: 30,
+    pasos: ["Patatas en rodajas finas, 20 min al horno a 200 °C.", "Pon el salmón encima y 12-15 min más.", "Sal, pimienta y un chorrito de aceite. Listo.", "150 g de salmón ≈ 30 g de proteína."] },
+  { id: "merluza_arroz", nombre: "Merluza a la plancha con arroz", momento: "comida", req: ["merluza", "arroz"], opc: [], proteina: 28,
+    pasos: ["Plancha fuerte: 3-4 min por cada lado de la merluza.", "Arroz hervido 12 min de guarnición.", "150 g de merluza ≈ 28 g de proteína, y casi nada de grasa."] },
+  { id: "lomo_patatas", nombre: "Lomo a la plancha con patatas", momento: "comida", req: ["lomo", "patata"], opc: [], proteina: 33,
+    pasos: ["Filetes de lomo a la plancha: 2-3 min por lado.", "Patatas al microondas 8 min (pinchadas) y un golpe de sartén.", "150 g de lomo ≈ 33 g de proteína."] },
+  { id: "alubias_arroz", nombre: "Alubias con arroz", momento: "comida", req: ["alubias", "arroz"], opc: ["chorizo"], proteina: 20,
+    pasos: ["De bote: enjuaga las alubias, calienta con un poco de tomate o chorizo.", "Arroz hervido aparte y todo junto al plato.", "Legumbre + arroz = proteína completa, ≈ 20 g el plato."] },
+  { id: "pollo_pasta", nombre: "Pasta con pollo", momento: "comida", req: ["pasta", "pollo"], opc: ["tomate", "queso"], proteina: 38,
+    pasos: ["Pollo en tiras a la sartén hasta dorar.", "Pasta cocida 10-11 min.", "Junta todo con tomate frito; queso por encima si hay.", "150 g de pollo ≈ 34 g de proteína + la de la pasta."] },
+  { id: "tortilla", nombre: "Tortilla de patata", momento: "cena", req: ["huevos", "patata"], opc: ["cebolla"], proteina: 21,
+    pasos: ["Patata en láminas finas: microondas 6-7 min o sartén.", "Bate 3 huevos, mezcla y cuaja a fuego medio 3 min por lado.", "Hecha por la mañana aguanta perfecta hasta la noche.", "3 huevos ≈ 21 g de proteína."] },
+  { id: "pechuga_huevo", nombre: "Pechuga a la plancha + huevo", momento: "cena", req: ["pollo", "huevos"], opc: [], proteina: 41,
+    pasos: ["Pechuga a la plancha 4 min por lado.", "Huevo frito o a la plancha encima.", "150 g + 1 huevo ≈ 41 g de proteína: la cena más rápida que existe."] },
+  { id: "sandwich_pollo", nombre: "Sándwich de pollo", momento: "cena", req: ["pan", "pollo"], opc: ["queso"], proteina: 30,
+    pasos: ["Sirve el pollo que sobró de la comida (o plancha rápida).", "Monta con queso y tuesta el sándwich 2 min por lado.", "Con 100 g de pollo ≈ 30 g de proteína."] },
+  { id: "revuelto_jamon", nombre: "Revuelto de huevos con jamón", momento: "cena", req: ["huevos", "jamon"], opc: [], proteina: 24,
+    pasos: ["Bate 3 huevos y al fuego suave, removiendo.", "Jamón en tiras al final, medio minuto.", "Con pan si toca. ≈ 24 g de proteína."] },
+  { id: "wrap_pollo", nombre: "Wrap de pollo", momento: "cena", req: ["wraps", "pollo"], opc: ["queso"], proteina: 32,
+    pasos: ["Pollo en tiras a la plancha.", "Rellena el wrap, queso si hay, y 1 min por lado en la sartén.", "≈ 32 g de proteína por wrap generoso."] },
+  { id: "yogur_avena", nombre: "Bol de yogur griego con avena y fruta", momento: "cena", req: ["yogur", "avena"], opc: ["frutossecos"], proteina: 20,
+    pasos: ["Yogur griego (200 g) + 3 cucharadas de avena.", "Fruta troceada encima (la 4 del día) y frutos secos si hay.", "Para los días que llegáis tardísimo. ≈ 20 g de proteína."] },
+  { id: "huevos_rotos", nombre: "Huevos rotos con lomo", momento: "cena", req: ["huevos", "patata", "lomo"], opc: [], proteina: 35,
+    pasos: ["Patatas en dados: microondas 7 min y sartén para dorar.", "Lomo en tiras a fuego fuerte 2 min.", "Dos huevos fritos encima y a romperlos. ≈ 35 g de proteína."] },
+  { id: "crema_calabacin", nombre: "Crema de calabacín con jamón", momento: "cena", req: ["calabacin", "jamon"], opc: ["queso"], proteina: 15,
+    pasos: ["Cuece calabacín troceado 15 min y tritura con un quesito.", "Jamón en tiras por encima.", "La verdura camuflada que mejor entra: es crema, no 'verdura'."] },
+  { id: "tostas_huevo", nombre: "Tostas con huevo y queso", momento: "cena", req: ["pan", "huevos", "queso"], opc: ["jamon"], proteina: 22,
+    pasos: ["Tuesta el pan.", "Huevos a la plancha encima y queso para que funda.", "Jamón si hay. ≈ 22 g de proteína."] },
+];
+
+export const recetaPorId = (id) => RECETAS.find((r) => r.id === id) || null;
+
+export function recetasDisponibles(marcados) {
+  const set = new Set(marcados);
+  return RECETAS.filter((r) => r.req.every((i) => set.has(i)));
+}
+
+// El menú de la semana: un plato de comida y uno de cena por día, solo con
+// recetas cuyas piezas están marcadas. La semilla es el lunes de la semana,
+// así el mismo lunes siempre da el mismo menú, pero cada semana varía.
+export function generarMenuSemana(lunesISO, marcados) {
+  const disponibles = recetasDisponibles(marcados);
+  const comidas = disponibles.filter((r) => r.momento === "comida");
+  const cenas = disponibles.filter((r) => r.momento === "cena");
+  if (comidas.length < 3 || cenas.length < 3) return null;
+  let semilla = 0;
+  for (const c of lunesISO) semilla = (semilla * 31 + c.charCodeAt(0)) % 9973;
+  const menu = { lunes: lunesISO, comidas: {}, cenas: {} };
+  for (let d = 1; d <= 7; d++) {
+    menu.comidas[d] = comidas[(semilla + d) % comidas.length].id;
+    menu.cenas[d] = cenas[(semilla + d) % cenas.length].id;
+  }
+  return menu;
+}
+
+// La comida y la cena de HOY según el menú guardado, si es de esta semana.
+export function menuDeHoy(fecha = new Date()) {
+  const menu = vida.menu;
+  if (!menu?.lunes || menu.lunes !== lunesDe(fecha)) return null;
+  const dia = ((fecha.getDay() + 6) % 7) + 1; // lunes = 1 … domingo = 7
+  return {
+    comida: recetaPorId(menu.comidas?.[dia]),
+    cena: recetaPorId(menu.cenas?.[dia]),
+  };
 }
 
 // ---------- Cartera de inversiones ----------

@@ -13,11 +13,11 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=60";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=60";
-import { initials, avatarColor, icon } from "../icons.js?v=60";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=60";
-import { efectoDeCelebracion } from "../efectos.js?v=60";
+} from "../db.js?v=61";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=61";
+import { initials, avatarColor, icon } from "../icons.js?v=61";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=61";
+import { efectoDeCelebracion } from "../efectos.js?v=61";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -110,7 +110,7 @@ export function renderPrestamos(state) {
           <p class="entity-card__amount">${formatEUR(montoMostrado)} <span style="font-size:0.9rem;color:var(--text-muted);font-family:var(--font-body)">${planPagos ? "pendiente (capital + interés)" : "de capital"}</span></p>
           ${p.notas ? `<p class="entity-card__meta">${p.notas}</p>` : ""}
 
-          ${planPagos ? renderPlanPagos(p, pagosPrestamos) : renderInteresMensual(p, pct, interesActual, etiquetaInteres)}
+          ${p.estado === "Pagado" ? `<p class="entity-card__meta">Préstamo cerrado.</p>` : planPagos ? renderPlanPagos(p, pagosPrestamos) : renderInteresMensual(p, pct, interesActual, etiquetaInteres)}
           ${
             p.estado !== "Pagado"
               ? `<button type="button" class="btn btn--ghost btn--sm btn--block prestamo-liquidar-btn" data-liquidar="${p.id}">💰 Ha pagado capital + interés (liquidar deuda)</button>`

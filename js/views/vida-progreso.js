@@ -22,10 +22,10 @@ import {
   updateRecompensa,
   deleteRecompensa,
   lunesDe,
-} from "../vida.js?v=60";
-import { fechaISO, fromTimestamp, formatEUR } from "../db.js?v=60";
-import { colorTema } from "../tema.js?v=60";
-import { efectoDeCelebracion } from "../efectos.js?v=60";
+} from "../vida.js?v=61";
+import { fechaISO, fromTimestamp, formatEUR } from "../db.js?v=61";
+import { colorTema } from "../tema.js?v=61";
+import { efectoDeCelebracion } from "../efectos.js?v=61";
 
 let currentState = null;
 let chartPeso = null;

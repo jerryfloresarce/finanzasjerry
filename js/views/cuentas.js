@@ -7,12 +7,12 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=60";
-import { openModal, closeModal, todayISO } from "../modal.js?v=60";
-import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=60";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=60";
-import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=60";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=60";
+} from "../db.js?v=61";
+import { openModal, closeModal, todayISO } from "../modal.js?v=61";
+import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=61";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=61";
+import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=61";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=61";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 
