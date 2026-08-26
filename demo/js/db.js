@@ -12,7 +12,7 @@ import {
   disableNetwork,
   enableNetwork,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=59";
+import { db } from "./firebase-init.js?v=60";
 
 // Cuando el iPhone deja la app en segundo plano (o la pantalla se apaga),
 // Safari congela la conexión abierta de Firestore. Al volver, esa conexión
@@ -169,6 +169,23 @@ export function generarFechasPlanDePagos(inicioISO, cantidad) {
   }
   return fechas;
 }
+
+// ---------- Metas de ahorro ----------
+// Huchas: dinero apartado para algo concreto — un viaje, una reparación,
+// un capricho grande. Cada meta guarda sus aportaciones dentro del propio
+// documento. El listener tolera que las reglas de Firestore aún no
+// permitan la colección (instalación vieja sin republicar): devuelve la
+// lista vacía en vez de dejar la app colgada esperando.
+
+export const listenMetasAhorro = (cb) =>
+  onSnapshot(
+    col("metas_ahorro"),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    () => cb([])
+  );
+export const addMetaAhorro = (data) => addDoc(col("metas_ahorro"), data);
+export const updateMetaAhorro = (id, data) => updateDoc(doc(db, "metas_ahorro", id), data);
+export const deleteMetaAhorro = (id) => deleteDoc(doc(db, "metas_ahorro", id));
 
 // ---------- Configuración de la app (un solo documento) ----------
 // Guarda cosas como "¿ya se descartó tal banner?" en Firestore en vez de

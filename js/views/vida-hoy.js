@@ -22,9 +22,9 @@ import {
   ROTACION_CENAS,
   FASES_ESTUDIO,
   faseEstudio,
-} from "../vida.js?v=59";
-import { fechaISO, formatFecha } from "../db.js?v=59";
-import { efectoDeCelebracion } from "../efectos.js?v=59";
+} from "../vida.js?v=60";
+import { fechaISO, formatFecha } from "../db.js?v=60";
+import { efectoDeCelebracion } from "../efectos.js?v=60";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.

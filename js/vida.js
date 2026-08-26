@@ -16,8 +16,8 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=59";
-import { fechaISO } from "./db.js?v=59";
+import { db } from "./firebase-init.js?v=60";
+import { fechaISO } from "./db.js?v=60";
 
 // ---------- Las reglas del sistema ----------
 
@@ -136,6 +136,7 @@ export const vida = {
   dias: [],          // documentos de dias/, uno por fecha cerrada
   entrenos: [],
   recompensas: [],
+  inversiones: [],   // posiciones de la cartera (Trade Republic, apuntadas a mano)
   sistema: {},       // configuracion/sistema
   sinPermisos: false, // true si las reglas nuevas aún no están publicadas
   listo: false,
@@ -171,6 +172,7 @@ export function initVida(cb) {
   escucha("dias", (docs) => (vida.dias = docs.sort((a, b) => a.id.localeCompare(b.id))));
   escucha("entrenos", (docs) => (vida.entrenos = docs.sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""))));
   escucha("recompensas", (docs) => (vida.recompensas = docs));
+  escucha("inversiones", (docs) => (vida.inversiones = docs.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""))));
   onSnapshot(
     doc(db, "configuracion", "sistema"),
     (snap) => {
@@ -189,6 +191,9 @@ export const addRecompensa = (data) => addDoc(col("recompensas"), data);
 export const updateRecompensa = (id, data) => updateDoc(doc(db, "recompensas", id), data);
 export const deleteRecompensa = (id) => deleteDoc(doc(db, "recompensas", id));
 export const guardarSistema = (data) => setDoc(doc(db, "configuracion", "sistema"), data, { merge: true });
+export const addInversion = (data) => addDoc(col("inversiones"), data);
+export const updateInversion = (id, data) => updateDoc(doc(db, "inversiones", id), data);
+export const deleteInversion = (id) => deleteDoc(doc(db, "inversiones", id));
 
 // ---------- El día ----------
 
@@ -477,5 +482,145 @@ export function calcularLogros(pesoInicial) {
     { id: "estudio_fase2", nombre: "Fase 2 de estudio", icono: "graduation-cap", ok: faseEstudio() >= 2 },
     { id: "estudio_fase4", nombre: "Fase 4: una hora al día", icono: "graduation-cap", ok: faseEstudio() >= 4 },
   ];
+}
+
+// ---------- Cartera de inversiones ----------
+//
+// Las posiciones se apuntan a mano (Trade Republic no tiene una conexión
+// pública que la app pueda usar). Los precios sí se pueden refrescar:
+// las criptomonedas desde CoinGecko sin ninguna clave, y las acciones y
+// ETF desde Finnhub si hay una clave gratuita guardada en la
+// configuración; si no, el precio se pone a mano y la app calcula igual.
+
+export function resumenCartera() {
+  let invertido = 0;
+  let valor = 0;
+  const posiciones = vida.inversiones.map((p) => {
+    const unidades = Number(p.unidades ?? 0);
+    const inv = unidades * Number(p.precio_compra ?? 0);
+    const val = unidades * Number(p.precio_actual ?? p.precio_compra ?? 0);
+    invertido += inv;
+    valor += val;
+    return { ...p, invertido: inv, valor: val, pl: val - inv, plPct: inv > 0 ? ((val - inv) / inv) * 100 : 0 };
+  });
+  return { posiciones, invertido, valor, pl: valor - invertido, plPct: invertido > 0 ? ((valor - invertido) / invertido) * 100 : 0 };
+}
+
+// Señales educativas sobre la cartera. Son reglas fijas y transparentes,
+// no consejo financiero: cada una dice qué mira y por qué avisa.
+export function senalesCartera() {
+  const r = resumenCartera();
+  const senales = [];
+  if (r.posiciones.length === 0) return senales;
+
+  const mayor = [...r.posiciones].sort((a, b) => b.valor - a.valor)[0];
+  if (r.valor > 0 && mayor.valor / r.valor > 0.4 && r.posiciones.length > 1) {
+    senales.push(`"${mayor.nombre}" es el ${Math.round((mayor.valor / r.valor) * 100)} % de tu cartera. Mucho peso en una sola cosa: si cae, cae todo contigo.`);
+  }
+  const cripto = r.posiciones.filter((p) => p.tipo === "cripto").reduce((acc, p) => acc + p.valor, 0);
+  if (r.valor > 0 && cripto / r.valor > 0.5) {
+    senales.push(`Más de la mitad de la cartera es cripto (${Math.round((cripto / r.valor) * 100)} %). Es lo más volátil que hay: que no sea dinero que puedas necesitar.`);
+  }
+  r.posiciones
+    .filter((p) => p.plPct <= -15)
+    .forEach((p) => senales.push(`"${p.nombre}" cae un ${Math.abs(p.plPct).toFixed(0)} %. Antes de vender por miedo, recuerda por qué la compraste: vender abajo convierte una caída en una pérdida.`));
+  if (r.posiciones.length > 0 && r.posiciones.length < 3 && !r.posiciones.some((p) => p.tipo === "etf")) {
+    senales.push("Pocas posiciones y ningún fondo indexado. Un ETF mundial (tipo MSCI World) es la forma más simple de diversificar sin pensar.");
+  }
+  const hoy = fechaISO();
+  const viejas = r.posiciones.filter((p) => p.precio_actualizado && diasEntre(p.precio_actualizado, hoy) > 7);
+  if (viejas.length) senales.push(`Hay precios sin actualizar desde hace más de una semana: la ganancia que ves puede no ser la real.`);
+  return senales;
+}
+
+function diasEntre(aISO, bISO) {
+  return Math.round((new Date(bISO + "T12:00:00") - new Date(aISO.slice(0, 10) + "T12:00:00")) / 86400000);
+}
+
+// Interés compuesto, mes a mes: lo que valdría aportar `mensual` cada mes
+// partiendo de `inicial`, a un `anualPct` estimado. Devuelve un punto por
+// año para pintar la curva junto a lo aportado sin invertir.
+export function proyeccion(inicial, mensual, anualPct, anos) {
+  const rMes = Math.pow(1 + anualPct / 100, 1 / 12) - 1;
+  const puntos = [{ ano: 0, aportado: inicial, valor: inicial }];
+  let valor = inicial;
+  let aportado = inicial;
+  for (let mes = 1; mes <= anos * 12; mes++) {
+    valor = valor * (1 + rMes) + mensual;
+    aportado += mensual;
+    if (mes % 12 === 0) puntos.push({ ano: mes / 12, aportado, valor });
+  }
+  return puntos;
+}
+
+// Refrescar precios. Devuelve { actualizadas, errores } y va escribiendo
+// precio_actual y precio_actualizado en cada posición que consigue.
+export async function actualizarPrecios() {
+  const errores = [];
+  let actualizadas = 0;
+  const hoy = fechaISO();
+
+  // Criptos: CoinGecko, gratis y sin clave. El "simbolo" es su id
+  // (bitcoin, ethereum, solana…), en minúsculas.
+  const criptos = vida.inversiones.filter((p) => p.tipo === "cripto" && p.simbolo);
+  if (criptos.length) {
+    try {
+      const ids = [...new Set(criptos.map((p) => p.simbolo.toLowerCase().trim()))].join(",");
+      const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur`);
+      if (!r.ok) throw new Error(`CoinGecko ${r.status}`);
+      const precios = await r.json();
+      for (const p of criptos) {
+        const eur = precios[p.simbolo.toLowerCase().trim()]?.eur;
+        if (eur > 0) {
+          await updateInversion(p.id, { precio_actual: eur, precio_actualizado: hoy });
+          actualizadas++;
+        } else errores.push(`No encuentro "${p.simbolo}" en CoinGecko (usa su id: bitcoin, ethereum…)`);
+      }
+    } catch (e) {
+      errores.push("CoinGecko no responde ahora mismo. Prueba en un rato.");
+    }
+  }
+
+  // Acciones y ETF: Finnhub con clave gratuita. Cotizan en su divisa
+  // (las de EE. UU. en dólares): si la posición está marcada en USD se
+  // convierte a euros con el cambio del BCE (frankfurter.app, sin clave).
+  const bolsa = vida.inversiones.filter((p) => p.tipo !== "cripto" && p.simbolo);
+  if (bolsa.length) {
+    const clave = vida.sistema.finnhub_key;
+    if (!clave) {
+      errores.push("Para acciones y ETF hace falta una clave gratuita de finnhub.io (se guarda una sola vez). Mientras, pon el precio a mano con el lápiz.");
+    } else {
+      let usdEur = null;
+      try {
+        for (const p of bolsa) {
+          const r = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(p.simbolo.toUpperCase().trim())}&token=${clave}`);
+          if (!r.ok) throw new Error(`Finnhub ${r.status}`);
+          const q = await r.json();
+          if (!(q.c > 0)) {
+            errores.push(`Finnhub no cotiza "${p.simbolo}". Prueba el símbolo de EE. UU. o pon el precio a mano.`);
+            continue;
+          }
+          let precio = q.c;
+          if ((p.divisa || "USD") === "USD") {
+            if (usdEur === null) {
+              const rc = await fetch("https://api.frankfurter.app/latest?from=USD&to=EUR");
+              usdEur = rc.ok ? (await rc.json()).rates?.EUR ?? null : null;
+            }
+            if (usdEur) precio = q.c * usdEur;
+            else {
+              errores.push("No pude traer el cambio dólar-euro; ese precio queda sin actualizar.");
+              continue;
+            }
+          }
+          await updateInversion(p.id, { precio_actual: Math.round(precio * 10000) / 10000, precio_actualizado: hoy });
+          actualizadas++;
+        }
+      } catch (e) {
+        errores.push("Finnhub no responde (¿la clave es correcta?).");
+      }
+    }
+  }
+
+  return { actualizadas, errores };
 }
 // vida:fin

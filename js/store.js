@@ -5,9 +5,10 @@ import {
   listenSuscripciones,
   listenPrestamos,
   listenPagosPrestamos,
+  listenMetasAhorro,
   listenConfig,
   reconectarFirestore,
-} from "./db.js?v=59";
+} from "./db.js?v=60";
 
 export const state = {
   cuentas: [],
@@ -16,6 +17,7 @@ export const state = {
   suscripciones: [],
   prestamos: [],
   pagosPrestamos: [],
+  metasAhorro: [],
   config: {},
   ready: false,
 };
@@ -28,7 +30,7 @@ export function subscribe(fn) {
 }
 
 const loaded = new Set();
-const REQUIRED = ["cuentas", "categorias", "movimientos", "suscripciones", "prestamos", "pagosPrestamos", "config"];
+const REQUIRED = ["cuentas", "categorias", "movimientos", "suscripciones", "prestamos", "pagosPrestamos", "metasAhorro", "config"];
 
 // Firestore no entrega los datos de golpe: nada más iniciar sesión llegan
 // varias actualizaciones seguidas (primero desde caché local, luego
@@ -108,6 +110,7 @@ export function initStore() {
   listenCuentas((items) => { state.cuentas = items; notify("cuentas"); });
   listenCategorias((items) => { state.categorias = items; notify("categorias"); });
   listenMovimientos((items) => { state.movimientos = items; notify("movimientos"); });
+  listenMetasAhorro((items) => { state.metasAhorro = items; notify("metasAhorro"); });
   listenSuscripciones((items) => { state.suscripciones = items; notify("suscripciones"); });
   listenPrestamos((items) => { state.prestamos = items; notify("prestamos"); });
   listenPagosPrestamos((items) => { state.pagosPrestamos = items; notify("pagosPrestamos"); });

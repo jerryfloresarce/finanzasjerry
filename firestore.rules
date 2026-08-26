@@ -47,6 +47,11 @@ service cloud.firestore {
       allow read, write: if autenticado();
     }
 
+    // Metas de ahorro: las huchas (viajes, reparaciones…).
+    match /metas_ahorro/{docId} {
+      allow read, write: if autenticado();
+    }
+
     // vida:inicio
     // El sistema de estilo de vida: días cumplidos, entrenos y recompensas.
     match /dias/{docId} {
@@ -58,6 +63,10 @@ service cloud.firestore {
     }
 
     match /recompensas/{docId} {
+      allow read, write: if autenticado();
+    }
+
+    match /inversiones/{docId} {
       allow read, write: if autenticado();
     }
     // vida:fin

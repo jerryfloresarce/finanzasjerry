@@ -196,4 +196,19 @@ a.hoy-toca__fila:hover strong { color: var(--success); }
   text-transform: uppercase;
   color: var(--text-muted);
 }
+
+/* ---- Cartera ---- */
+.cartera-pos { color: var(--success) !important; }
+.cartera-neg { color: var(--danger, #b06a63) !important; }
+.cartera-senal {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 12px);
+}
+.cartera-senal i { color: var(--warning, #b6975f); font-size: 18px; flex-shrink: 0; margin-top: 1px; }
 /* vida:fin */
