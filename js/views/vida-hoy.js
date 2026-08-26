@@ -28,11 +28,11 @@ import {
   rutinaEmpezada,
   diaDeRutina,
   guardarSistema,
-} from "../vida.js?v=64";
-import { abrirReceta } from "./vida-menu.js?v=64";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=64";
-import { fechaISO, formatFecha } from "../db.js?v=64";
-import { efectoDeCelebracion } from "../efectos.js?v=64";
+} from "../vida.js?v=65";
+import { abrirReceta } from "./vida-menu.js?v=65";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=65";
+import { fechaISO, formatFecha } from "../db.js?v=65";
+import { efectoDeCelebracion } from "../efectos.js?v=65";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.

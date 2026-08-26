@@ -15,9 +15,9 @@
 <script type="importmap">
 {
   "imports": {
-    "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js": "./js/demo/app-falso.js?v=64",
-    "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js": "./js/demo/auth-falso.js?v=64",
-    "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js": "./js/demo/firestore-falso.js?v=64"
+    "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js": "./js/demo/app-falso.js?v=65",
+    "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js": "./js/demo/auth-falso.js?v=65",
+    "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js": "./js/demo/firestore-falso.js?v=65"
   }
 }
 </script>
@@ -30,7 +30,7 @@
      Sin esto, al añadirla a la pantalla de inicio se abre DENTRO de Safari
      con su barra de direcciones, y esa barra que aparece y desaparece al
      deslizar es lo que hace que todo se mueva de forma rara. -->
-<link rel="manifest" href="manifest.json?v=64" />
+<link rel="manifest" href="manifest.json?v=65" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <!-- "black-translucent" hace que la app llegue hasta arriba del todo, por
@@ -46,9 +46,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=64" />
-<link rel="stylesheet" href="css/temas.css?v=64" />
-<link rel="stylesheet" href="css/paletas.css?v=64" />
+<link rel="stylesheet" href="css/styles.css?v=65" />
+<link rel="stylesheet" href="css/temas.css?v=65" />
+<link rel="stylesheet" href="css/paletas.css?v=65" />
 <script>
   /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
      desde un módulo (que se ejecuta al final), la app abriría un instante
@@ -68,7 +68,7 @@
 </script>
 <link rel="icon" href="data:,">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
-<link rel="stylesheet" href="css/visita.css?v=64" />
+<link rel="stylesheet" href="css/visita.css?v=65" />
 </head>
 <body>
 
@@ -121,17 +121,12 @@
       <a href="#/metas" class="nav__link" data-route="metas">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-piggy-bank"></i></span> Metas
       </a>
-      <button type="button" class="nav__more-toggle" id="nav-more-toggle" aria-expanded="false">
-        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-dots-three"></i></span> Más
-        <i class="ph-thin ph-caret-down nav__more-caret" aria-hidden="true"></i>
-      </button>
-      <div class="nav__more" id="nav-more">
-        <a href="#/graficos" class="nav__link" data-route="graficos">
-          <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
-        </a>
-        <a href="#/categorias" class="nav__link" data-route="categorias">
-          <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
-        </a>
+      <a href="#/graficos" class="nav__link" data-route="graficos">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
+      </a>
+      <a href="#/categorias" class="nav__link" data-route="categorias">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
+      </a>
       <!-- modulo:rutina:inicio -->
         <a href="#/rutina" class="nav__link" data-route="rutina">
           <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-check-circle"></i></span> Rutina
@@ -147,7 +142,6 @@
           <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-barbell"></i></span> Gimnasio
         </a>
       <!-- modulo:gimnasio:fin -->
-      </div>
     </nav>
     <button id="logout-btn" class="btn btn--ghost btn--block sidebar__logout">Cerrar sesión</button>
   </aside>
@@ -182,17 +176,12 @@
     <a href="#/metas" class="nav__link" data-route="metas">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-piggy-bank"></i></span> Metas
     </a>
-    <button type="button" class="nav__more-toggle" id="nav-more-toggle-mobile" aria-expanded="false">
-      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-dots-three"></i></span> Más
-      <i class="ph-thin ph-caret-down nav__more-caret" aria-hidden="true"></i>
-    </button>
-    <div class="nav__more" id="nav-more-mobile">
-      <a href="#/graficos" class="nav__link" data-route="graficos">
-        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
-      </a>
-      <a href="#/categorias" class="nav__link" data-route="categorias">
-        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
-      </a>
+    <a href="#/graficos" class="nav__link" data-route="graficos">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
+    </a>
+    <a href="#/categorias" class="nav__link" data-route="categorias">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
+    </a>
       <!-- modulo:rutina:inicio -->
       <a href="#/rutina" class="nav__link" data-route="rutina">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-check-circle"></i></span> Rutina
@@ -208,7 +197,6 @@
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-barbell"></i></span> Gimnasio
       </a>
       <!-- modulo:gimnasio:fin -->
-    </div>
     <button id="mobile-logout-btn" class="btn btn--ghost btn--block" style="margin-top: 12px;">Cerrar sesión</button>
   </nav>
 
@@ -548,9 +536,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=64"></script>
+<script type="module" src="js/app.js?v=65"></script>
 <script type="module">
-  import { montarBotonDeVisita } from "./js/demo/visita.js?v=64";
+  import { montarBotonDeVisita } from "./js/demo/visita.js?v=65";
   montarBotonDeVisita();
 </script>
 </body>

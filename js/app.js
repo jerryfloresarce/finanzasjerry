@@ -1,28 +1,28 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=64";
-import { state, subscribe, initStore } from "./store.js?v=64";
+import { onAuthReady } from "./auth.js?v=65";
+import { state, subscribe, initStore } from "./store.js?v=65";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=64";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=64";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=64";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=64";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=64";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=64";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=64";
-import { mountMetas, renderMetas } from "./views/metas.js?v=64";
-import { mountCuentaPanel } from "./views/cuenta.js?v=64";
-import { refreshAnimations } from "./animations.js?v=64";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=64";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=64";
-import { efectoDeEntrada } from "./efectos.js?v=64";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=65";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=65";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=65";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=65";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=65";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=65";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=65";
+import { mountMetas, renderMetas } from "./views/metas.js?v=65";
+import { mountCuentaPanel } from "./views/cuenta.js?v=65";
+import { refreshAnimations } from "./animations.js?v=65";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=65";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=65";
+import { efectoDeEntrada } from "./efectos.js?v=65";
 // vida:inicio
-import { initPerfil } from "./vida-perfil.js?v=64";
-import { initVida } from "./vida.js?v=64";
-import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=64";
-import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=64";
-import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=64";
-import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=64";
-import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=64";
+import { initPerfil } from "./vida-perfil.js?v=65";
+import { initVida } from "./vida.js?v=65";
+import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=65";
+import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=65";
+import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=65";
+import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=65";
+import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=65";
 // vida:fin
 
 const ROUTES = {
@@ -54,27 +54,11 @@ function currentRouteFromHash() {
   return ROUTES[hash] ? hash : DEFAULT_ROUTE;
 }
 
-const MORE_ROUTES = ["categorias", "graficos"];
-
 function setActiveNav(route) {
   document.querySelectorAll(".nav__link").forEach((link) => {
     link.classList.toggle("is-active", link.dataset.route === route);
   });
-  // Si entras directamente a Categorías/Suscripciones (o vuelves atrás),
-  // el grupo "Más" se abre solo para que se vea el enlace activo.
-  if (MORE_ROUTES.includes(route)) {
-    document.querySelectorAll(".nav__more").forEach((el) => el.classList.add("is-open"));
-    document.querySelectorAll(".nav__more-toggle").forEach((btn) => btn.setAttribute("aria-expanded", "true"));
-  }
 }
-
-document.querySelectorAll(".nav__more-toggle").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const more = btn.nextElementSibling;
-    const isOpen = more.classList.toggle("is-open");
-    btn.setAttribute("aria-expanded", String(isOpen));
-  });
-});
 
 function showView(route) {
   document.querySelectorAll(".view").forEach((section) => {

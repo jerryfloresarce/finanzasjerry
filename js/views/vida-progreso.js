@@ -26,10 +26,10 @@ import {
   diaDeRutina,
   rachasCaraACara,
   INNEGOCIABLES,
-} from "../vida.js?v=64";
-import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=64";
-import { colorTema } from "../tema.js?v=64";
-import { efectoDeCelebracion } from "../efectos.js?v=64";
+} from "../vida.js?v=65";
+import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=65";
+import { colorTema } from "../tema.js?v=65";
+import { efectoDeCelebracion } from "../efectos.js?v=65";
 
 let currentState = null;
 let chartPeso = null;

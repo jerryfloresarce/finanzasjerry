@@ -15,9 +15,9 @@ import {
   generarMenuSemana,
   guardarMenu,
   lunesDe,
-} from "../vida.js?v=64";
-import { openModal, closeModal } from "../modal.js?v=64";
-import { efectoAlGuardar } from "../efectos.js?v=64";
+} from "../vida.js?v=65";
+import { openModal, closeModal } from "../modal.js?v=65";
+import { efectoAlGuardar } from "../efectos.js?v=65";
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
