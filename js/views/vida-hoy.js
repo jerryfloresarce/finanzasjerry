@@ -25,10 +25,10 @@ import {
   bloquesDelDia,
   bloqueActual,
   menuDeHoy,
-} from "../vida.js?v=61";
-import { abrirReceta } from "./vida-menu.js?v=61";
-import { fechaISO, formatFecha } from "../db.js?v=61";
-import { efectoDeCelebracion } from "../efectos.js?v=61";
+} from "../vida.js?v=62";
+import { abrirReceta } from "./vida-menu.js?v=62";
+import { fechaISO, formatFecha } from "../db.js?v=62";
+import { efectoDeCelebracion } from "../efectos.js?v=62";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -258,6 +258,10 @@ export function renderVidaHoy(state) {
           ${
             menuHoy?.comida || menuHoy?.cena
               ? `
+          ${menuHoy.desayuno ? `<button type="button" class="hoy-toca__fila hoy-toca__fila--boton" data-receta="${menuHoy.desayuno.id}">
+            <span class="hoy-check__icon"><i class="ph ph-sun" aria-hidden="true"></i></span>
+            <span><strong>Desayuno:</strong> ${menuHoy.desayuno.nombre}<br /><span class="entity-card__meta">≈ ${menuHoy.desayuno.proteina} g de proteína · toca para la guía</span></span>
+          </button>` : ""}
           ${menuHoy.comida ? `<button type="button" class="hoy-toca__fila hoy-toca__fila--boton" data-receta="${menuHoy.comida.id}">
             <span class="hoy-check__icon"><i class="ph ph-fork-knife" aria-hidden="true"></i></span>
             <span><strong>Comida:</strong> ${menuHoy.comida.nombre}<br /><span class="entity-card__meta">Toca y sale la guía rápida · ≈ ${menuHoy.comida.proteina} g de proteína</span></span>

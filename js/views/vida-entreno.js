@@ -13,9 +13,9 @@ import {
   sugerenciaProgresion,
   addEntreno,
   deleteEntreno,
-} from "../vida.js?v=61";
-import { fechaISO, formatFecha } from "../db.js?v=61";
-import { efectoAlGuardar } from "../efectos.js?v=61";
+} from "../vida.js?v=62";
+import { fechaISO, formatFecha } from "../db.js?v=62";
+import { efectoAlGuardar } from "../efectos.js?v=62";
 
 let tipoActivo = null;
 

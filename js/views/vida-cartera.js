@@ -1,8 +1,10 @@
 // vida:inicio
-// Cartera: las inversiones de Trade Republic, apuntadas a mano y con los
-// precios refrescables. Enseña cuánto has puesto, cuánto vale hoy y si vas
-// ganando o perdiendo — sin abrir Trade Republic. Las señales de abajo son
-// reglas fijas y transparentes, no consejo financiero.
+// Cartera: las inversiones apuntadas a mano, presentadas como en Trade
+// Republic — dos pestañas (Cuenta de valores / Criptomonedas), cada fila
+// con su posición, su último precio y su variación, y un selector para ver
+// la variación de hoy o desde la compra. Cada término técnico lleva una (i)
+// que lo explica en cristiano. Las señales son reglas fijas, no consejo
+// financiero.
 
 import {
   vida,
@@ -14,11 +16,12 @@ import {
   updateInversion,
   deleteInversion,
   guardarSistema,
-} from "../vida.js?v=61";
-import { formatEUR } from "../db.js?v=61";
-import { openModal, closeModal } from "../modal.js?v=61";
-import { colorTema } from "../tema.js?v=61";
-import { efectoAlGuardar } from "../efectos.js?v=61";
+} from "../vida.js?v=62";
+import { formatEUR } from "../db.js?v=62";
+import { openModal, closeModal } from "../modal.js?v=62";
+import { colorTema } from "../tema.js?v=62";
+import { efectoAlGuardar } from "../efectos.js?v=62";
+import { initials, avatarColor } from "../icons.js?v=62";
 
 // Un porcentaje y unas unidades a la española: coma decimal, no punto.
 const pctTxt = (n) => Math.abs(n).toFixed(1).replace(".", ",");
@@ -26,10 +29,89 @@ const udsTxt = (n) => String(n).replace(".", ",");
 
 let chartProyeccion = null;
 let actualizando = false;
-// Parámetros de la calculadora de proyección; sobreviven a los repintados.
+// Pestaña activa y qué variación se enseña; sobreviven a los repintados.
+let tabActiva = "valores"; // "valores" | "cripto"
+let vistaVariacion = "compra"; // "compra" | "hoy"
 const calc = { mensual: 100, pct: 7, anos: 10 };
 
 const TIPOS_INV = { etf: "ETF", accion: "Acción", cripto: "Cripto" };
+
+// Instrumentos conocidos para añadir en dos toques (los de la cartera que
+// quiere copiar, más algún clásico). Los ETF europeos (UCITS) no cotizan en
+// el plan gratuito de Finnhub: su precio se copia de Trade Republic a mano.
+const CONOCIDOS = [
+  { nombre: "Vanguard FTSE All-World (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
+  { nombre: "Vanguard FTSE All-World (Dist)", tipo: "etf", simbolo: "", divisa: "EUR" },
+  { nombre: "iShares Core MSCI World (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
+  { nombre: "iShares Core S&P 500 (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
+  { nombre: "Vanguard S&P 500 (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
+  { nombre: "NASDAQ 100 (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
+  { nombre: "Amazon", tipo: "accion", simbolo: "AMZN", divisa: "USD" },
+  { nombre: "McDonald's", tipo: "accion", simbolo: "MCD", divisa: "USD" },
+  { nombre: "NVIDIA", tipo: "accion", simbolo: "NVDA", divisa: "USD" },
+  { nombre: "Realty Income", tipo: "accion", simbolo: "O", divisa: "USD" },
+  { nombre: "Apple", tipo: "accion", simbolo: "AAPL", divisa: "USD" },
+  { nombre: "Bitcoin", tipo: "cripto", simbolo: "bitcoin", divisa: "EUR" },
+  { nombre: "Ethereum", tipo: "cripto", simbolo: "ethereum", divisa: "EUR" },
+];
+
+// El glosario de las (i): cada término técnico, explicado como se lo
+// contarías a alguien que no ha invertido nunca.
+const GLOSARIO = {
+  posicion: {
+    titulo: "Posición",
+    texto: "Cuántas participaciones tienes de esa cosa. Puede ser un número con decimales: 0,5 participaciones de un ETF es la mitad de una, y es completamente normal — se compra por euros, no por unidades enteras.",
+  },
+  ultimo_precio: {
+    titulo: "Último precio",
+    texto: "Lo que cuesta UNA participación ahora mismo. Tu dinero es este precio multiplicado por tu posición. Sube y baja constantemente; no hace falta mirarlo cada día.",
+  },
+  variacion: {
+    titulo: "Variación",
+    texto: "Cuánto ha cambiado el precio. 'Hoy' compara con ayer: es ruido, sube y baja sin razón que te importe. 'Desde la compra' compara con lo que pagaste: esa es la única que dice si vas ganando o perdiendo de verdad.",
+  },
+  etf: {
+    titulo: "¿Qué es un ETF?",
+    texto: "Una cesta con cientos o miles de empresas dentro. Comprar un ETF 'mundial' es comprar un trocito de las mayores empresas del planeta de golpe. Si una quiebra, ni lo notas. Por eso es la forma más tranquila de empezar: no hay que acertar cuál ganará.",
+  },
+  acc_dist: {
+    titulo: "(Acc) y (Dist)",
+    texto: "Acc = acumulación: los dividendos que pagan las empresas se reinvierten solos dentro del fondo, y crece más rápido. Dist = distribución: te los pagan en efectivo. Para acumular a largo plazo, Acc suele convenir más en España (no pagas impuestos por dividendos que no cobras).",
+  },
+  cripto: {
+    titulo: "Criptomonedas",
+    texto: "Lo más volátil de esta pantalla: puede caer un 50 % en meses y también subirlo. Regla simple: que sea solo una parte pequeña de la cartera y nunca dinero que puedas necesitar.",
+  },
+  proyeccion: {
+    titulo: "¿Qué es esta estimación?",
+    texto: "Interés compuesto: lo que pasaría si aportas todos los meses y el mercado diera de media ese % al año. La bolsa mundial ha dado ~7 % anual de media histórica, pero con años de −20 % y de +25 % por el camino. Es para hacerse una idea, no una promesa.",
+  },
+  senales: {
+    titulo: "Las señales",
+    texto: "Reglas fijas sobre TUS números: concentración, caídas grandes, precios sin actualizar. No predicen nada — nadie puede — pero avisan de lo que a cualquiera se le pasaría por alto.",
+  },
+  simbolo: {
+    titulo: "El símbolo",
+    texto: "El código con el que la app busca el precio automáticamente. Acciones de EE. UU.: su ticker (AAPL, AMZN…) con la clave de Finnhub. Cripto: su id de CoinGecko en minúsculas (bitcoin, ethereum). Los ETF europeos no están en el plan gratuito: su precio se copia de Trade Republic con el lápiz, y todo lo demás se calcula igual.",
+  },
+};
+
+function abrirInfo(clave) {
+  const g = GLOSARIO[clave];
+  if (!g) return;
+  openModal(
+    `
+    <h2 class="modal__title">${g.titulo}</h2>
+    <p style="font-size:0.92rem; line-height:1.6; margin:0 0 8px;">${g.texto}</p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--primary" id="btn-cerrar-info">Entendido</button>
+    </div>
+  `,
+    { onMount: (root) => root.querySelector("#btn-cerrar-info").addEventListener("click", closeModal) }
+  );
+}
+
+const info = (clave) => `<button type="button" class="info-btn" data-info="${clave}" title="¿Qué es esto?">i</button>`;
 
 export function mountVidaCartera() {
   const root = document.getElementById("view-cartera");
@@ -44,6 +126,22 @@ export function mountVidaCartera() {
     if (e.target.id === "calc-mensual") renderVidaCartera(null);
   });
   root.addEventListener("click", async (e) => {
+    const infoBtn = e.target.closest("[data-info]");
+    if (infoBtn) {
+      abrirInfo(infoBtn.dataset.info);
+      return;
+    }
+    const tab = e.target.closest("[data-tab-cartera]");
+    if (tab) {
+      tabActiva = tab.dataset.tabCartera;
+      renderVidaCartera(null);
+      return;
+    }
+    if (e.target.closest("#btn-toggle-variacion")) {
+      vistaVariacion = vistaVariacion === "compra" ? "hoy" : "compra";
+      renderVidaCartera(null);
+      return;
+    }
     const pct = e.target.closest("[data-calc-pct]");
     if (pct) {
       calc.pct = Number(pct.dataset.calcPct);
@@ -63,7 +161,7 @@ export function mountVidaCartera() {
       if (actualizando) return;
       actualizando = true;
       const boton = document.getElementById("btn-actualizar-precios");
-      boton.textContent = "Actualizando…";
+      if (boton) boton.textContent = "Actualizando…";
       const { actualizadas, errores } = await actualizarPrecios();
       actualizando = false;
       const aviso = document.getElementById("cartera-aviso");
@@ -80,7 +178,7 @@ export function mountVidaCartera() {
     }
     if (e.target.closest("#btn-clave-finnhub")) {
       const clave = prompt(
-        "Clave de Finnhub (gratis en finnhub.io → Get free API key). Se guarda una vez y sirve para refrescar acciones y ETF:",
+        "Clave de Finnhub (gratis en finnhub.io → Get free API key). Se guarda una vez y sirve para refrescar acciones de EE. UU.:",
         vida.sistema.finnhub_key || ""
       );
       if (clave !== null) await guardarSistema({ finnhub_key: clave.trim() || null });
@@ -100,95 +198,108 @@ export function renderVidaCartera(_state) {
   const puntos = proyeccion(inicial, calc.mensual, calc.pct, calc.anos);
   const final = puntos[puntos.length - 1];
 
+  const enPestana = r.posiciones.filter((p) => (tabActiva === "cripto" ? p.tipo === "cripto" : p.tipo !== "cripto"));
+
+  const fila = (p) => {
+    // La variación que toca según el selector: desde la compra (la de
+    // verdad) o la de hoy (el ruido del día, si el refresco la trajo).
+    const esHoy = vistaVariacion === "hoy";
+    const valorPct = esHoy ? p.dia_pct : p.plPct;
+    const tienePct = typeof valorPct === "number";
+    const sube = (valorPct ?? 0) >= 0;
+    return `
+      <button type="button" class="tr-fila" data-editar-inversion="${p.id}">
+        <span class="avatar avatar--sm" style="background:${avatarColor(p.nombre)}">${initials(p.nombre)}</span>
+        <span class="tr-fila__main">
+          <span class="tr-fila__nombre">${p.nombre}</span>
+          <span class="tr-fila__sub">${udsTxt(p.unidades)} uds · ${formatEUR(Number(p.precio_actual ?? p.precio_compra ?? 0))}${
+      p.precio_actualizado ? "" : " (precio de compra)"
+    }</span>
+        </span>
+        <span class="tr-fila__fin">
+          <span class="tr-fila__valor">${formatEUR(p.valor)}</span>
+          <span class="tr-fila__pct ${tienePct ? (sube ? "cartera-pos" : "cartera-neg") : ""}">${
+      tienePct ? `${sube ? "▲" : "▼"} ${pctTxt(valorPct)} %` : esHoy ? "— hoy sin dato" : "—"
+    }</span>
+        </span>
+      </button>`;
+  };
+
   el.innerHTML = `
-    <div class="progreso-kpis">
-      <div class="kpi-tile"><span class="kpi-tile__label">Invertido</span><span class="kpi-tile__value">${formatEUR(r.invertido)}</span></div>
-      <div class="kpi-tile"><span class="kpi-tile__label">Vale hoy</span><span class="kpi-tile__value">${formatEUR(r.valor)}</span></div>
-      <div class="kpi-tile"><span class="kpi-tile__label">Resultado</span><span class="kpi-tile__value ${positivo ? "kpi-tile__value--pos" : "cartera-neg"}">${positivo ? "+" : "−"}${formatEUR(Math.abs(r.pl))}</span><span class="entity-card__meta">${positivo ? "+" : "−"}${pctTxt(r.plPct)} %</span></div>
-      <div class="kpi-tile"><span class="kpi-tile__label">Posiciones</span><span class="kpi-tile__value">${r.posiciones.length}</span></div>
-    </div>
-
-    <div class="grid grid--hoy">
-      <article class="card">
-        <div class="view-header" style="margin-bottom:8px;">
-          <h2 class="card__title" style="margin:0;">Posiciones</h2>
-          <div style="display:flex; gap:8px;">
-            <button type="button" class="btn btn--ghost btn--sm" id="btn-actualizar-precios">↻ Actualizar precios</button>
-            <button type="button" class="btn btn--primary btn--sm" id="btn-add-inversion">+ Añadir</button>
-          </div>
-        </div>
-        <p class="entity-card__meta" id="cartera-aviso"></p>
-        <div class="mini-list">
-          ${
-            r.posiciones.length === 0
-              ? `<p class="empty-state">Apunta aquí lo que compres en Trade Republic: qué es, cuántas participaciones y a qué precio. La app te dirá cuánto vale y si vas ganando.</p>`
-              : r.posiciones
-                  .map((p) => {
-                    const pos = p.pl >= 0;
-                    return `
-              <button type="button" class="susc-pago-editar" data-editar-inversion="${p.id}" style="padding:10px 0; border-bottom:1px solid var(--border);">
-                <span class="mini-row__main" style="flex:1; min-width:0;">
-                  <span class="mini-row__title">${p.nombre} <span class="entity-card__meta">· ${TIPOS_INV[p.tipo] || p.tipo}</span></span>
-                  <span class="mini-row__sub">${udsTxt(p.unidades)} × ${formatEUR(Number(p.precio_actual ?? p.precio_compra ?? 0))}${p.precio_actualizado ? ` · precio del ${p.precio_actualizado.slice(8, 10)}/${p.precio_actualizado.slice(5, 7)}` : " · precio de compra"}</span>
-                </span>
-                <span class="mini-row__main" style="text-align:right;">
-                  <span class="mini-row__amount">${formatEUR(p.valor)}</span>
-                  <span class="mini-row__sub ${pos ? "cartera-pos" : "cartera-neg"}">${pos ? "+" : "−"}${formatEUR(Math.abs(p.pl))} (${pos ? "+" : "−"}${pctTxt(p.plPct)} %)</span>
-                </span>
-              </button>`;
-                  })
-                  .join("")
-          }
-        </div>
-        <p class="entity-card__meta" style="margin-top:10px;">
-          Cripto se actualiza sola (CoinGecko). Acciones y ETF necesitan una clave gratuita:
-          <button type="button" class="btn btn--ghost btn--sm" id="btn-clave-finnhub">${vida.sistema.finnhub_key ? "cambiar clave de Finnhub" : "poner clave de Finnhub"}</button>
+    <div class="tr-cabecera">
+      <div>
+        <p class="tr-cabecera__valor">${formatEUR(r.valor)}</p>
+        <p class="tr-cabecera__sub ${positivo ? "cartera-pos" : "cartera-neg"}">
+          ${positivo ? "▲" : "▼"} ${formatEUR(Math.abs(r.pl))} (${pctTxt(r.plPct)} %) desde la compra
         </p>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn btn--ghost btn--sm" id="btn-actualizar-precios">↻ Actualizar</button>
+        <button type="button" class="btn btn--primary btn--sm" id="btn-add-inversion">+ Añadir</button>
+      </div>
+    </div>
+    <p class="entity-card__meta" id="cartera-aviso"></p>
 
+    <article class="card">
+      <div class="tr-tabs">
+        <button type="button" class="tr-tab ${tabActiva === "valores" ? "tr-tab--on" : ""}" data-tab-cartera="valores">Cuenta de valores</button>
+        <button type="button" class="tr-tab ${tabActiva === "cripto" ? "tr-tab--on" : ""}" data-tab-cartera="cripto">Criptomonedas</button>
+      </div>
+      <div class="tr-lista-cabecera">
+        <span>Instrumento ${info("posicion")}</span>
+        <button type="button" class="tr-selector" id="btn-toggle-variacion">
+          ${vistaVariacion === "compra" ? "Desde la compra" : "Variación hoy"} ${info("variacion")} <i class="ph-bold ph-caret-down" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="tr-lista">
         ${
-          senales.length
-            ? `<h2 class="card__title" style="margin-top:16px;">Señales</h2>
-          <div class="hoy-lista">${senales.map((s) => `<div class="cartera-senal"><i class="ph ph-lightbulb" aria-hidden="true"></i><span>${s}</span></div>`).join("")}</div>`
-            : ""
+          enPestana.length === 0
+            ? `<p class="empty-state">${
+                tabActiva === "cripto"
+                  ? "Sin criptomonedas apuntadas. Si compras bitcoin en Trade Republic, apúntalo aquí y su precio se refresca solo."
+                  : "Todavía nada. Cuando compres tu primer ETF o acción en Trade Republic, apúntalo con + Añadir: qué es, cuántas participaciones y a qué precio."
+              }</p>`
+            : enPestana.map(fila).join("")
         }
-        <p class="entity-card__meta" style="margin-top:12px;">
-          Las señales son reglas fijas sobre tus propios números, no consejo
-          financiero: nadie sabe qué hará el mercado, tampoco esta app.
-        </p>
-      </article>
+      </div>
+      <p class="entity-card__meta" style="margin-top:10px;">
+        Toca una fila para editarla. Último precio ${info("ultimo_precio")} ·
+        ETF ${info("etf")} · (Acc)/(Dist) ${info("acc_dist")} · Cripto ${info("cripto")}
+        ${vida.sistema.finnhub_key ? "" : ` · <button type="button" class="btn btn--ghost btn--sm" id="btn-clave-finnhub">poner clave de Finnhub</button>`}
+      </p>
+      ${
+        senales.length
+          ? `<h2 class="card__title" style="margin-top:14px;">Señales ${info("senales")}</h2>
+        <div class="hoy-lista">${senales.map((s) => `<div class="cartera-senal"><i class="ph ph-lightbulb" aria-hidden="true"></i><span>${s}</span></div>`).join("")}</div>`
+          : ""
+      }
+    </article>
 
-      <article class="card">
-        <h2 class="card__title">¿Y si sigo aportando?</h2>
-        <p class="entity-card__meta" style="margin-top:-8px;">
-          Partiendo de lo que vale hoy tu cartera (${formatEUR(inicial)}),
-          aportando cada mes, a una rentabilidad media estimada:
-        </p>
-        <div class="form-grid" style="margin:10px 0;">
-          <label class="field">
-            <span class="field__label">Aportación al mes (€)</span>
-            <input type="number" id="calc-mensual" value="${calc.mensual}" data-prefill="${calc.mensual}" />
-          </label>
-          <div class="field">
-            <span class="field__label">Rentabilidad anual</span>
-            <div class="chips" style="margin:4px 0 0;">
-              ${[3, 5, 7].map((p) => `<button type="button" class="chip ${calc.pct === p ? "chip--on" : ""}" data-calc-pct="${p}">${p} %</button>`).join("")}
-            </div>
+    <article class="card" style="margin-top:16px;">
+      <h2 class="card__title">¿Y si sigo aportando? ${info("proyeccion")}</h2>
+      <div class="form-grid" style="margin:10px 0;">
+        <label class="field">
+          <span class="field__label">Aportación al mes (€)</span>
+          <input type="number" id="calc-mensual" value="${calc.mensual}" data-prefill="${calc.mensual}" />
+        </label>
+        <div class="field">
+          <span class="field__label">Rentabilidad anual estimada</span>
+          <div class="chips" style="margin:4px 0 0;">
+            ${[3, 5, 7].map((p) => `<button type="button" class="chip ${calc.pct === p ? "chip--on" : ""}" data-calc-pct="${p}">${p} %</button>`).join("")}
           </div>
         </div>
-        <label class="field field--full" style="margin-bottom:10px;">
-          <span class="field__label">Años: ${calc.anos}</span>
-          <input type="range" min="1" max="30" id="calc-anos" value="${calc.anos}" />
-        </label>
-        <div class="chart-wrap" style="height:200px;"><canvas id="chart-proyeccion"></canvas></div>
-        <p class="entity-card__meta" style="margin-top:10px;">
-          En ${calc.anos} años habrías aportado <strong>${formatEUR(final.aportado)}</strong> y
-          tendrías <strong>${formatEUR(final.valor)}</strong> si el mercado diera
-          un ${calc.pct} % anual de media. Es una estimación con interés
-          compuesto, no una promesa: la bolsa mundial ha dado ~7 % anual de
-          media histórica, pero con años de −20 % y de +25 % por el camino.
-        </p>
-      </article>
-    </div>
+      </div>
+      <label class="field field--full" style="margin-bottom:10px;">
+        <span class="field__label">Años: ${calc.anos}</span>
+        <input type="range" min="1" max="30" id="calc-anos" value="${calc.anos}" />
+      </label>
+      <div class="chart-wrap" style="height:200px;"><canvas id="chart-proyeccion"></canvas></div>
+      <p class="entity-card__meta" style="margin-top:10px;">
+        Partiendo de ${formatEUR(inicial)} y aportando ${formatEUR(calc.mensual)} al mes:
+        en ${calc.anos} años habrías aportado <strong>${formatEUR(final.aportado)}</strong> y
+        tendrías <strong>${formatEUR(final.valor)}</strong> si el mercado diera un ${calc.pct} % anual de media.
+      </p>
+    </article>
   `;
 
   pintarProyeccion(puntos);
@@ -229,9 +340,20 @@ function openFormInversion(inv) {
     `
     <h2 class="modal__title">${isEdit ? "Editar posición" : "Nueva posición"}</h2>
     <form id="form-inversion" class="form-grid">
+      ${
+        isEdit
+          ? ""
+          : `<label class="field field--full">
+        <span class="field__label">Elegir de la lista (opcional)</span>
+        <select id="inv-conocido">
+          <option value="">— Escribir a mano —</option>
+          ${CONOCIDOS.map((c, i) => `<option value="${i}">${c.nombre}</option>`).join("")}
+        </select>
+      </label>`
+      }
       <label class="field field--full">
         <span class="field__label">Nombre</span>
-        <input type="text" name="nombre" required value="${inv?.nombre ?? ""}" placeholder="MSCI World, Bitcoin…" />
+        <input type="text" name="nombre" required value="${inv?.nombre ?? ""}" placeholder="Vanguard FTSE All-World…" />
       </label>
       <label class="field">
         <span class="field__label">Tipo</span>
@@ -242,29 +364,28 @@ function openFormInversion(inv) {
         </select>
       </label>
       <label class="field">
-        <span class="field__label" id="inv-simbolo-label">Símbolo (opcional)</span>
-        <input type="text" name="simbolo" value="${inv?.simbolo ?? ""}" placeholder="AAPL" />
+        <span class="field__label">Símbolo (opcional) ${info("simbolo")}</span>
+        <input type="text" name="simbolo" value="${inv?.simbolo ?? ""}" placeholder="AAPL / bitcoin" />
       </label>
       <label class="field">
-        <span class="field__label">Participaciones / unidades</span>
+        <span class="field__label">Participaciones</span>
         <input type="number" step="0.000001" min="0" name="unidades" required value="${inv?.unidades ?? ""}" placeholder="2.5" />
       </label>
       <label class="field">
-        <span class="field__label">Precio de compra (€/unidad)</span>
-        <input type="number" step="0.0001" min="0" name="precio_compra" required value="${inv?.precio_compra ?? ""}" placeholder="85.20" />
+        <span class="field__label">Precio de compra (€/ud)</span>
+        <input type="number" step="0.0001" min="0" name="precio_compra" required value="${inv?.precio_compra ?? ""}" placeholder="112.40" />
       </label>
       <label class="field">
-        <span class="field__label">Precio actual (€/unidad)</span>
+        <span class="field__label">Precio actual (€/ud)</span>
         <input type="number" step="0.0001" min="0" name="precio_actual" value="${inv?.precio_actual ?? ""}" placeholder="Vacío = el de compra" />
       </label>
       <label class="field" id="inv-divisa-campo">
-        <span class="field__label">La cotización del símbolo va en…</span>
+        <span class="field__label">El símbolo cotiza en…</span>
         <select name="divisa">
           <option value="USD" ${(inv?.divisa ?? "USD") === "USD" ? "selected" : ""}>Dólares (EE. UU.)</option>
           <option value="EUR" ${inv?.divisa === "EUR" ? "selected" : ""}>Euros</option>
         </select>
       </label>
-      <p class="entity-card__meta field--full" id="inv-ayuda"></p>
       <p class="field-error" id="form-inversion-error"></p>
       <div class="modal__actions field--full">
         ${isEdit ? `<button type="button" class="btn btn--ghost" id="btn-borrar-inversion" style="margin-right:auto;">Eliminar</button>` : ""}
@@ -275,19 +396,16 @@ function openFormInversion(inv) {
   `,
     {
       onMount: (root) => {
-        const tipoSel = root.querySelector("#inv-tipo");
-        const ayuda = root.querySelector("#inv-ayuda");
-        const divisaCampo = root.querySelector("#inv-divisa-campo");
-        const actualizarAyuda = () => {
-          const esCripto = tipoSel.value === "cripto";
-          divisaCampo.classList.toggle("is-hidden", esCripto);
-          ayuda.textContent = esCripto
-            ? 'Para que el precio se actualice solo, el símbolo es el id de CoinGecko en minúsculas: "bitcoin", "ethereum", "solana"…'
-            : "Para refrescar el precio hace falta el símbolo (el de EE. UU., p. ej. AAPL o VOO) y la clave gratuita de Finnhub. Sin símbolo, el precio se pone a mano y todo lo demás funciona igual.";
-        };
-        tipoSel.addEventListener("change", actualizarAyuda);
-        actualizarAyuda();
-
+        root.querySelector("#inv-conocido")?.addEventListener("change", (e) => {
+          const c = CONOCIDOS[Number(e.target.value)];
+          if (!c) return;
+          const f = root.querySelector("#form-inversion");
+          f.nombre.value = c.nombre;
+          f.tipo.value = c.tipo;
+          f.simbolo.value = c.simbolo;
+          f.divisa.value = c.divisa;
+        });
+        root.querySelectorAll("[data-info]").forEach((b) => b.addEventListener("click", () => abrirInfo(b.dataset.info)));
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
         root.querySelector("#btn-borrar-inversion")?.addEventListener("click", async () => {
           if (!confirm("¿Eliminar esta posición de la cartera?")) return;
@@ -310,6 +428,9 @@ function openFormInversion(inv) {
           try {
             if (isEdit) await updateInversion(inv.id, data);
             else await addInversion(data);
+            // Si lo añadido es de la pestaña que no está a la vista, se
+            // cambia: si no, parece que no se guardó.
+            tabActiva = data.tipo === "cripto" ? "cripto" : "valores";
             efectoAlGuardar();
             closeModal();
             renderVidaCartera(null);

@@ -16,8 +16,8 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=61";
-import { fechaISO } from "./db.js?v=61";
+import { db } from "./firebase-init.js?v=62";
+import { fechaISO } from "./db.js?v=62";
 
 // ---------- Las reglas del sistema ----------
 
@@ -599,7 +599,7 @@ export function bloqueActual(fecha = new Date()) {
 // serie (no le gustan) y la verdura solo camuflada. Vive en
 // configuracion/menu, así que no necesita reglas nuevas.
 
-export const GRUPOS_INGREDIENTES = ["Proteína", "Hidratos", "Legumbres", "Verdura camuflada", "Lácteos y más"];
+export const GRUPOS_INGREDIENTES = ["Proteína", "Hidratos", "Legumbres", "Verdura camuflada", "Lácteos y básicos"];
 
 export const INGREDIENTES = [
   { id: "pollo", nombre: "Pollo", grupo: "Proteína" },
@@ -625,9 +625,11 @@ export const INGREDIENTES = [
   { id: "zanahoria", nombre: "Zanahoria (triturada)", grupo: "Verdura camuflada" },
   { id: "calabacin", nombre: "Calabacín (en crema)", grupo: "Verdura camuflada" },
   { id: "espinacas", nombre: "Espinacas (trituradas)", grupo: "Verdura camuflada" },
-  { id: "yogur", nombre: "Yogur griego", grupo: "Lácteos y más" },
-  { id: "queso", nombre: "Queso", grupo: "Lácteos y más" },
-  { id: "frutossecos", nombre: "Frutos secos", grupo: "Lácteos y más" },
+  { id: "yogur", nombre: "Yogur griego", grupo: "Lácteos y básicos" },
+  { id: "queso", nombre: "Queso", grupo: "Lácteos y básicos" },
+  { id: "leche", nombre: "Leche", grupo: "Lácteos y básicos" },
+  { id: "fruta", nombre: "Fruta (todas)", grupo: "Lácteos y básicos" },
+  { id: "frutossecos", nombre: "Frutos secos", grupo: "Lácteos y básicos" },
 ];
 
 // Lo que arranca marcado: todo menos lo que ya sabemos que no le gusta.
@@ -677,6 +679,61 @@ export const RECETAS = [
     pasos: ["Tuesta el pan.", "Huevos a la plancha encima y queso para que funda.", "Jamón si hay. ≈ 22 g de proteína."] },
 ];
 
+
+// Desayunos y más platos. `aire: true` = se hace (o tiene versión) en la
+// AirFryer. Lo "más sano" entra poco a poco: platos normales con mejores
+// piezas, no lechuga por sorpresa.
+RECETAS.push(
+  { id: "d_yogur_fruta", nombre: "Yogur griego con fruta y avena", momento: "desayuno", req: ["yogur", "avena", "fruta"], opc: ["frutossecos"], proteina: 20,
+    pasos: ["Yogur griego (200 g) en un bol.", "3 cucharadas de avena y la fruta troceada encima.", "Frutos secos si hay. Dos minutos y ≈ 20 g de proteína."] },
+  { id: "d_porridge", nombre: "Porridge de avena con plátano", momento: "desayuno", req: ["avena", "leche", "fruta"], opc: [], proteina: 14,
+    pasos: ["Avena (50 g) + leche (250 ml): microondas 2 min, remueve, 1 min más.", "Plátano en rodajas encima.", "Sacia muchísimo y aguanta hasta la comida."] },
+  { id: "d_revuelto_pan", nombre: "Huevos revueltos con pan", momento: "desayuno", req: ["huevos", "pan"], opc: ["jamon"], proteina: 18,
+    pasos: ["Bate 2-3 huevos y cuájalos a fuego suave removiendo.", "Pan tostado debajo o al lado.", "Con jamón, ≈ 24 g de proteína."] },
+  { id: "d_sandwich", nombre: "Sándwich de jamón y queso", momento: "desayuno", req: ["pan", "jamon", "queso"], opc: [], proteina: 16,
+    pasos: ["Monta y tuesta 2 min por lado (o 4 min en AirFryer a 180 °C).", "Con una pieza de fruta al lado, desayuno completo."], aire: true },
+  { id: "d_tortitas", nombre: "Tortitas de avena y plátano", momento: "desayuno", req: ["avena", "huevos", "fruta"], opc: [], proteina: 17,
+    pasos: ["Tritura 1 plátano + 2 huevos + 4 cucharadas de avena.", "Cucharones a la sartén: 2 min por lado.", "Sin azúcar y saben a dulce: el truco es el plátano."] },
+  { id: "d_batido", nombre: "Batido de yogur, leche y fruta", momento: "desayuno", req: ["yogur", "leche", "fruta"], opc: ["avena"], proteina: 18,
+    pasos: ["Todo a la batidora 30 segundos.", "Para los días con prisa: se bebe de camino.", "Con avena dentro llena como un desayuno entero."] },
+  { id: "d_tostas_tomate", nombre: "Tostadas con tomate y jamón", momento: "desayuno", req: ["pan", "tomate", "jamon"], opc: [], proteina: 14,
+    pasos: ["Pan tostado, tomate por encima y el jamón.", "Un chorrito de aceite. El desayuno de bar, en casa."] },
+  { id: "d_bol_queso", nombre: "Bol de queso batido con fruta", momento: "desayuno", req: ["queso", "fruta"], opc: ["frutossecos", "avena"], proteina: 24,
+    pasos: ["Queso batido (200 g) + fruta troceada + lo que haya.", "La opción con MÁS proteína por minuto de esfuerzo: ≈ 24 g."] },
+  { id: "d_wrap", nombre: "Wrap de desayuno (huevo y queso)", momento: "desayuno", req: ["wraps", "huevos", "queso"], opc: ["jamon"], proteina: 20,
+    pasos: ["Huevo revuelto, al wrap con el queso.", "1 min por lado en la sartén para sellar.", "≈ 20 g de proteína."] },
+
+  { id: "c_pollo_aire", nombre: "Pollo crujiente en AirFryer con patatas", momento: "comida", req: ["pollo", "patata"], opc: [], proteina: 36, aire: true,
+    pasos: ["Patatas en gajos: AirFryer 200 °C, 18 min, sacude a mitad.", "Pollo salpimentado: añádelo a los 8 min (contramuslos 20 min, pechuga 12).", "Crujiente sin freír: mismo sabor, mucho menos aceite."] },
+  { id: "c_salmon_aire", nombre: "Salmón en AirFryer con arroz", momento: "comida", req: ["salmon", "arroz"], opc: [], proteina: 30, aire: true,
+    pasos: ["Salmón a la AirFryer: 190 °C, 8-10 min. No se pasa: se seca rápido.", "Arroz hervido 12 min.", "≈ 30 g de proteína y omega-3, que a tus articulaciones les viene bien."] },
+  { id: "c_burger", nombre: "Hamburguesas caseras con patatas gajo", momento: "comida", req: ["ternera", "patata"], opc: ["pan", "queso"], proteina: 32, aire: true,
+    pasos: ["Forma hamburguesas con la ternera (sal y pimienta, nada más).", "Patatas gajo en AirFryer 200 °C 18 min; las burgers a la plancha 3 min por lado.", "Con pan y queso si toca antojo: sigue siendo comida de verdad."] },
+  { id: "c_arroz_chino", nombre: "Arroz salteado con pollo y huevo", momento: "comida", req: ["arroz", "pollo", "huevos"], opc: ["cebolla", "zanahoria"], proteina: 38,
+    pasos: ["Arroz cocido (mejor del día anterior).", "Pollo en dados a fuego fuerte; aparta y cuaja el huevo.", "Junta todo y saltea 2 min con un chorrito de soja si hay.", "El 'chino' de casa: ≈ 38 g de proteína."] },
+  { id: "c_lomo_aire", nombre: "Lomo en AirFryer con arroz", momento: "comida", req: ["lomo", "arroz"], opc: [], proteina: 33, aire: true,
+    pasos: ["Filetes de lomo: AirFryer 200 °C, 8 min con vuelta a mitad.", "Arroz de guarnición.", "≈ 33 g de proteína."] },
+  { id: "c_pasta_salmon", nombre: "Pasta con salmón", momento: "comida", req: ["pasta", "salmon"], opc: ["queso", "leche"], proteina: 30,
+    pasos: ["Salmón en dados a la sartén 4 min.", "Mezcla con la pasta y un chorrito de leche o queso para la cremita.", "≈ 30 g de proteína."] },
+  { id: "c_lentejas_patata", nombre: "Lentejas guisadas con patata", momento: "comida", req: ["lentejas", "patata"], opc: ["zanahoria", "cebolla", "chorizo"], proteina: 20,
+    pasos: ["De bote: calienta con patata cocida en dados 10 min.", "La versión sin chorizo es la 'más sana poco a poco': mismo plato, menos grasa.", "≈ 20 g de proteína."] },
+  { id: "c_pollo_curry", nombre: "Pollo al curry suave con arroz", momento: "comida", req: ["pollo", "arroz", "leche"], opc: ["cebolla"], proteina: 36,
+    pasos: ["Pollo en dados dorado en sartén.", "Cucharadita de curry + leche (150 ml): 5 min a fuego bajo.", "Sobre arroz. Suave, nada picante, y sabe a restaurante."] },
+
+  { id: "n_muslos_aire", nombre: "Muslos de pollo en AirFryer con patatas", momento: "cena", req: ["pollo", "patata"], opc: [], proteina: 34, aire: true,
+    pasos: ["Muslos: AirFryer 190 °C, 20-22 min, vuelta a mitad.", "Patatas en la misma cesta desde el minuto 0.", "Piel crujiente sin aceite: ≈ 34 g de proteína."] },
+  { id: "n_francesa", nombre: "Tortilla francesa con jamón y pan", momento: "cena", req: ["huevos", "jamon", "pan"], opc: ["queso"], proteina: 25,
+    pasos: ["3 huevos batidos, jamón dentro, y dobla en la sartén.", "Pan al lado. Cena de 6 minutos, ≈ 25 g de proteína."] },
+  { id: "n_merluza_aire", nombre: "Merluza en AirFryer con patatas", momento: "cena", req: ["merluza", "patata"], opc: [], proteina: 28, aire: true,
+    pasos: ["Patatas panadera: AirFryer 200 °C 15 min.", "La merluza encima: 8 min más a 180 °C.", "Ligera de verdad y sin olor a fritanga en casa."] },
+  { id: "n_wrap_jamon", nombre: "Wrap de jamón y queso", momento: "cena", req: ["wraps", "jamon", "queso"], opc: [], proteina: 18,
+    pasos: ["Monta, dobla y 1 min por lado en sartén (o 3 min en AirFryer).", "Con una fruta de postre: la 4 del día."], aire: true },
+  { id: "n_huevos_plato", nombre: "Huevos al plato con tomate", momento: "cena", req: ["huevos", "tomate"], opc: ["jamon", "pan"], proteina: 20,
+    pasos: ["Tomate frito caliente en una cazuelita, 2 huevos encima.", "Horno o AirFryer 180 °C hasta que cuaje la clara (8 min).", "Pan para mojar. ≈ 20 g de proteína."], aire: true },
+  { id: "n_salmon_ligero", nombre: "Salmón a la plancha (cena ligera)", momento: "cena", req: ["salmon"], opc: ["patata"], proteina: 30,
+    pasos: ["Plancha fuerte, 3 min por el lado de la piel, 2 por el otro.", "Solo o con patata cocida.", "Para los días que la comida fue grande."] }
+);
+
 export const recetaPorId = (id) => RECETAS.find((r) => r.id === id) || null;
 
 export function recetasDisponibles(marcados) {
@@ -689,13 +746,15 @@ export function recetasDisponibles(marcados) {
 // así el mismo lunes siempre da el mismo menú, pero cada semana varía.
 export function generarMenuSemana(lunesISO, marcados) {
   const disponibles = recetasDisponibles(marcados);
+  const desayunos = disponibles.filter((r) => r.momento === "desayuno");
   const comidas = disponibles.filter((r) => r.momento === "comida");
   const cenas = disponibles.filter((r) => r.momento === "cena");
   if (comidas.length < 3 || cenas.length < 3) return null;
   let semilla = 0;
   for (const c of lunesISO) semilla = (semilla * 31 + c.charCodeAt(0)) % 9973;
-  const menu = { lunes: lunesISO, comidas: {}, cenas: {} };
+  const menu = { lunes: lunesISO, desayunos: {}, comidas: {}, cenas: {} };
   for (let d = 1; d <= 7; d++) {
+    if (desayunos.length >= 3) menu.desayunos[d] = desayunos[(semilla + d) % desayunos.length].id;
     menu.comidas[d] = comidas[(semilla + d) % comidas.length].id;
     menu.cenas[d] = cenas[(semilla + d) % cenas.length].id;
   }
@@ -708,6 +767,7 @@ export function menuDeHoy(fecha = new Date()) {
   if (!menu?.lunes || menu.lunes !== lunesDe(fecha)) return null;
   const dia = ((fecha.getDay() + 6) % 7) + 1; // lunes = 1 … domingo = 7
   return {
+    desayuno: recetaPorId(menu.desayunos?.[dia]),
     comida: recetaPorId(menu.comidas?.[dia]),
     cena: recetaPorId(menu.cenas?.[dia]),
   };
@@ -795,13 +855,18 @@ export async function actualizarPrecios() {
   if (criptos.length) {
     try {
       const ids = [...new Set(criptos.map((p) => p.simbolo.toLowerCase().trim()))].join(",");
-      const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur`);
+      const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=eur&include_24hr_change=true`);
       if (!r.ok) throw new Error(`CoinGecko ${r.status}`);
       const precios = await r.json();
       for (const p of criptos) {
-        const eur = precios[p.simbolo.toLowerCase().trim()]?.eur;
+        const dato = precios[p.simbolo.toLowerCase().trim()];
+        const eur = dato?.eur;
         if (eur > 0) {
-          await updateInversion(p.id, { precio_actual: eur, precio_actualizado: hoy });
+          await updateInversion(p.id, {
+            precio_actual: eur,
+            precio_actualizado: hoy,
+            dia_pct: typeof dato.eur_24h_change === "number" ? Math.round(dato.eur_24h_change * 100) / 100 : null,
+          });
           actualizadas++;
         } else errores.push(`No encuentro "${p.simbolo}" en CoinGecko (usa su id: bitcoin, ethereum…)`);
       }
@@ -841,7 +906,11 @@ export async function actualizarPrecios() {
               continue;
             }
           }
-          await updateInversion(p.id, { precio_actual: Math.round(precio * 10000) / 10000, precio_actualizado: hoy });
+          await updateInversion(p.id, {
+            precio_actual: Math.round(precio * 10000) / 10000,
+            precio_actualizado: hoy,
+            dia_pct: typeof q.dp === "number" ? Math.round(q.dp * 100) / 100 : null,
+          });
           actualizadas++;
         }
       } catch (e) {

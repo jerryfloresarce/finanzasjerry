@@ -1,6 +1,6 @@
 {
-  "name": "Finanzas Jerry",
-  "short_name": "Finanzas",
+  "name": "Jerry Life",
+  "short_name": "Jerry Life",
   "description": "Control personal de finanzas: cuentas, gastos, préstamos y gastos fijos.",
   "start_url": "./",
   "scope": "./",

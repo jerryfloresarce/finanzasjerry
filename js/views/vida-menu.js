@@ -15,9 +15,9 @@ import {
   generarMenuSemana,
   guardarMenu,
   lunesDe,
-} from "../vida.js?v=61";
-import { openModal, closeModal } from "../modal.js?v=61";
-import { efectoAlGuardar } from "../efectos.js?v=61";
+} from "../vida.js?v=62";
+import { openModal, closeModal } from "../modal.js?v=62";
+import { efectoAlGuardar } from "../efectos.js?v=62";
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
@@ -34,7 +34,8 @@ export function abrirReceta(recetaId) {
     `
     <h2 class="modal__title">${r.nombre}</h2>
     <p class="entity-card__meta" style="margin:-10px 0 12px;">
-      ${r.momento === "comida" ? "Comida" : "Cena"} · ≈ ${r.proteina} g de proteína por ración
+      ${r.momento === "desayuno" ? "Desayuno" : r.momento === "comida" ? "Comida" : "Cena"} · ≈ ${r.proteina} g de proteína por ración
+      ${r.aire ? ' · <span class="chip-aire">AirFryer</span>' : ""}
     </p>
     <ol class="receta-pasos">
       ${r.pasos.map((p) => `<li>${p}</li>`).join("")}
@@ -89,6 +90,7 @@ export function renderVidaMenu(_state) {
 
   const lista = new Set(marcados());
   const disponibles = recetasDisponibles([...lista]);
+  const nDesayunos = disponibles.filter((r) => r.momento === "desayuno").length;
   const nComidas = disponibles.filter((r) => r.momento === "comida").length;
   const nCenas = disponibles.filter((r) => r.momento === "cena").length;
   const lunesActual = lunesDe(new Date());
@@ -100,7 +102,7 @@ export function renderVidaMenu(_state) {
         <h2 class="card__title">¿Qué comerías esta semana?</h2>
         <p class="entity-card__meta" style="margin-top:-8px;">
           Marca y desmarca lo que te apetezca. Con lo marcado salen ahora
-          <strong>${nComidas} comidas y ${nCenas} cenas</strong> posibles.
+          <strong>${nDesayunos} desayunos, ${nComidas} comidas y ${nCenas} cenas</strong> posibles.
         </p>
         ${GRUPOS_INGREDIENTES.map(
           (grupo) => `
@@ -128,12 +130,14 @@ export function renderVidaMenu(_state) {
             : `<div class="mini-list">
             ${DIAS.map((nombre, idx) => {
               const d = idx + 1;
+              const desayuno = recetaPorId(menuVigente.desayunos?.[d]);
               const comida = recetaPorId(menuVigente.comidas?.[d]);
               const cena = recetaPorId(menuVigente.cenas?.[d]);
               const esHoy = ((new Date().getDay() + 6) % 7) + 1 === d;
               return `
               <div class="menu-dia ${esHoy ? "menu-dia--hoy" : ""}">
                 <p class="menu-dia__nombre">${nombre}${esHoy ? " · hoy" : ""}</p>
+                ${desayuno ? `<button type="button" class="menu-dia__plato" data-receta="${desayuno.id}"><i class="ph ph-sun" aria-hidden="true"></i> ${desayuno.nombre}</button>` : ""}
                 ${comida ? `<button type="button" class="menu-dia__plato" data-receta="${comida.id}"><i class="ph ph-fork-knife" aria-hidden="true"></i> ${comida.nombre}</button>` : ""}
                 ${cena ? `<button type="button" class="menu-dia__plato" data-receta="${cena.id}"><i class="ph ph-moon-stars" aria-hidden="true"></i> ${cena.nombre}</button>` : ""}
               </div>`;

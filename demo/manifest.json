@@ -1,6 +1,6 @@
 {
   "name": "Mis Finanzas",
-  "short_name": "Finanzas",
+  "short_name": "Mis Finanzas",
   "description": "Control personal de finanzas: cuentas, gastos, préstamos y gastos fijos.",
   "start_url": "./",
   "scope": "./",
