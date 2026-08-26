@@ -52,20 +52,29 @@ jobs:
           echo "Se publican estos archivos:"
           ls -la _web
 
-      # La versión de Gaby: la MISMA app (mismo código, misma base de
-      # datos), pero con su nombre y su manifiesto, para que al instalarla
-      # en su iPhone el icono diga "Gaby's Life" y no el de Jerry. Se
-      # genera aquí a partir de index.html para que nunca se quede atrás.
-      - name: La página de Gaby (gaby.html + su manifiesto)
+      # La version de Gaby: la misma app (mismo codigo, misma base de
+      # datos) pero con su nombre y su manifiesto, para que al instalarla
+      # en su iPhone el icono diga el suyo. Se genera aqui a partir de
+      # index.html para que nunca se quede atras. El apostrofe tipografico
+      # de la marca va como secuencia unicode para que este archivo sea
+      # ASCII puro (dos arranques seguidos fallaron con el caracter dentro).
+      - name: Generar la pagina de Gaby
         run: |
-          sed -e "s/Jerry’s Life/Gaby’s Life/g" \
-              -e "s/Jerry’s <span>/Gaby’s <span>/g" \
-              -e "s/Hola, Jerry/Hola, Gaby/g" \
-              -e 's/href="manifest.json/href="manifest-gaby.json/' \
-              _web/index.html > _web/gaby.html
-          sed -e "s/Jerry’s Life/Gaby’s Life/g" \
-              -e 's|"start_url": *"[^"]*"|"start_url": "./gaby.html"|' \
-              _web/manifest.json > _web/manifest-gaby.json
+          node -e '
+            const fs = require("fs");
+            const AP = "\u2019";
+            let html = fs.readFileSync("_web/index.html", "utf8");
+            html = html.split("Jerry" + AP + "s Life").join("Gaby" + AP + "s Life");
+            html = html.split("Jerry" + AP + "s <span>").join("Gaby" + AP + "s <span>");
+            html = html.split("Hola, Jerry").join("Hola, Gaby");
+            html = html.replace("href=\"manifest.json", "href=\"manifest-gaby.json");
+            fs.writeFileSync("_web/gaby.html", html);
+            let man = fs.readFileSync("_web/manifest.json", "utf8");
+            man = man.split("Jerry" + AP + "s Life").join("Gaby" + AP + "s Life");
+            man = man.replace(/"start_url":\s*"[^"]*"/, "\"start_url\": \"gaby.html\"");
+            fs.writeFileSync("_web/manifest-gaby.json", man);
+            console.log("gaby.html y manifest-gaby.json generados");
+          '
           grep -c "Gaby" _web/gaby.html _web/manifest-gaby.json
 
       - uses: actions/configure-pages@v5
