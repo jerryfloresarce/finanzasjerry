@@ -10,11 +10,11 @@ import {
   destinoTransferencia,
   textoPeriodo,
   nombreDeCuenta,
-} from "../db.js?v=67";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=67";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=67";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=67";
-import { colorTema } from "../tema.js?v=67";
+} from "../db.js?v=68";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=68";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=68";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=68";
+import { colorTema } from "../tema.js?v=68";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -105,6 +105,20 @@ function renderComparativa(ingresos, gastos) {
   });
 }
 
+// Una transferencia entre cuentas propias no es gasto ni ingreso: es mover
+// dinero de sitio. Pero si la cuenta de destino no es de las tuyas (un
+// Bizum a otra persona), ese dinero SE VA de verdad — y al revés, el que
+// llega desde una cuenta que no es tuya, entra de verdad. El calendario
+// las cuenta así. Cuando todas las cuentas son tuyas, nada cambia.
+function sentidoDeTransferencia(m, idsVisibles) {
+  if (m.tipo !== "Transferencia" || !m.cuenta_destino_id) return null;
+  const origenMio = idsVisibles.has(m.cuenta_id);
+  const destinoMio = idsVisibles.has(m.cuenta_destino_id);
+  if (origenMio && !destinoMio) return "Gasto";
+  if (!origenMio && destinoMio) return "Ingreso";
+  return null;
+}
+
 function renderCalendario(movimientosMes, categorias, cuentas) {
   const el = document.getElementById("calendar-grid");
   const year = mesActual.getFullYear();
@@ -113,17 +127,22 @@ function renderCalendario(movimientosMes, categorias, cuentas) {
   const diasEnMes = new Date(year, month + 1, 0).getDate();
   const offset = (primerDia.getDay() + 6) % 7; // lunes = 0 ... domingo = 6
   const hoy = new Date();
+  const idsVisibles = new Set(cuentas.map((c) => c.id));
 
   const porDia = new Map();
   movimientosMes.forEach((m) => {
-    if (m.tipo === "Transferencia") return;
+    let tipo = m.tipo;
+    if (m.tipo === "Transferencia") {
+      tipo = sentidoDeTransferencia(m, idsVisibles);
+      if (!tipo) return;
+    }
     const d = fromTimestamp(m.fecha);
     if (!d) return;
     const key = d.getDate();
     if (!porDia.has(key)) porDia.set(key, { gasto: 0, ingreso: 0 });
     const acc = porDia.get(key);
-    if (m.tipo === "Gasto") acc.gasto += Number(m.importe ?? 0);
-    else if (m.tipo === "Ingreso") acc.ingreso += Number(m.importe ?? 0);
+    if (tipo === "Gasto") acc.gasto += Number(m.importe ?? 0);
+    else if (tipo === "Ingreso") acc.ingreso += Number(m.importe ?? 0);
   });
 
   const celdas = [];
@@ -176,8 +195,9 @@ function openDiaDetalle(fecha, state) {
         iconHTML = icon("movimientos", { size: 16 });
         titulo = `${nombreDeCuenta(cuentaMap, m.cuenta_id)} → ${destinoTransferencia(m, cuentaMap)}`;
         sub = "Transferencia" + (m.nota ? " · " + m.nota : "");
-        amountClass = "";
-        amountSign = "";
+        const sentido = sentidoDeTransferencia(m, new Set(cuentaMap.keys()));
+        amountClass = sentido === "Gasto" ? "mini-row__amount--neg" : sentido === "Ingreso" ? "mini-row__amount--pos" : "";
+        amountSign = sentido === "Gasto" ? "− " : sentido === "Ingreso" ? "+ " : "";
       } else {
         const cat = catMap.get(m.categoria_id);
         iconHTML = entityIcon(cat, iconForCategoriaTipo(cat?.tipo), { size: 16 });

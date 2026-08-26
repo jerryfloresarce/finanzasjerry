@@ -17,10 +17,10 @@ import {
   esRutinaPropia,
   rutinaPorTipo,
   guardarSistema,
-} from "../vida.js?v=67";
-import { fechaISO, formatFecha } from "../db.js?v=67";
-import { efectoAlGuardar } from "../efectos.js?v=67";
-import { openModal, closeModal } from "../modal.js?v=67";
+} from "../vida.js?v=68";
+import { fechaISO, formatFecha } from "../db.js?v=68";
+import { efectoAlGuardar } from "../efectos.js?v=68";
+import { openModal, closeModal } from "../modal.js?v=68";
 
 let tipoActivo = null;
 

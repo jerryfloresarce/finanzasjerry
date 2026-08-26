@@ -462,6 +462,18 @@ a.hoy-toca__fila:hover strong { color: var(--success); }
   .horario-fila .hor-detalle { grid-column: 1 / -1; }
 }
 .chip--nueva { border-style: dashed; opacity: 0.85; }
+
+/* El lápiz de cada día del menú: discreto al lado del nombre del día. */
+.menu-dia__editar {
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0 4px;
+  vertical-align: middle;
+}
+.menu-dia__editar:hover { color: var(--accent); }
 .horario-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
 
 /* Una cita puntual en la línea del día: se nota que no es rutina. */

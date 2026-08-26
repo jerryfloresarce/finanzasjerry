@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=67";
-import { fechaISO } from "./db.js?v=67";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=67";
+import { db } from "./firebase-init.js?v=68";
+import { fechaISO } from "./db.js?v=68";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=68";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -271,7 +271,7 @@ export const vida = {
   recompensas: [],
   inversiones: [],   // posiciones de la cartera (Trade Republic, apuntadas a mano)
   sistema: {},       // configuracion/sistema (o sistema_gaby): el del perfil visto
-  menu: {},          // configuracion/menu (o menu_gaby): ingredientes y menú
+  menu: {},          // configuracion/menu: el menú DE CASA, común a los dos
   sinPermisos: false, // true si las reglas nuevas aún no están publicadas
   listo: false,
 };
@@ -366,8 +366,10 @@ export function initVida(cb) {
     crudosVida.inversiones = docs;
     aplicarFiltros();
   });
+  // El menú es DE CASA: un solo documento para los dos perfiles, porque
+  // desayunan, comen y cenan lo mismo y así nadie cocina dos veces.
   onSnapshot(
-    doc(db, "configuracion", esGaby() ? "menu_gaby" : "menu"),
+    doc(db, "configuracion", "menu"),
     (snap) => {
       vida.menu = snap.exists() ? snap.data() : {};
       onChange?.();
@@ -403,7 +405,7 @@ export const addRecompensa = (data) => addDoc(col("recompensas"), sellar(data));
 export const updateRecompensa = (id, data) => updateDoc(doc(db, "recompensas", id), data);
 export const deleteRecompensa = (id) => deleteDoc(doc(db, "recompensas", id));
 export const guardarSistema = (data) => setDoc(doc(db, "configuracion", esGaby() ? "sistema_gaby" : "sistema"), data, { merge: true });
-export const guardarMenu = (data) => setDoc(doc(db, "configuracion", esGaby() ? "menu_gaby" : "menu"), data, { merge: true });
+export const guardarMenu = (data) => setDoc(doc(db, "configuracion", "menu"), data, { merge: true });
 export const addInversion = (data) => addDoc(col("inversiones"), sellar(data));
 export const updateInversion = (id, data) => updateDoc(doc(db, "inversiones", id), data);
 export const deleteInversion = (id) => deleteDoc(doc(db, "inversiones", id));
@@ -972,15 +974,15 @@ export const INGREDIENTES = [
   { id: "caldo", nombre: "Caldo de pollo", grupo: "Lácteos y básicos" },
 ];
 
-// Lo que arranca marcado, por perfil: todo menos lo que ya sabemos que no
-// le gusta a cada uno. Luego cada cual marca y desmarca lo suyo en su
-// pantalla de Menú, que es independiente.
+// Lo que arranca marcado: solo lo que les gusta A LOS DOS, porque el menú
+// es de casa (el mismo para ambos, para no cocinar dos veces). Lo que uno
+// no come, fuera de serie — y luego marcan y desmarcan juntos lo que sea.
 const OFF_JERRY = new Set(["atun", "garbanzos", "calabacin", "espinacas"]);
 const OFF_GABY = new Set([
   "fruta", "calabacin", "espinacas", "zanahoria", "cebolla",
   "garbanzos", "lentejas", "alubias", "salmon", "merluza", "lomo", "chorizo",
 ]);
-const off = esGaby() ? OFF_GABY : OFF_JERRY;
+const off = new Set([...OFF_JERRY, ...OFF_GABY]);
 export const INGREDIENTES_POR_DEFECTO = INGREDIENTES.filter((i) => !off.has(i.id)).map((i) => i.id);
 
 // Las recetas: req = lo que tiene que estar marcado; opc = mejora el plato
@@ -1117,21 +1119,56 @@ RECETAS.push(
     pasos: ["Caldo hirviendo + un puñado de fideos: 5-7 min.", "Con pollo desmigado o un huevo batido en hilo, sube a cena completa.", "Para las noches de llegar cansados de la tienda."] }
 );
 
-export const recetaPorId = (id) => RECETAS.find((r) => r.id === id) || null;
+// Los días que no se cocina también son un "plato": el domingo en casa de
+// la madre de Jerry, o un día de comer fuera. Se eligen editando el día.
+export const PLATOS_ESPECIALES = [
+  { id: "esp_casa_mama", nombre: "En casa de mamá", especial: true, pasos: ["Hoy cocina la mamá de Jerry: no hay nada que preparar.", "Solo llegar con hambre (y de buen humor)."] },
+  { id: "esp_fuera", nombre: "Comer fuera", especial: true, pasos: ["Día de no cocinar: restaurante, pedido o lo que surja."] },
+];
+
+// Los platos que añadís vosotros ("Plato vuestro" en la pantalla Menú):
+// viven en el documento del menú de casa y entran en el generador como
+// cualquier receta, sin depender de ingredientes marcados.
+export function platosPropios() {
+  return (vida.menu?.platos || []).map((p) => ({
+    proteina: null,
+    ...p,
+    req: [],
+    opc: [],
+    pasos: p.pasos?.length ? p.pasos : ["Plato vuestro: lo hacéis como os gusta en casa."],
+    propio: true,
+  }));
+}
+
+export const recetaPorId = (id) =>
+  RECETAS.find((r) => r.id === id) ||
+  platosPropios().find((r) => r.id === id) ||
+  PLATOS_ESPECIALES.find((r) => r.id === id) ||
+  null;
 
 export function recetasDisponibles(marcados) {
   const set = new Set(marcados);
-  return RECETAS.filter((r) => r.req.every((i) => set.has(i)));
+  return [...RECETAS.filter((r) => r.req.every((i) => set.has(i))), ...platosPropios()];
 }
+
+// Un plato cuenta como rápido si se hace en la AirFryer/horno o en tres
+// pasos como mucho: la comida de diario no puede ser un proyecto.
+const esRapida = (r) => Boolean(r.aire) || (r.pasos?.length ?? 9) <= 3 || r.propio;
 
 // El menú de la semana: un plato de comida y uno de cena por día, solo con
 // recetas cuyas piezas están marcadas. La semilla es el lunes de la semana,
 // así el mismo lunes siempre da el mismo menú, pero cada semana varía.
+// Los platos rápidos van primero: si hay bastantes, la semana sale de ahí.
 export function generarMenuSemana(lunesISO, marcados) {
   const disponibles = recetasDisponibles(marcados);
-  const desayunos = disponibles.filter((r) => r.momento === "desayuno");
-  const comidas = disponibles.filter((r) => r.momento === "comida");
-  const cenas = disponibles.filter((r) => r.momento === "cena");
+  const pool = (momento) => {
+    const todas = disponibles.filter((r) => r.momento === momento);
+    const rapidas = todas.filter(esRapida);
+    return rapidas.length >= 5 ? rapidas : todas;
+  };
+  const desayunos = pool("desayuno");
+  const comidas = pool("comida");
+  const cenas = pool("cena");
   if (comidas.length < 3 || cenas.length < 3) return null;
   let semilla = 0;
   for (const c of lunesISO) semilla = (semilla * 31 + c.charCodeAt(0)) % 9973;

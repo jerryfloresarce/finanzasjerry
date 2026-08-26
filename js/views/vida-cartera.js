@@ -16,12 +16,12 @@ import {
   updateInversion,
   deleteInversion,
   guardarSistema,
-} from "../vida.js?v=67";
-import { formatEUR } from "../db.js?v=67";
-import { openModal, closeModal } from "../modal.js?v=67";
-import { colorTema } from "../tema.js?v=67";
-import { efectoAlGuardar } from "../efectos.js?v=67";
-import { initials, avatarColor } from "../icons.js?v=67";
+} from "../vida.js?v=68";
+import { formatEUR } from "../db.js?v=68";
+import { openModal, closeModal } from "../modal.js?v=68";
+import { colorTema } from "../tema.js?v=68";
+import { efectoAlGuardar } from "../efectos.js?v=68";
+import { initials, avatarColor } from "../icons.js?v=68";
 
 // Un porcentaje y unas unidades a la española: coma decimal, no punto.
 const pctTxt = (n) => Math.abs(n).toFixed(1).replace(".", ",");
@@ -32,7 +32,10 @@ let actualizando = false;
 // Pestaña activa y qué variación se enseña; sobreviven a los repintados.
 let tabActiva = "valores"; // "valores" | "cripto"
 let vistaVariacion = "compra"; // "compra" | "hoy"
-const calc = { mensual: 100, pct: 7, anos: 10 };
+// La calculadora parte de lo que HAY invertido ahora mismo; la aportación
+// mensual arranca a 0 para que la primera lectura sea "qué haría el
+// mercado con lo mío", no un supuesto que nadie ha decidido.
+const calc = { mensual: 0, pct: 7, anos: 10 };
 
 const TIPOS_INV = { etf: "ETF", accion: "Acción", cripto: "Cripto" };
 
@@ -84,7 +87,7 @@ const GLOSARIO = {
   },
   proyeccion: {
     titulo: "¿Qué es esta estimación?",
-    texto: "Interés compuesto: lo que pasaría si aportas todos los meses y el mercado diera de media ese % al año. La bolsa mundial ha dado ~7 % anual de media histórica, pero con años de −20 % y de +25 % por el camino. Es para hacerse una idea, no una promesa.",
+    texto: "Parte de lo que tienes invertido AHORA MISMO y calcula qué haría el mercado con ello si diera de media ese % al año (interés compuesto). La aportación mensual es opcional: a 0 ves solo crecer lo tuyo; ponle algo para jugar con '¿y si además aporto?'. La bolsa mundial ha dado ~7 % anual de media histórica, con años de −20 % y de +25 % por el camino. Es para hacerse una idea, no una promesa.",
   },
   senales: {
     titulo: "Las señales",
@@ -276,10 +279,17 @@ export function renderVidaCartera(_state) {
     </article>
 
     <article class="card" style="margin-top:16px;">
-      <h2 class="card__title">¿Y si sigo aportando? ${info("proyeccion")}</h2>
+      <h2 class="card__title">¿Cuánto podría llegar a ser? ${info("proyeccion")}</h2>
+      <p class="entity-card__meta" style="margin-top:-6px;">
+        ${
+          inicial > 0
+            ? `Parte de lo que tienes invertido ahora mismo: <strong>${formatEUR(inicial)}</strong>. La aportación al mes es opcional — a 0, ves solo lo que haría el mercado con lo tuyo.`
+            : `Todavía no hay nada invertido, así que de momento no hay nada que proyectar. En cuanto apuntes tu primera compra, aquí verás lo que podría llegar a ser con los años. Si quieres jugar mientras tanto, pon una aportación al mes.`
+        }
+      </p>
       <div class="form-grid" style="margin:10px 0;">
         <label class="field">
-          <span class="field__label">Aportación al mes (€)</span>
+          <span class="field__label">Aportación al mes (€, opcional)</span>
           <input type="number" id="calc-mensual" value="${calc.mensual}" data-prefill="${calc.mensual}" />
         </label>
         <div class="field">
@@ -293,16 +303,22 @@ export function renderVidaCartera(_state) {
         <span class="field__label">Años: ${calc.anos}</span>
         <input type="range" min="1" max="30" id="calc-anos" value="${calc.anos}" />
       </label>
-      <div class="chart-wrap" style="height:200px;"><canvas id="chart-proyeccion"></canvas></div>
+      ${
+        inicial > 0 || calc.mensual > 0
+          ? `<div class="chart-wrap" style="height:200px;"><canvas id="chart-proyeccion"></canvas></div>
       <p class="entity-card__meta" style="margin-top:10px;">
-        Partiendo de ${formatEUR(inicial)} y aportando ${formatEUR(calc.mensual)} al mes:
-        en ${calc.anos} años habrías aportado <strong>${formatEUR(final.aportado)}</strong> y
-        tendrías <strong>${formatEUR(final.valor)}</strong> si el mercado diera un ${calc.pct} % anual de media.
-      </p>
+        ${
+          calc.mensual > 0
+            ? `Partiendo de ${formatEUR(inicial)} y aportando ${formatEUR(calc.mensual)} al mes: en ${calc.anos} años habrías aportado <strong>${formatEUR(final.aportado)}</strong> y tendrías <strong>${formatEUR(final.valor)}</strong> si el mercado diera un ${calc.pct} % anual de media.`
+            : `Tus ${formatEUR(inicial)} de hoy, sin aportar nada más, serían <strong>${formatEUR(final.valor)}</strong> en ${calc.anos} años si el mercado diera un ${calc.pct} % anual de media.`
+        }
+      </p>`
+          : ""
+      }
     </article>
   `;
 
-  pintarProyeccion(puntos);
+  if (inicial > 0 || calc.mensual > 0) pintarProyeccion(puntos);
 }
 
 function pintarProyeccion(puntos) {
