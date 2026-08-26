@@ -12,7 +12,7 @@ import {
   disableNetwork,
   enableNetwork,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=63";
+import { db } from "./firebase-init.js?v=64";
 
 // Cuando el iPhone deja la app en segundo plano (o la pantalla se apaga),
 // Safari congela la conexión abierta de Firestore. Al volver, esa conexión
@@ -42,13 +42,26 @@ function col(name) {
   return collection(db, name);
 }
 
+// Ganchos opcionales para módulos externos: uno transforma los datos justo
+// antes de crearlos y otro filtra lo que llega de cada colección. Si nadie
+// los registra no hacen nada, y la app funciona exactamente igual que
+// siempre — son un punto de extensión, no una dependencia.
+let alCrear = (coleccion, data) => data;
+let alLeer = (coleccion, items) => items;
+export function registrarGanchosDeDatos({ crear, leer } = {}) {
+  if (crear) alCrear = crear;
+  if (leer) alLeer = leer;
+}
+
 function listen(name, orderField, cb) {
   const q = orderField ? query(col(name), orderBy(orderField, "desc")) : col(name);
   return onSnapshot(q, (snap) => {
     const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    cb(items);
+    cb(alLeer(name, items));
   });
 }
+
+const crear = (name, data) => addDoc(col(name), alCrear(name, data));
 
 // ---------- Fechas ----------
 //
@@ -98,42 +111,42 @@ export function fechaISO(fecha = new Date()) {
 // nunca se pueda descuadrar entre la web y el Shortcut.
 
 export const listenCuentas = (cb) => listen("cuentas", null, cb);
-export const addCuenta = (data) => addDoc(col("cuentas"), data);
+export const addCuenta = (data) => crear("cuentas", data);
 export const updateCuenta = (id, data) => updateDoc(doc(db, "cuentas", id), data);
 export const deleteCuenta = (id) => deleteDoc(doc(db, "cuentas", id));
 
 // ---------- Categorías ----------
 
 export const listenCategorias = (cb) => listen("categorias", null, cb);
-export const addCategoria = (data) => addDoc(col("categorias"), data);
+export const addCategoria = (data) => crear("categorias", data);
 export const updateCategoria = (id, data) => updateDoc(doc(db, "categorias", id), data);
 export const deleteCategoria = (id) => deleteDoc(doc(db, "categorias", id));
 
 // ---------- Movimientos ----------
 
 export const listenMovimientos = (cb) => listen("movimientos", "fecha", cb);
-export const addMovimiento = (data) => addDoc(col("movimientos"), data);
+export const addMovimiento = (data) => crear("movimientos", data);
 export const updateMovimiento = (id, data) => updateDoc(doc(db, "movimientos", id), data);
 export const deleteMovimiento = (id) => deleteDoc(doc(db, "movimientos", id));
 
 // ---------- Suscripciones ----------
 
 export const listenSuscripciones = (cb) => listen("suscripciones", null, cb);
-export const addSuscripcion = (data) => addDoc(col("suscripciones"), data);
+export const addSuscripcion = (data) => crear("suscripciones", data);
 export const updateSuscripcion = (id, data) => updateDoc(doc(db, "suscripciones", id), data);
 export const deleteSuscripcion = (id) => deleteDoc(doc(db, "suscripciones", id));
 
 // ---------- Préstamos ----------
 
 export const listenPrestamos = (cb) => listen("prestamos", null, cb);
-export const addPrestamo = (data) => addDoc(col("prestamos"), data);
+export const addPrestamo = (data) => crear("prestamos", data);
 export const updatePrestamo = (id, data) => updateDoc(doc(db, "prestamos", id), data);
 export const deletePrestamo = (id) => deleteDoc(doc(db, "prestamos", id));
 
 // ---------- Pagos de préstamos ----------
 
 export const listenPagosPrestamos = (cb) => listen("pagos_prestamos", "fecha", cb);
-export const addPagoPrestamo = (data) => addDoc(col("pagos_prestamos"), data);
+export const addPagoPrestamo = (data) => crear("pagos_prestamos", data);
 export const updatePagoPrestamo = (id, data) => updateDoc(doc(db, "pagos_prestamos", id), data);
 export const deletePagoPrestamo = (id) => deleteDoc(doc(db, "pagos_prestamos", id));
 
@@ -183,7 +196,7 @@ export const listenMetasAhorro = (cb) =>
     (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
     () => cb([])
   );
-export const addMetaAhorro = (data) => addDoc(col("metas_ahorro"), data);
+export const addMetaAhorro = (data) => crear("metas_ahorro", data);
 export const updateMetaAhorro = (id, data) => updateDoc(doc(db, "metas_ahorro", id), data);
 export const deleteMetaAhorro = (id) => deleteDoc(doc(db, "metas_ahorro", id));
 

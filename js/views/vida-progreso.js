@@ -24,10 +24,12 @@ import {
   lunesDe,
   rutinaEmpezada,
   diaDeRutina,
-} from "../vida.js?v=63";
-import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=63";
-import { colorTema } from "../tema.js?v=63";
-import { efectoDeCelebracion } from "../efectos.js?v=63";
+  rachasCaraACara,
+  INNEGOCIABLES,
+} from "../vida.js?v=64";
+import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=64";
+import { colorTema } from "../tema.js?v=64";
+import { efectoDeCelebracion } from "../efectos.js?v=64";
 
 let currentState = null;
 let chartPeso = null;
@@ -132,7 +134,8 @@ export function renderVidaProgreso(state) {
   ) {
     referenciaCalculada = true;
     const ref = calcularCosteReferencia(state.movimientos, state.categorias, fromTimestamp);
-    guardarSistema({ coste_referencia_dia: ref, peso_objetivo_kg: PESO_OBJETIVO_KG, proteina_objetivo_g: 145 }).catch(() => {});
+    const extras = PESO_OBJETIVO_KG ? { peso_objetivo_kg: PESO_OBJETIVO_KG, proteina_objetivo_g: 145 } : {};
+    guardarSistema({ coste_referencia_dia: ref, ...extras }).catch(() => {});
   }
 
   const { actual, mejor } = calcularRacha();
@@ -152,7 +155,10 @@ export function renderVidaProgreso(state) {
   const siguiente = recompensas.find((r) => r.estado !== "canjeada" && r.coste > bote.disponible);
 
   const ejercicios = Object.values(PLANES).flat().map((p) => p.nombre);
-  if (!ejercicioElegido) ejercicioElegido = "Press banca";
+  if (!ejercicioElegido) ejercicioElegido = ejercicios[0] || "";
+  const pesoObjetivo = vida.sistema.peso_objetivo_kg ?? PESO_OBJETIVO_KG;
+  const hayEstudio = INNEGOCIABLES.some((i) => i.id === "estudio");
+  const caraACara = rachasCaraACara();
 
   el.innerHTML = `
     ${
@@ -167,8 +173,18 @@ export function renderVidaProgreso(state) {
       <div class="kpi-tile"><span class="kpi-tile__label">Racha</span><span class="kpi-tile__value">🔥 ${actual}</span><span class="entity-card__meta">mejor: ${mejor}</span></div>
       <div class="kpi-tile"><span class="kpi-tile__label">Semanas 6/7</span><span class="kpi-tile__value">${semanasCumplidas}</span></div>
       <div class="kpi-tile"><span class="kpi-tile__label">Entrenos</span><span class="kpi-tile__value">${vida.entrenos.length}</span></div>
-      <div class="kpi-tile"><span class="kpi-tile__label">Peso</span><span class="kpi-tile__value">${ultimoPeso ? ultimoPeso + " kg" : "—"}</span><span class="entity-card__meta">objetivo ${vida.sistema.peso_objetivo_kg ?? PESO_OBJETIVO_KG}</span></div>
+      <div class="kpi-tile"><span class="kpi-tile__label">Peso</span><span class="kpi-tile__value">${ultimoPeso ? ultimoPeso + " kg" : "—"}</span>${pesoObjetivo ? `<span class="entity-card__meta">objetivo ${pesoObjetivo}</span>` : ""}</div>
     </div>
+
+    ${
+      caraACara.jerry && caraACara.gaby
+        ? `<div class="card hoy-aviso" style="margin-bottom:14px;"><p class="entity-card__meta" style="margin:0;">
+            <strong>Cara a cara</strong> · 💚 Jerry: ${caraACara.jerry.actual} ${caraACara.jerry.actual === 1 ? "día" : "días"} de racha
+            · 💗 Gaby: ${caraACara.gaby.actual} ${caraACara.gaby.actual === 1 ? "día" : "días"}
+            ${caraACara.jerry.actual === caraACara.gaby.actual ? "· Empate: nadie afloja." : `· Va ganando ${caraACara.jerry.actual > caraACara.gaby.actual ? "Jerry 💚" : "Gaby 💗"}`}
+          </p></div>`
+        : ""
+    }
 
     <div class="grid grid--hoy">
       <article class="card">
@@ -239,8 +255,8 @@ export function renderVidaProgreso(state) {
         </div>
 
         <h2 class="card__title" style="margin-top:18px;">Metas</h2>
-        <p class="entity-card__meta" style="margin-top:-8px;">Estudio: fase ${fase} · ${FASES_ESTUDIO[fase]} min/día. Sube sola con 2 semanas seguidas a 6 de 7.</p>
-        ${["Estudio", "Salud", "Carnet A2"]
+        ${hayEstudio ? `<p class="entity-card__meta" style="margin-top:-8px;">Estudio: fase ${fase} · ${FASES_ESTUDIO[fase]} min/día. Sube sola con 2 semanas seguidas a 6 de 7.</p>` : ""}
+        ${[...new Set(METAS_MANUALES.map((m) => m.grupo))]
           .map(
             (grupo) => `
           <p class="progreso-grupo">${grupo}</p>
@@ -260,15 +276,16 @@ export function renderVidaProgreso(state) {
 
     <div class="grid grid--hoy" style="margin-top:16px;">
       <article class="card">
-        <h2 class="card__title">Peso — hacia ${vida.sistema.peso_objetivo_kg ?? PESO_OBJETIVO_KG} kg</h2>
+        <h2 class="card__title">${pesoObjetivo ? `Peso — hacia ${pesoObjetivo} kg` : "Peso"}</h2>
         ${pesos.length < 2 ? `<p class="empty-state">Apunta el peso una vez por semana en Hoy → Apuntes del día.</p>` : `<div class="chart-wrap" style="height:220px;"><canvas id="chart-peso"></canvas></div>`}
       </article>
       <article class="card">
-        <h2 class="card__title">Fuerza — mejor serie por sesión</h2>
+        ${ejercicios.length ? `<h2 class="card__title">Fuerza — mejor serie por sesión</h2>
         <label class="field" style="margin-bottom:10px;">
           <select id="fuerza-ejercicio">${ejercicios.map((n) => `<option ${n === ejercicioElegido ? "selected" : ""}>${n}</option>`).join("")}</select>
         </label>
-        <div class="chart-wrap" style="height:200px;"><canvas id="chart-fuerza"></canvas></div>
+        <div class="chart-wrap" style="height:200px;"><canvas id="chart-fuerza"></canvas></div>` : `<h2 class="card__title">Dónde se falla más</h2>
+        <p class="entity-card__meta" style="margin-top:-6px;">Para saber qué cuesta, no para castigarse.</p>`}
         ${
           talon.length && talon[0].fallos > 0
             ? `<p class="entity-card__meta" style="margin-top:12px;"><strong>Tu talón de Aquiles</strong> (últimos ${talon[0].total} días): ${talon
@@ -296,14 +313,14 @@ function pintarGraficas(pesos) {
     chartPeso = null;
   }
   if (canvasPeso && pesos.length >= 2) {
-    const objetivo = Number(vida.sistema.peso_objetivo_kg ?? PESO_OBJETIVO_KG);
+    const objetivo = Number(vida.sistema.peso_objetivo_kg ?? PESO_OBJETIVO_KG ?? 0);
     chartPeso = new Chart(canvasPeso, {
       type: "line",
       data: {
         labels: pesos.map((d) => d.id.slice(5)),
         datasets: [
           { label: "Peso", data: pesos.map((d) => Number(d.peso_kg)), borderColor: linea, tension: 0.3, pointRadius: 3 },
-          { label: "Objetivo", data: pesos.map(() => objetivo), borderColor: eje, borderDash: [6, 6], pointRadius: 0 },
+          ...(objetivo ? [{ label: "Objetivo", data: pesos.map(() => objetivo), borderColor: eje, borderDash: [6, 6], pointRadius: 0 }] : []),
         ],
       },
       options: {
@@ -320,7 +337,7 @@ function pintarGraficas(pesos) {
     chartFuerza.destroy();
     chartFuerza = null;
   }
-  if (canvasFuerza) {
+  if (canvasFuerza && ejercicioElegido) {
     const prog = progresionDe(ejercicioElegido);
     chartFuerza = new Chart(canvasFuerza, {
       type: "line",

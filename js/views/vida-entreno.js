@@ -9,19 +9,20 @@ import {
   PLANES,
   SEMANA_TIPO,
   NOMBRE_TIPO_ENTRENO,
+  TIPOS_ENTRENO,
   ultimoEntrenoDeTipo,
   sugerenciaProgresion,
   addEntreno,
   deleteEntreno,
-} from "../vida.js?v=63";
-import { fechaISO, formatFecha } from "../db.js?v=63";
-import { efectoAlGuardar } from "../efectos.js?v=63";
+} from "../vida.js?v=64";
+import { fechaISO, formatFecha } from "../db.js?v=64";
+import { efectoAlGuardar } from "../efectos.js?v=64";
 
 let tipoActivo = null;
 
 function tipoDeHoy() {
   const t = SEMANA_TIPO[new Date().getDay()].tipo;
-  return PLANES[t] || t === "piscina" || t === "caminata" ? t : "fuerza_A";
+  return TIPOS_ENTRENO.includes(t) ? t : TIPOS_ENTRENO[0];
 }
 
 // Si hay algo escrito en el formulario, no se repinta: un dato que llegue
@@ -106,7 +107,7 @@ export function renderVidaEntreno(_state, forzar = false) {
   const deHoy = vida.entrenos.filter((e) => e.fecha === fechaISO());
   const toca = SEMANA_TIPO[new Date().getDay()];
 
-  const chips = ["fuerza_A", "fuerza_B", "fuerza_C", "piscina", "caminata"]
+  const chips = TIPOS_ENTRENO
     .map(
       (t) => `<button type="button" class="chip ${t === tipoActivo ? "chip--on" : ""}" data-tipo-entreno="${t}">${NOMBRE_TIPO_ENTRENO[t]}</button>`
     )
@@ -146,11 +147,13 @@ export function renderVidaEntreno(_state, forzar = false) {
       <p class="entity-card__meta">${
         tipoActivo === "piscina"
           ? "10 min suave · 20 min de series (8×50 m, 30 s de descanso) · 10 min suave. Cuenta como entreno cumplido."
-          : "Cinta al 10–12 %, 5–5,5 km/h, sin agarrarse a las barras. Cualquier cuesta de la calle vale igual."
+          : tipoActivo === "yoga"
+            ? "La clase con la abuela (o una sesión en casa con un vídeo). Moverse cuenta, el nivel da igual."
+            : "Cinta al 10–12 %, 5–5,5 km/h, sin agarrarse a las barras. Cualquier cuesta de la calle vale igual."
       }</p>
       <label class="field field--full">
         <span class="field__label">Nota (opcional)</span>
-        <input type="text" id="entreno-nota" placeholder="${tipoActivo === "piscina" ? "8×50 m a crol" : "12 %, 5 km/h"}" data-prefill="" />
+        <input type="text" id="entreno-nota" placeholder="${tipoActivo === "piscina" ? "8×50 m a crol" : tipoActivo === "yoga" ? "Con la abuela" : "12 %, 5 km/h"}" data-prefill="" />
       </label>`;
   }
 
@@ -168,12 +171,12 @@ export function renderVidaEntreno(_state, forzar = false) {
             <span class="field__label">Duración (min)</span>
             <input type="number" id="entreno-duracion" placeholder="75" data-prefill="" />
           </label>
-          <label class="field-check" style="align-self:end;">
+          ${esFuerza ? `<label class="field-check" style="align-self:end;">
             <input type="checkbox" id="entreno-lleno" />
             El gimnasio estaba lleno
-          </label>
+          </label>` : ""}
         </div>
-        <p class="entity-card__meta">Si está imposible: ejercicios 1 y 2 se esperan, del 3 en adelante cualquier máquina del mismo grupo vale, y si no hay manera → piscina. Cuenta igual.</p>
+        ${esFuerza ? `<p class="entity-card__meta">Si está imposible: ejercicios 1 y 2 se esperan, del 3 en adelante cualquier máquina del mismo grupo vale, y si no hay manera → piscina. Cuenta igual.</p>` : ""}
         <p class="field-error" id="entreno-error"></p>
         <button type="button" class="btn btn--primary btn--block hoy-cerrar" id="btn-guardar-entreno">Guardar el entreno</button>
       </div>

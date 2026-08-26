@@ -16,30 +16,55 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=63";
-import { fechaISO } from "./db.js?v=63";
+import { db } from "./firebase-init.js?v=64";
+import { fechaISO } from "./db.js?v=64";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=64";
 
-// ---------- Las reglas del sistema ----------
+// ---------- Las reglas del sistema, una por perfil ----------
+//
+// Desde que la app es de los dos, cada perfil tiene SU rutina: sus
+// innegociables, su semana tipo, su horario y sus metas. Las constantes
+// exportadas de siempre (INNEGOCIABLES, SEMANA_TIPO…) siguen existiendo
+// con el mismo nombre — se les asigna la versión del perfil que se está
+// viendo al cargar (cambiar de perfil recarga la app), así que ninguna
+// vista ha tenido que cambiar.
 
-export const INNEGOCIABLES = [
+const INNEGOCIABLES_JERRY = [
   { id: "sin_comida_fuera", nombre: "Sin comida fuera sin planificar", icono: "fork-knife" },
   { id: "estudio", nombre: "Estudio", icono: "graduation-cap" },
   { id: "entreno", nombre: "El entreno que toque", icono: "barbell" },
   { id: "sueno", nombre: "En la cama antes de las 23:15", icono: "moon-stars" },
 ];
 
-export const BONUS = [
+const BONUS_JERRY = [
   { id: "fruta_4", nombre: "4 piezas de fruta", icono: "orange-slice" },
   { id: "dientes_3", nombre: "Dientes 3 veces", icono: "tooth" },
   { id: "cena_preparada", nombre: "Cena dejada preparada", icono: "cooking-pot" },
   { id: "verdura", nombre: "Algo de verdura", icono: "carrot" },
 ];
 
+// Los de Gaby: levantarse a la primera (su jefe final es el posponer),
+// los dientes (el hábito que quiere interiorizar, empezando por una vez),
+// la casa y dormir a la hora. Son un borrador para revisar juntos.
+const INNEGOCIABLES_GABY = [
+  { id: "levantarse", nombre: "Levantarse a la primera (máx. 1 posponer)", icono: "alarm" },
+  { id: "dientes", nombre: "Lavarse los dientes", icono: "tooth" },
+  { id: "casa", nombre: "La tarea de casa del día", icono: "broom" },
+  { id: "sueno", nombre: "A dormir a la hora (los dos)", icono: "moon-stars" },
+];
+
+const BONUS_GABY = [
+  { id: "yoga", nombre: "Yoga o un paseo", icono: "flower-lotus" },
+  { id: "sin_comida_fuera", nombre: "Sin comida fuera sin planificar", icono: "fork-knife" },
+  { id: "proyecto", nombre: "Avanzar el ciclo o su videojuego", icono: "rocket" },
+  { id: "agua", nombre: "Beber agua de verdad", icono: "drop" },
+];
+
 export const PUNTOS_INNEGOCIABLE = 25;
 export const PUNTOS_BONUS = 5;
 
-// La semana tipo: qué entreno toca cada día (getDay(): 0 = domingo).
-export const SEMANA_TIPO = {
+// La semana tipo: qué toca cada día (getDay(): 0 = domingo).
+const SEMANA_TIPO_JERRY = {
   1: { tipo: "fuerza_A", nombre: "Fuerza A — Empuje + cuádriceps" },
   2: { tipo: "caminata", nombre: "Caminata con elevación, 35 min" },
   3: { tipo: "fuerza_B", nombre: "Fuerza B — Tirón + femoral" },
@@ -49,18 +74,36 @@ export const SEMANA_TIPO = {
   0: { tipo: "descanso", nombre: "Descanso · batch cooking" },
 };
 
+const SEMANA_TIPO_GABY = {
+  1: { tipo: "caminata", nombre: "Paseo o descanso activo" },
+  2: { tipo: "yoga", nombre: "Yoga con la abuela (09:30)" },
+  3: { tipo: "caminata", nombre: "Paseo o descanso activo" },
+  4: { tipo: "yoga", nombre: "Yoga con la abuela (09:30)" },
+  5: { tipo: "caminata", nombre: "Paseo o lo que apetezca" },
+  6: { tipo: "libre", nombre: "Libre — hoy la tienda es hasta las 23:00" },
+  0: { tipo: "descanso", nombre: "Descanso · familia" },
+};
+
 export const NOMBRE_TIPO_ENTRENO = {
   fuerza_A: "Fuerza A",
   fuerza_B: "Fuerza B",
   fuerza_C: "Fuerza C",
   piscina: "Piscina",
   caminata: "Caminata",
+  yoga: "Yoga",
   libre: "Libre",
 };
 
+// Los chips de la pantalla Entreno, por perfil: Gaby no levanta pesas
+// (por ahora), registra yoga y paseos.
+const TIPOS_ENTRENO_JERRY = ["fuerza_A", "fuerza_B", "fuerza_C", "piscina", "caminata"];
+const TIPOS_ENTRENO_GABY = ["yoga", "caminata"];
+
 // Los planes de fuerza, con el rango de la doble progresión y el peso de
 // arranque pactado. repsPorPierna/segundos solo cambian la etiqueta.
-export const PLANES = {
+// Gaby no tiene planes de fuerza: su entreno son el yoga y los paseos.
+const PLANES_GABY = {};
+const PLANES_JERRY = {
   fuerza_A: [
     { nombre: "Sentadilla a cajón / prensa pies altos", series: 4, repsMin: 6, repsMax: 8, pesoInicial: 20, nota: "Stance ancho, puntas fuera, cajón donde no pinche" },
     { nombre: "Press banca", series: 4, repsMin: 6, repsMax: 8, pesoInicial: 70 },
@@ -91,7 +134,7 @@ export const PLANES = {
 
 // Rotación de comidas del batch cooking y de cenas rápidas. Se elige por
 // día del año, así cada día tiene su sugerencia sin guardar nada.
-export const ROTACION_COMIDAS = [
+const ROTACION_COMIDAS_JERRY = [
   "Pollo al horno + arroz + sofrito",
   "Lentejas con chorizo",
   "Albóndigas en salsa + patata",
@@ -100,13 +143,31 @@ export const ROTACION_COMIDAS = [
   "Merluza o salmón al horno + patata",
 ];
 
-export const ROTACION_CENAS = [
+const ROTACION_CENAS_JERRY = [
   "Tortilla de patata",
   "Pechuga a la plancha + huevo",
   "Crema de calabacín + jamón",
   "Sándwich integral de pollo",
   "Revuelto de huevos con jamón",
   "Yogur griego + fruta + frutos secos",
+];
+
+const ROTACION_COMIDAS_GABY = [
+  "Pasta con lo que haya",
+  "Cuscús con pollo",
+  "Ensalada de pollo con queso (sin tomate)",
+  "Arroz con huevo",
+  "Patatas con salchichas",
+  "Hamburguesas caseras",
+];
+
+const ROTACION_CENAS_GABY = [
+  "Sándwich caliente",
+  "Sopa de caldo de pollo",
+  "Crepes salados",
+  "Salchichas con huevo",
+  "Yogur con frutos secos",
+  "Sándwich de atún",
 ];
 
 export function sugerenciaDelDia(lista, fecha = new Date()) {
@@ -116,7 +177,7 @@ export function sugerenciaDelDia(lista, fecha = new Date()) {
 }
 
 // Las metas fijas que se marcan a mano en Progreso.
-export const METAS_MANUALES = [
+const METAS_MANUALES_JERRY = [
   { id: "az900", nombre: "AZ-900 aprobado", grupo: "Estudio" },
   { id: "fisio", nombre: "Consulta de fisio por la ingle", grupo: "Salud" },
   { id: "a2_psicotecnico", nombre: "Psicotécnico", grupo: "Carnet A2" },
@@ -126,19 +187,60 @@ export const METAS_MANUALES = [
   { id: "a2_circulacion", nombre: "Práctico de circulación", grupo: "Carnet A2" },
 ];
 
+const METAS_MANUALES_GABY = [
+  { id: "mk_matricula", nombre: "Matrícula hecha", grupo: "Ciclo de Marketing" },
+  { id: "mk_empezar", nombre: "Empezar las clases (septiembre)", grupo: "Ciclo de Marketing" },
+  { id: "mk_primero", nombre: "Primer curso aprobado", grupo: "Ciclo de Marketing" },
+  { id: "mk_segundo", nombre: "Segundo curso aprobado", grupo: "Ciclo de Marketing" },
+  { id: "mk_titulo", nombre: "¡Titulación de Marketing!", grupo: "Ciclo de Marketing" },
+  { id: "vj_diseno", nombre: "El videojuego: idea y diseño en papel", grupo: "Sus proyectos" },
+  { id: "vj_demo", nombre: "El videojuego: primera demo jugable", grupo: "Sus proyectos" },
+  { id: "vj_publicado", nombre: "El videojuego: ¡publicado!", grupo: "Sus proyectos" },
+  { id: "negocio_plan", nombre: "El plan del negocio propio, escrito", grupo: "Sus proyectos" },
+];
+
 export const FASES_ESTUDIO = { 1: 30, 2: 40, 3: 50, 4: 60 };
 
-export const PESO_OBJETIVO_KG = 84;
+// El objetivo de peso es cosa de Jerry (84 kg). Gaby no tiene uno: su
+// pantalla de Progreso no enseña esa parte salvo que algún día lo quiera.
+const PESO_OBJETIVO_JERRY = 84;
+const PESO_OBJETIVO_GABY = null;
+
+// ---------- La asignación por perfil ----------
+// Se decide una vez por carga (cambiar de perfil recarga la app), y las
+// vistas siguen importando los nombres de siempre.
+
+export let INNEGOCIABLES = INNEGOCIABLES_JERRY;
+export let BONUS = BONUS_JERRY;
+export let SEMANA_TIPO = SEMANA_TIPO_JERRY;
+export let PLANES = PLANES_JERRY;
+export let TIPOS_ENTRENO = TIPOS_ENTRENO_JERRY;
+export let ROTACION_COMIDAS = ROTACION_COMIDAS_JERRY;
+export let ROTACION_CENAS = ROTACION_CENAS_JERRY;
+export let METAS_MANUALES = METAS_MANUALES_JERRY;
+export let PESO_OBJETIVO_KG = PESO_OBJETIVO_JERRY;
+
+if (esGaby()) {
+  INNEGOCIABLES = INNEGOCIABLES_GABY;
+  BONUS = BONUS_GABY;
+  SEMANA_TIPO = SEMANA_TIPO_GABY;
+  PLANES = PLANES_GABY;
+  TIPOS_ENTRENO = TIPOS_ENTRENO_GABY;
+  ROTACION_COMIDAS = ROTACION_COMIDAS_GABY;
+  ROTACION_CENAS = ROTACION_CENAS_GABY;
+  METAS_MANUALES = METAS_MANUALES_GABY;
+  PESO_OBJETIVO_KG = PESO_OBJETIVO_GABY;
+}
 
 // ---------- Estado y listeners propios ----------
 
 export const vida = {
-  dias: [],          // documentos de dias/, uno por fecha cerrada
+  dias: [],          // documentos de dias/, uno por fecha cerrada — DEL PERFIL VISTO
   entrenos: [],
   recompensas: [],
   inversiones: [],   // posiciones de la cartera (Trade Republic, apuntadas a mano)
-  sistema: {},       // configuracion/sistema
-  menu: {},          // configuracion/menu: ingredientes marcados y el menú de la semana
+  sistema: {},       // configuracion/sistema (o sistema_gaby): el del perfil visto
+  menu: {},          // configuracion/menu (o menu_gaby): ingredientes y menú
   sinPermisos: false, // true si las reglas nuevas aún no están publicadas
   listo: false,
 };
@@ -147,15 +249,39 @@ const col = (n) => collection(db, n);
 let iniciado = false;
 let onChange = null;
 
+// Los días de los DOS viven en la misma colección `dias` (así no hay que
+// republicar reglas): los de Jerry con la fecha como id, como siempre, y
+// los de Gaby con el prefijo "g-" para que dos cierres del mismo día no
+// choquen. Al filtrar por perfil el id se normaliza a la fecha otra vez,
+// que es lo que espera todo el cálculo de rachas y semanas.
+const docIdDia = (fechaId) => (esGaby() ? "g-" + fechaId : fechaId);
+
+// Copias sin filtrar y la configuración de los dos perfiles: hacen falta
+// para la comparativa cara a cara de rachas.
+const crudosVida = { dias: [], entrenos: [], recompensas: [], inversiones: [] };
+const sistemas = { jerry: {}, gaby: {} };
+
+const esDelPerfil = (d, perfil = perfilVisto()) => (d.perfil || "jerry") === perfil;
+
+function diasDePerfil(perfil) {
+  const inicio = sistemas[perfil].fecha_inicio;
+  return crudosVida.dias
+    .filter((d) => esDelPerfil(d, perfil))
+    .map((d) => ({ ...d, id: d.fecha || d.id }))
+    .filter((d) => !inicio || d.id >= inicio)
+    .sort((a, b) => a.id.localeCompare(b.id));
+}
+
 // La rutina no empieza sola: empieza el día que se pulsa START en la
-// pantalla Hoy, y esa fecha queda en configuracion/sistema.fecha_inicio.
-// Cualquier día cerrado ANTES (pruebas, trasteos) se aparta aquí, en un
-// único sitio, para que la racha, el bote, los logros y las gráficas
-// arranquen limpios desde el Día 1 de verdad.
-let diasCrudos = [];
-function aplicarFiltroDeInicio() {
-  const inicio = vida.sistema.fecha_inicio;
-  vida.dias = inicio ? diasCrudos.filter((d) => d.id >= inicio) : diasCrudos;
+// pantalla Hoy, y esa fecha queda en el `fecha_inicio` del sistema DE ESE
+// PERFIL. Cualquier día cerrado antes (pruebas, trasteos) se aparta aquí,
+// en un único sitio, junto con el filtro por perfil.
+function aplicarFiltros() {
+  vida.dias = diasDePerfil(perfilVisto());
+  vida.entrenos = crudosVida.entrenos.filter((e) => esDelPerfil(e)).sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""));
+  vida.recompensas = crudosVida.recompensas.filter((r) => esDelPerfil(r));
+  vida.inversiones = crudosVida.inversiones.filter((p) => esDelPerfil(p)).sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
+  vida.sistema = sistemas[perfilVisto()];
 }
 
 export const rutinaEmpezada = () => Boolean(vida.sistema.fecha_inicio);
@@ -193,45 +319,74 @@ export function initVida(cb) {
     );
 
   escucha("dias", (docs) => {
-    diasCrudos = docs.sort((a, b) => a.id.localeCompare(b.id));
-    aplicarFiltroDeInicio();
+    crudosVida.dias = docs;
+    aplicarFiltros();
   });
-  escucha("entrenos", (docs) => (vida.entrenos = docs.sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""))));
-  escucha("recompensas", (docs) => (vida.recompensas = docs));
-  escucha("inversiones", (docs) => (vida.inversiones = docs.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""))));
+  escucha("entrenos", (docs) => {
+    crudosVida.entrenos = docs;
+    aplicarFiltros();
+  });
+  escucha("recompensas", (docs) => {
+    crudosVida.recompensas = docs;
+    aplicarFiltros();
+  });
+  escucha("inversiones", (docs) => {
+    crudosVida.inversiones = docs;
+    aplicarFiltros();
+  });
   onSnapshot(
-    doc(db, "configuracion", "menu"),
+    doc(db, "configuracion", esGaby() ? "menu_gaby" : "menu"),
     (snap) => {
       vida.menu = snap.exists() ? snap.data() : {};
       onChange?.();
     },
     () => onChange?.()
   );
-  onSnapshot(
-    doc(db, "configuracion", "sistema"),
-    (snap) => {
-      vida.sistema = snap.exists() ? snap.data() : {};
-      // El filtro depende de fecha_inicio, y este documento puede llegar
-      // después de los días: se reaplica con cada cambio.
-      aplicarFiltroDeInicio();
-      onChange?.();
-    },
-    () => onChange?.()
-  );
+  // La configuración de los DOS perfiles, siempre: la del visto manda en
+  // vida.sistema, y la del otro hace falta para el cara a cara de rachas.
+  // El filtro depende de fecha_inicio y estos documentos pueden llegar
+  // después de los días: se reaplica con cada cambio.
+  const escuchaSistema = (perfil, docId) =>
+    onSnapshot(
+      doc(db, "configuracion", docId),
+      (snap) => {
+        sistemas[perfil] = snap.exists() ? snap.data() : {};
+        aplicarFiltros();
+        onChange?.();
+      },
+      () => onChange?.()
+    );
+  escuchaSistema("jerry", "sistema");
+  escuchaSistema("gaby", "sistema_gaby");
 }
 
-export const guardarDia = (fechaId, data) => setDoc(doc(db, "dias", fechaId), data, { merge: true });
-export const addEntreno = (data) => addDoc(col("entrenos"), data);
+// Todo lo que se crea queda sellado con el perfil que se está viendo, y
+// el sistema/menú de cada uno vive en su propio documento.
+const sellar = (data) => ({ ...data, perfil: perfilVisto() });
+export const guardarDia = (fechaId, data) => setDoc(doc(db, "dias", docIdDia(fechaId)), sellar({ ...data, fecha: fechaId }), { merge: true });
+export const addEntreno = (data) => addDoc(col("entrenos"), sellar(data));
 export const updateEntreno = (id, data) => updateDoc(doc(db, "entrenos", id), data);
 export const deleteEntreno = (id) => deleteDoc(doc(db, "entrenos", id));
-export const addRecompensa = (data) => addDoc(col("recompensas"), data);
+export const addRecompensa = (data) => addDoc(col("recompensas"), sellar(data));
 export const updateRecompensa = (id, data) => updateDoc(doc(db, "recompensas", id), data);
 export const deleteRecompensa = (id) => deleteDoc(doc(db, "recompensas", id));
-export const guardarSistema = (data) => setDoc(doc(db, "configuracion", "sistema"), data, { merge: true });
-export const guardarMenu = (data) => setDoc(doc(db, "configuracion", "menu"), data, { merge: true });
-export const addInversion = (data) => addDoc(col("inversiones"), data);
+export const guardarSistema = (data) => setDoc(doc(db, "configuracion", esGaby() ? "sistema_gaby" : "sistema"), data, { merge: true });
+export const guardarMenu = (data) => setDoc(doc(db, "configuracion", esGaby() ? "menu_gaby" : "menu"), data, { merge: true });
+export const addInversion = (data) => addDoc(col("inversiones"), sellar(data));
 export const updateInversion = (id, data) => updateDoc(doc(db, "inversiones", id), data);
 export const deleteInversion = (id) => deleteDoc(doc(db, "inversiones", id));
+
+// ---------- Cara a cara ----------
+
+// Las rachas de los dos, para la comparativa sana. Solo cuenta un perfil
+// que ya ha pulsado su START; hasta entonces sale null.
+export function rachasCaraACara() {
+  const de = (perfil) => {
+    if (!sistemas[perfil].fecha_inicio) return null;
+    return calcularRachaEn(diasDePerfil(perfil));
+  };
+  return { jerry: de("jerry"), gaby: de("gaby") };
+}
 
 // ---------- El día ----------
 
@@ -251,6 +406,7 @@ export function diaPorFecha(fechaId) {
 
 // El sábado el innegociable de dormir se relaja oficialmente.
 export function etiquetaSueno(fecha) {
+  if (esGaby()) return fecha.getDay() === 6 ? "Sábado: máximo las 00:00" : "A dormir a la hora (los dos)";
   return fecha.getDay() === 6 ? "No pasar de las 00:00 (sábado)" : "En la cama antes de las 23:15";
 }
 
@@ -260,9 +416,13 @@ export function etiquetaSueno(fecha) {
 // pero se perdona); DOS fallados seguidos la reinician. Un día pasado sin
 // cerrar cuenta como fallado: si no se apuntó, no se cumplió.
 export function calcularRacha(hastaHoy = fechaISO()) {
-  if (vida.dias.length === 0) return { actual: 0, mejor: 0 };
-  const porFecha = new Map(vida.dias.map((d) => [d.id, d]));
-  const primera = vida.dias[0].id;
+  return calcularRachaEn(vida.dias, hastaHoy);
+}
+
+function calcularRachaEn(dias, hastaHoy = fechaISO()) {
+  if (dias.length === 0) return { actual: 0, mejor: 0 };
+  const porFecha = new Map(dias.map((d) => [d.id, d]));
+  const primera = dias[0].id;
   let actual = 0;
   let mejor = 0;
   let fallosSeguidos = 0;
@@ -562,7 +722,67 @@ function horarioTardeLibre(queToca) {
   ];
 }
 
+// El día de Gaby, según lo contado: le cuesta levantarse (posponer es el
+// jefe final), martes y jueves yoga con la abuela y todo lo que arrastra
+// (ducha y desayuno allí, compra, vuelta a las 13:00 y pico), comida
+// juntos sobre las 14:00-14:30, tarde de casa/ratito libre/siesta, tienda
+// de 19:00 a 22:00 (sábado hasta las 23:00), dejar el dinero y a casa.
+// En septiembre cambiará (ciclo + quizá mañanas): esto se reescribe entero
+// cuando toque.
+function bloquesGaby(fecha) {
+  const dia = fecha.getDay();
+  const tarde = [
+    { h: "18:15", titulo: "Prepararse para la tienda", detalle: "" },
+    { h: "19:00", titulo: "Trabajo en la tienda", detalle: dia === 6 ? "Hasta las 23:00" : "Hasta las 22:00" },
+    { h: dia === 6 ? "23:10" : "22:15", titulo: "Dejar el dinero", detalle: "En casa de la madre de Jerry" },
+    { h: dia === 6 ? "23:40" : "22:45", titulo: "En casa: ducha o pies + cena", detalle: "" },
+    { h: dia === 6 ? "00:00" : "23:15", titulo: "Dormir", detalle: "Dientes 🦷 · móvil fuera de la cama" },
+  ];
+  if (dia === 2 || dia === 4)
+    return [
+      { h: "08:00", titulo: "Levantarse", detalle: "A la primera: posponer es el jefe final 😴" },
+      { h: "08:45", titulo: "Prepararse", detalle: "Ropa de yoga y a casa de la abuela" },
+      { h: "09:30", titulo: "Yoga con la abuela", detalle: "Hasta las 10:30" },
+      { h: "10:35", titulo: "Ducha y desayuno", detalle: "En casa de la abuela, con calma · dientes 🦷" },
+      { h: "12:15", titulo: "Compra para comer", detalle: "Lo del menú de hoy" },
+      { h: "13:15", titulo: "Vuelta a casa", detalle: "" },
+      { h: "14:00", titulo: "Comer juntos", detalle: "" },
+      { h: "15:00", titulo: "Casa y ratito libre", detalle: "Arreglar un poco · TikTok/iPad con final" },
+      { h: "16:30", titulo: "Siesta", detalle: "Alarma: no más allá de las 17:45" },
+      ...tarde,
+    ];
+  if (dia === 6)
+    return [
+      { h: "09:00", titulo: "Levantarse con calma", detalle: "" },
+      { h: "11:00", titulo: "Casa o visita", detalle: "Madre, abuela… o día de chicas 💅" },
+      { h: "14:00", titulo: "Comer", detalle: "" },
+      { h: "16:00", titulo: "Tarde libre", detalle: "Siesta si apetece" },
+      ...tarde,
+    ];
+  if (dia === 0)
+    return [
+      { h: "09:30", titulo: "Levantarse con calma", detalle: "" },
+      { h: "11:00", titulo: "Familia o plan juntos", detalle: "Abuela, madre, día de chicas" },
+      { h: "14:00", titulo: "Comer", detalle: "" },
+      { h: "16:00", titulo: "Descanso de verdad", detalle: "" },
+      { h: "21:00", titulo: "Preparar la semana", detalle: "Menú a la vista · ropa lista" },
+      { h: "23:15", titulo: "Dormir", detalle: "Dientes 🦷" },
+    ];
+  return [
+    { h: "08:00", titulo: "Levantarse", detalle: "A la primera (máx. 1 posponer)" },
+    { h: "08:30", titulo: "Desayuno", detalle: "Del menú de la semana · dientes 🦷" },
+    { h: "09:30", titulo: "Compra o recados", detalle: "Si toca" },
+    { h: "10:30", titulo: "Arreglar la casa", detalle: "La tarea del día" },
+    { h: "11:30", titulo: "Ratito libre", detalle: "TikTok, juegos, iPad — con final" },
+    { h: "14:00", titulo: "Comer juntos", detalle: "" },
+    { h: "15:00", titulo: "Tarde tranquila", detalle: "Proyecto, ciclo o descanso" },
+    { h: "16:30", titulo: "Siesta", detalle: "Alarma puesta" },
+    ...tarde,
+  ];
+}
+
 export function bloquesDelDia(fecha = new Date()) {
+  if (esGaby()) return bloquesGaby(fecha);
   const dia = fecha.getDay();
   if (dia === 1 || dia === 3) return horarioLaborable(SEMANA_TIPO[dia].nombre);
   if (dia === 2) return horarioTardeLibre("Caminata con elevación (35 min) cuando mejor te venga");
@@ -627,7 +847,7 @@ export function bloqueActual(fecha = new Date()) {
 // serie (no le gustan) y la verdura solo camuflada. Vive en
 // configuracion/menu, así que no necesita reglas nuevas.
 
-export const GRUPOS_INGREDIENTES = ["Proteína", "Hidratos", "Legumbres", "Verdura camuflada", "Lácteos y básicos"];
+export const GRUPOS_INGREDIENTES = ["Proteína", "Hidratos", "Legumbres", "Verdura", "Lácteos y básicos"];
 
 export const INGREDIENTES = [
   { id: "pollo", nombre: "Pollo", grupo: "Proteína" },
@@ -639,30 +859,47 @@ export const INGREDIENTES = [
   { id: "jamon", nombre: "Jamón / fiambre de pavo", grupo: "Proteína" },
   { id: "chorizo", nombre: "Chorizo", grupo: "Proteína" },
   { id: "atun", nombre: "Atún en lata", grupo: "Proteína" },
+  { id: "salchichas", nombre: "Salchichas", grupo: "Proteína" },
+  { id: "bacon", nombre: "Bacon", grupo: "Proteína" },
   { id: "arroz", nombre: "Arroz", grupo: "Hidratos" },
   { id: "pasta", nombre: "Pasta", grupo: "Hidratos" },
   { id: "patata", nombre: "Patatas", grupo: "Hidratos" },
   { id: "pan", nombre: "Pan", grupo: "Hidratos" },
   { id: "avena", nombre: "Avena", grupo: "Hidratos" },
   { id: "wraps", nombre: "Tortillas de trigo (wraps)", grupo: "Hidratos" },
+  { id: "cuscus", nombre: "Cuscús", grupo: "Hidratos" },
+  { id: "harina", nombre: "Harina (crepes y pancakes)", grupo: "Hidratos" },
+  { id: "masa_pizza", nombre: "Base de pizza", grupo: "Hidratos" },
   { id: "lentejas", nombre: "Lentejas", grupo: "Legumbres" },
   { id: "alubias", nombre: "Alubias", grupo: "Legumbres" },
   { id: "garbanzos", nombre: "Garbanzos", grupo: "Legumbres" },
-  { id: "tomate", nombre: "Tomate frito / triturado", grupo: "Verdura camuflada" },
-  { id: "cebolla", nombre: "Cebolla (en la salsa)", grupo: "Verdura camuflada" },
-  { id: "zanahoria", nombre: "Zanahoria (triturada)", grupo: "Verdura camuflada" },
-  { id: "calabacin", nombre: "Calabacín (en crema)", grupo: "Verdura camuflada" },
-  { id: "espinacas", nombre: "Espinacas (trituradas)", grupo: "Verdura camuflada" },
+  { id: "tomate", nombre: "Tomate frito / triturado", grupo: "Verdura" },
+  { id: "cebolla", nombre: "Cebolla (en la salsa)", grupo: "Verdura" },
+  { id: "zanahoria", nombre: "Zanahoria (triturada)", grupo: "Verdura" },
+  { id: "calabacin", nombre: "Calabacín (en crema)", grupo: "Verdura" },
+  { id: "espinacas", nombre: "Espinacas (trituradas)", grupo: "Verdura" },
+  { id: "lechuga", nombre: "Lechuga (ensalada)", grupo: "Verdura" },
+  { id: "brocoli", nombre: "Brócoli (con queso)", grupo: "Verdura" },
   { id: "yogur", nombre: "Yogur griego", grupo: "Lácteos y básicos" },
   { id: "queso", nombre: "Queso", grupo: "Lácteos y básicos" },
   { id: "leche", nombre: "Leche", grupo: "Lácteos y básicos" },
   { id: "fruta", nombre: "Fruta (todas)", grupo: "Lácteos y básicos" },
   { id: "frutossecos", nombre: "Frutos secos", grupo: "Lácteos y básicos" },
+  { id: "mantequilla", nombre: "Mantequilla", grupo: "Lácteos y básicos" },
+  { id: "cacao", nombre: "ColaCao / Cacaolat", grupo: "Lácteos y básicos" },
+  { id: "caldo", nombre: "Caldo de pollo", grupo: "Lácteos y básicos" },
 ];
 
-// Lo que arranca marcado: todo menos lo que ya sabemos que no le gusta.
-const INGREDIENTES_OFF = new Set(["atun", "garbanzos", "calabacin", "espinacas"]);
-export const INGREDIENTES_POR_DEFECTO = INGREDIENTES.filter((i) => !INGREDIENTES_OFF.has(i.id)).map((i) => i.id);
+// Lo que arranca marcado, por perfil: todo menos lo que ya sabemos que no
+// le gusta a cada uno. Luego cada cual marca y desmarca lo suyo en su
+// pantalla de Menú, que es independiente.
+const OFF_JERRY = new Set(["atun", "garbanzos", "calabacin", "espinacas"]);
+const OFF_GABY = new Set([
+  "fruta", "calabacin", "espinacas", "zanahoria", "cebolla",
+  "garbanzos", "lentejas", "alubias", "salmon", "merluza", "lomo", "chorizo",
+]);
+const off = esGaby() ? OFF_GABY : OFF_JERRY;
+export const INGREDIENTES_POR_DEFECTO = INGREDIENTES.filter((i) => !off.has(i.id)).map((i) => i.id);
 
 // Las recetas: req = lo que tiene que estar marcado; opc = mejora el plato
 // si está, pero no bloquea. Cada una con su guía rápida.
@@ -760,6 +997,42 @@ RECETAS.push(
     pasos: ["Tomate frito caliente en una cazuelita, 2 huevos encima.", "Horno o AirFryer 180 °C hasta que cuaje la clara (8 min).", "Pan para mojar. ≈ 20 g de proteína."], aire: true },
   { id: "n_salmon_ligero", nombre: "Salmón a la plancha (cena ligera)", momento: "cena", req: ["salmon"], opc: ["patata"], proteina: 30,
     pasos: ["Plancha fuerte, 3 min por el lado de la piel, 2 por el otro.", "Solo o con patata cocida.", "Para los días que la comida fue grande."] }
+);
+
+// La tanda de cuando la app pasó a ser de los dos: los platos que le
+// gustan a Gaby (y varios que comparten). Cada uno sale solo en el menú
+// de quien tenga marcadas sus piezas, así que no se mezclan los gustos.
+RECETAS.push(
+  { id: "d_tostadas_cacao", nombre: "Tostadas con mantequilla y ColaCao", momento: "desayuno", req: ["pan", "mantequilla", "cacao", "leche"], opc: [], proteina: 9,
+    pasos: ["Pan tostado con su mantequilla por encima.", "Leche con ColaCao o Cacaolat.", "El desayuno de siempre de Gaby, sin más ciencia."] },
+  { id: "d_crepes", nombre: "Crepes caseros", momento: "desayuno", req: ["harina", "huevos", "leche"], opc: ["cacao", "mantequilla"], proteina: 12,
+    pasos: ["Bate 1 huevo + 200 ml de leche + 6 cucharadas de harina (sin grumos).", "Sartén con una gota de mantequilla: capa fina, 1 min y vuelta.", "Rellena de lo que toque: cacao, queso, jamón…", "Salen 4-5 crepes; ≈ 12 g de proteína la tanda."] },
+  { id: "d_pancakes", nombre: "Pancakes esponjosos", momento: "desayuno", req: ["harina", "huevos", "leche"], opc: ["mantequilla", "fruta"], proteina: 13,
+    pasos: ["Como los crepes pero con la mitad de leche: masa espesa.", "Montoncitos a fuego medio: burbujas arriba = vuelta.", "Con mantequilla por encima o fruta si eres Jerry."] },
+  { id: "d_salchichas_huevos", nombre: "Salchichas con huevos revueltos", momento: "desayuno", req: ["salchichas", "huevos"], opc: ["pan", "bacon"], proteina: 22,
+    pasos: ["Salchichas a la sartén (o AirFryer 8 min a 190 °C).", "Huevos revueltos a fuego suave al lado.", "Desayuno de domingo de película. ≈ 22 g de proteína."], aire: true },
+
+  { id: "c_ensalada_pollo", nombre: "Ensalada de pollo con queso y frutos secos", momento: "comida", req: ["lechuga", "pollo", "queso"], opc: ["frutossecos", "pan"], proteina: 32,
+    pasos: ["Lechuga lavada y troceada de base — SIN tomate, como manda Gaby.", "Pollo a la plancha en tiras, queso en dados y frutos secos por encima.", "Aliño simple: aceite, sal y algo de zumo de limón si hay.", "≈ 32 g de proteína y fresquita para el verano."] },
+  { id: "c_cuscus_pollo", nombre: "Cuscús con pollo", momento: "comida", req: ["cuscus", "pollo"], opc: ["cebolla", "zanahoria"], proteina: 34,
+    pasos: ["Cuscús: mismo volumen de agua hirviendo que de cuscús, tapa y 5 min. Suelta con un tenedor.", "Pollo en dados dorado en la sartén.", "Mezcla y listo: el plato favorito nuevo más fácil del mundo.", "≈ 34 g de proteína."] },
+  { id: "c_pizza", nombre: "Pizza casera", momento: "comida", req: ["masa_pizza", "queso", "tomate"], opc: ["bacon", "jamon", "salchichas"], proteina: 25,
+    pasos: ["Base + tomate frito en capa fina + queso.", "Encima lo que haya: bacon, jamón, salchichas…", "Horno 220 °C unos 10-12 min (o AirFryer en trozos, 8 min a 200 °C).", "Casera y al gusto de cada uno: mitad y mitad, como los tratos justos."], aire: true },
+  { id: "c_pasta_bacon", nombre: "Pasta cremosa con bacon", momento: "comida", req: ["pasta", "bacon", "leche"], opc: ["queso", "huevos"], proteina: 24,
+    pasos: ["Bacon en tiras dorado en la sartén.", "Baja el fuego, añade un chorro de leche y queso: crema en 2 min.", "Mezcla con la pasta cocida. ≈ 24 g de proteína."] },
+  { id: "c_caldo_arroz", nombre: "Caldo de pollo con arroz", momento: "comida", req: ["caldo", "arroz"], opc: ["pollo", "zanahoria"], proteina: 18,
+    pasos: ["Calienta el caldo y añade el arroz: 12-14 min a fuego medio.", "Si hay pollo del día anterior, desmigado dentro.", "El plato de cuchara que gusta a los dos."] },
+
+  { id: "n_salchichas_aire", nombre: "Salchichas con patatas gajo (AirFryer)", momento: "cena", req: ["salchichas", "patata"], opc: [], proteina: 20,
+    pasos: ["Patatas gajo: AirFryer 200 °C, 15 min.", "Salchichas dentro los últimos 8 min.", "Cena de una cesta y cero sartenes. ≈ 20 g de proteína."], aire: true },
+  { id: "n_brocoli_queso", nombre: "Brócoli gratinado con queso", momento: "cena", req: ["brocoli", "queso"], opc: ["bacon", "huevos"], proteina: 16,
+    pasos: ["Brócoli en arbolitos: microondas 4 min con un dedo de agua.", "A una fuente con queso por encima (y bacon si hay).", "Gratina en horno o AirFryer 6-8 min hasta que burbujee.", "La verdura que Gaby tolera — el queso hace el resto."], aire: true },
+  { id: "n_sandwich_atun", nombre: "Sándwich de atún", momento: "cena", req: ["pan", "atun"], opc: ["queso", "lechuga"], proteina: 22,
+    pasos: ["Atún escurrido, mezclado con un poco de queso o mayonesa.", "Al pan, tostado 2 min por lado si apetece caliente.", "≈ 22 g de proteína. (Este es de Gaby: Jerry ni lo verá en su menú.)"] },
+  { id: "n_crepes_salados", nombre: "Crepes salados de jamón y queso", momento: "cena", req: ["harina", "huevos", "leche", "queso"], opc: ["jamon", "bacon"], proteina: 20,
+    pasos: ["Masa de crepes fina (huevo + leche + harina).", "Rellena en caliente con queso y jamón: se funde solo.", "Dobla en triángulo y medio minuto más por lado."] },
+  { id: "n_caldo_fideos", nombre: "Sopa de caldo con fideos", momento: "cena", req: ["caldo", "pasta"], opc: ["pollo", "huevos"], proteina: 12,
+    pasos: ["Caldo hirviendo + un puñado de fideos: 5-7 min.", "Con pollo desmigado o un huevo batido en hilo, sube a cena completa.", "Para las noches de llegar cansados de la tienda."] }
 );
 
 export const recetaPorId = (id) => RECETAS.find((r) => r.id === id) || null;

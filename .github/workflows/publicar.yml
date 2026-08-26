@@ -52,6 +52,22 @@ jobs:
           echo "Se publican estos archivos:"
           ls -la _web
 
+      # La versión de Gaby: la MISMA app (mismo código, misma base de
+      # datos), pero con su nombre y su manifiesto, para que al instalarla
+      # en su iPhone el icono diga "Gaby's Life" y no el de Jerry. Se
+      # genera aquí a partir de index.html para que nunca se quede atrás.
+      - name: La página de Gaby (gaby.html + su manifiesto)
+        run: |
+          sed -e "s/Jerry’s Life/Gaby’s Life/g" \
+              -e "s/Jerry’s <span>/Gaby’s <span>/g" \
+              -e "s/Hola, Jerry/Hola, Gaby/g" \
+              -e 's/href="manifest.json/href="manifest-gaby.json/' \
+              _web/index.html > _web/gaby.html
+          sed -e "s/Jerry’s Life/Gaby’s Life/g" \
+              -e 's|"start_url": *"[^"]*"|"start_url": "./gaby.html"|' \
+              _web/manifest.json > _web/manifest-gaby.json
+          grep -c "Gaby" _web/gaby.html _web/manifest-gaby.json
+
       - uses: actions/configure-pages@v5
 
       - uses: actions/upload-pages-artifact@v3

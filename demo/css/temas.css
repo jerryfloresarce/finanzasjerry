@@ -509,6 +509,68 @@ html[data-tema="escarcha"] {
 }
 
 /* =========================================================
+   ROSA PASTEL — aesthetic de Pinterest: rosa, beige y marrón
+   =========================================================
+   El único tema CLARO de la casa, y a propósito: minimalista, nada
+   cargado, como una libreta bonita. Rosa pastel de acento, beige de
+   fondo y marrón para leer. */
+html[data-tema="rosa"] {
+  --bg: #f6efe7;
+  --bg-elevated: #f9f4ed;
+  --surface: #fdf9f3;
+  --surface-hover: #f3e8e3;
+  --border: rgba(92, 70, 56, 0.13);
+  --border-strong: rgba(92, 70, 56, 0.24);
+
+  --text-primary: #4b382e;
+  --text-secondary: #8a6f5f;
+  --text-muted: #ab937f;
+
+  /* Rosa pastel, pero con cuerpo suficiente para leerse sobre beige. */
+  --accent: #d9849f;
+  --accent-dim: #b96f89;
+  --accent-soft: rgba(217, 132, 159, 0.16);
+  --accent-soft-strong: rgba(217, 132, 159, 0.3);
+
+  --success: #74996f;
+  --danger: #c96b5c;
+  --danger-soft: rgba(201, 107, 92, 0.15);
+  --warning: #c98f45;
+  --warning-soft: rgba(201, 143, 69, 0.16);
+
+  --on-accent: #3f1f2b;
+  --on-accent-dim: #fdf3f6;
+  --on-danger: #ffffff;
+
+  --atm-luz-1: rgba(233, 180, 197, 0.36);
+  --atm-luz-2: rgba(226, 205, 179, 0.4);
+  --atm-luz-3: rgba(197, 160, 138, 0.22);
+  --atm-base-1: #f8f0e8;
+  --atm-base-2: #f4ebe1;
+  --atm-base-3: #eee2d6;
+  --atm-lluvia: rgba(255, 255, 255, 0.35);
+
+  /* Topitos suaves, de papel de carta. */
+  --atm-patron: radial-gradient(rgba(217, 132, 159, 0.18) 1.2px, transparent 1.2px);
+  --atm-patron-tam: 26px 26px;
+
+  /* Un corazón, claro. */
+  --marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M12%2021.35l-1.45-1.32C5.4%2015.36%202%2012.28%202%208.5%202%205.42%204.42%203%207.5%203c1.74%200%203.41.81%204.5%202.09C13.09%203.81%2014.76%203%2016.5%203%2019.58%203%2022%205.42%2022%208.5c0%203.78-3.4%206.86-8.55%2011.54L12%2021.35z%22%2F%3E%3C%2Fsvg%3E");
+
+  --hero-imagen: none;
+  --hero-scrim: linear-gradient(100deg, rgba(246, 239, 231, 0.12) 0%, rgba(246, 239, 231, 0.38) 55%, rgba(246, 239, 231, 0.1) 100%);
+
+  --chart-rejilla: rgba(92, 70, 56, 0.1);
+  --chart-eje: #a98f7e;
+  --chart-leyenda: #8a6f5f;
+  --chart-borde: #fdf9f3;
+  --paleta-gastos: #c96b5c, #dd9282, #a44c3f, #d9849f, #b96f89, #8d3c31;
+  --paleta-ingresos: #74996f, #a3c0a4, #5f8462, #d9849f, #cbb18f, #e7b9c8;
+  --paleta-categorias: #d9849f, #74996f, #c98f45, #c96b5c, #a98f7e, #b96f89, #8fb0b5, #cbb18f;
+  --paleta-avatares: #d9849f, #74996f, #c98f45, #b96f89, #a98f7e, #8fb0b5;
+}
+
+/* =========================================================
    SELECTOR DE TEMAS (panel de Mi cuenta)
    ========================================================= */
 
@@ -618,6 +680,12 @@ html[data-tema="escarcha"] {
   --muestra-fondo: #0a060c;
   --muestra-acento: #ff4d8d;
   --muestra-marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12%201.6v20.8M3%206.8l18%2010.4M3%2017.2%2021%206.8%22%2F%3E%3Cpath%20d%3D%22M9.4%204.4%2012%201.8l2.6%202.6M9.4%2019.6%2012%2022.2l2.6-2.6M3.1%2010.2l-.5-3.6%203.6-.5M20.9%2013.8l.5%203.6-3.6.5M6.2%2018.4l-3.6-.5.5-3.6M17.8%205.6l3.6.5-.5%203.6%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+}
+
+.tema-btn[data-tema-id="rosa"] .tema-btn__muestra {
+  --muestra-fondo: #f6efe7;
+  --muestra-acento: #d9849f;
+  --muestra-marca: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23000%22%20d%3D%22M12%2021.35l-1.45-1.32C5.4%2015.36%202%2012.28%202%208.5%202%205.42%204.42%203%207.5%203c1.74%200%203.41.81%204.5%202.09C13.09%203.81%2014.76%203%2016.5%203%2019.58%203%2022%205.42%2022%208.5c0%203.78-3.4%206.86-8.55%2011.54L12%2021.35z%22%2F%3E%3C%2Fsvg%3E");
 }
 
 .tema-btn__nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

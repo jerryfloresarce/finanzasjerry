@@ -28,10 +28,11 @@ import {
   rutinaEmpezada,
   diaDeRutina,
   guardarSistema,
-} from "../vida.js?v=63";
-import { abrirReceta } from "./vida-menu.js?v=63";
-import { fechaISO, formatFecha } from "../db.js?v=63";
-import { efectoDeCelebracion } from "../efectos.js?v=63";
+} from "../vida.js?v=64";
+import { abrirReceta } from "./vida-menu.js?v=64";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=64";
+import { fechaISO, formatFecha } from "../db.js?v=64";
+import { efectoDeCelebracion } from "../efectos.js?v=64";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -105,6 +106,21 @@ export function mountVidaHoy() {
       const b = borradorDe(fechaEditando);
       b.editando = true;
       renderVidaHoy(currentState);
+      return;
+    }
+    const btnArranque = e.target.closest("#btn-arranque-gaby");
+    if (btnArranque) {
+      btnArranque.disabled = true;
+      btnArranque.textContent = "Creando sus datos…";
+      try {
+        await arrancarPerfilGaby();
+        efectoDeCelebracion();
+      } catch (err) {
+        btnArranque.disabled = false;
+        btnArranque.textContent = "Crear los datos de Gaby 💗";
+        const aviso = document.getElementById("hoy-error-arranque");
+        if (aviso) aviso.textContent = "No se pudo crear todo. Revisa la conexión y vuelve a intentarlo.";
+      }
       return;
     }
     if (e.target.closest("#btn-start")) {
@@ -255,9 +271,20 @@ export function renderVidaHoy(state) {
   // Antes del Start la app está en modo "preparándose": se puede mirar
   // todo, pero no corre ninguna racha ni se pierde ningún punto. El día
   // que se pulsa el botón es el Día 1, y a partir de ahí cuenta todo.
+  const cardArranque = necesitaArranqueGaby(currentState)
+    ? `<div class="card hoy-aviso"><p class="entity-card__meta" style="margin:0 0 10px;">
+        <strong>El perfil de Gaby está vacío.</strong> Con un toque se crean sus cuentas
+        con sus saldos (Imagin, Trade Republic, Revolut, efectivo), sus gastos fijos
+        (Disney+, Spotify, Canva, las uñas…), sus huchas (Brasil, Corea, su PC) y la
+        Revolut conjunta pasa a verse desde los dos perfiles.
+      </p><button type="button" class="btn btn--primary btn--block" id="btn-arranque-gaby">Crear los datos de Gaby 💗</button>
+      <p class="field-error" id="hoy-error-arranque" style="margin-bottom:0;"></p></div>`
+    : "";
+
   if (!rutinaEmpezada()) {
     el.innerHTML = `
     ${avisoPermisos}
+    ${cardArranque}
     <div class="grid grid--hoy">
       <article class="card start-card">
         <p class="start-card__emoji" aria-hidden="true">💪</p>
@@ -286,6 +313,7 @@ export function renderVidaHoy(state) {
 
   el.innerHTML = `
     ${avisoPermisos}
+    ${cardArranque}
     ${
       ayerAbierto
         ? `<div class="card hoy-aviso"><p class="entity-card__meta" style="margin:0;">

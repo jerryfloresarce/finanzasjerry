@@ -1,5 +1,5 @@
-import { updateConfig } from "./db.js?v=63";
-import { state } from "./store.js?v=63";
+import { updateConfig } from "./db.js?v=64";
+import { state } from "./store.js?v=64";
 
 // Temas de la app. El aspecto de cada uno —colores, trama de fondo y la
 // marca del personaje— vive entero en css/temas.css: aquí solo está el
@@ -47,6 +47,11 @@ export const TEMAS = [
   },
   {
     id: "rosa",
+    nombre: "Rosa pastel",
+    grupo: "Aesthetic",
+  },
+  {
+    id: "rosa",
     nombre: "Rosa",
     grupo: "Colores",
   },
@@ -88,7 +93,18 @@ export const TEMAS = [
 ];
 
 export const TEMA_POR_DEFECTO = "original";
-const CLAVE_LOCAL = "fj-tema";
+
+// Dónde se guarda el tema elegido. Un módulo externo puede cambiar estas
+// claves (por ejemplo, para que cada perfil de la casa tenga su propio
+// tema sin pisarse): si nadie las toca, todo funciona como siempre.
+let CLAVE_LOCAL = "fj-tema";
+let CLAVE_CONFIG = "tema";
+let DEFECTO = TEMA_POR_DEFECTO;
+export function usarClaveDeTema({ config, local, porDefecto } = {}) {
+  if (config) CLAVE_CONFIG = config;
+  if (local) CLAVE_LOCAL = local;
+  if (porDefecto && esTemaValido(porDefecto)) DEFECTO = porDefecto;
+}
 
 export function esTemaValido(id) {
   return TEMAS.some((t) => t.id === id);
@@ -106,9 +122,9 @@ export function temaActual() {
 export function temaGuardadoEnLocal() {
   try {
     const id = localStorage.getItem(CLAVE_LOCAL);
-    return esTemaValido(id) ? id : TEMA_POR_DEFECTO;
+    return esTemaValido(id) ? id : DEFECTO;
   } catch {
-    return TEMA_POR_DEFECTO;
+    return DEFECTO;
   }
 }
 
@@ -125,7 +141,7 @@ function recordarEnLocal(id) {
 // dibujarse: no se enteran solos de que han cambiado las variables CSS, hay
 // que volver a pintarlos.
 export function aplicarTema(id, { guardar = true } = {}) {
-  const tema = esTemaValido(id) ? id : TEMA_POR_DEFECTO;
+  const tema = esTemaValido(id) ? id : DEFECTO;
   if (tema === TEMA_POR_DEFECTO) delete document.documentElement.dataset.tema;
   else document.documentElement.dataset.tema = tema;
 
@@ -161,22 +177,22 @@ function marcarSiElHeroTieneImagen() {
 // igual en el móvil y en el ordenador. Esta función solo LEE: nunca vuelve
 // a escribir, para no pisar lo que haya elegido el otro dispositivo.
 export function sincronizarTemaDesdeConfig(config) {
-  const id = config?.tema;
+  const id = config?.[CLAVE_CONFIG];
   if (!esTemaValido(id) || id === temaActual()) return;
   aplicarTema(id);
 }
 
 export async function elegirTema(id) {
-  const tema = esTemaValido(id) ? id : TEMA_POR_DEFECTO;
+  const tema = esTemaValido(id) ? id : DEFECTO;
   // El estado se apunta el tema elegido ANTES de aplicarlo, no después:
   // aplicarTema avisa en el acto y ese aviso provoca un repintado que
   // vuelve a leer la configuración. Si todavía tuviera el tema anterior,
   // desharía la elección a la vista (y sin conexión no se recuperaría
   // nunca, porque la confirmación de Firestore no llegaría).
-  state.config = { ...state.config, tema };
+  state.config = { ...state.config, [CLAVE_CONFIG]: tema };
   aplicarTema(tema);
   try {
-    await updateConfig({ tema });
+    await updateConfig({ [CLAVE_CONFIG]: tema });
   } catch (err) {
     // Sin conexión el tema ya está aplicado y guardado en el teléfono; lo
     // único que se pierde es que llegue al resto de dispositivos.
