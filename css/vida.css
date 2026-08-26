@@ -410,4 +410,27 @@ a.hoy-toca__fila:hover strong { color: var(--success); }
   padding: 0;
 }
 .info-btn:hover { border-color: var(--success); color: var(--success); }
+
+/* --- La pantalla de Start: la rutina aún no ha empezado --- */
+.start-card { text-align: center; }
+.start-card__emoji { font-size: 44px; margin: 4px 0 8px; }
+.start-card .entity-card__meta { text-align: left; }
+.start-card .entity-card__meta a { color: var(--success); text-decoration: underline dotted; }
+.start-card__lista {
+  list-style: none;
+  margin: 14px 0 18px;
+  padding: 0;
+  text-align: left;
+  display: grid;
+  gap: 8px;
+}
+.start-card__lista li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-soft, var(--text));
+}
+.start-card__lista li i { color: var(--success); font-size: 18px; }
+#btn-start { font-size: 16px; letter-spacing: 0.04em; }
 /* vida:fin */

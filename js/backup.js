@@ -11,7 +11,7 @@ import {
   addPagoPrestamo,
   toTimestamp,
   fromTimestamp,
-} from "./db.js?v=62";
+} from "./db.js?v=63";
 
 export function exportarDatos(state) {
   const data = {

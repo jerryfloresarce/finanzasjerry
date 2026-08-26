@@ -25,10 +25,13 @@ import {
   bloquesDelDia,
   bloqueActual,
   menuDeHoy,
-} from "../vida.js?v=62";
-import { abrirReceta } from "./vida-menu.js?v=62";
-import { fechaISO, formatFecha } from "../db.js?v=62";
-import { efectoDeCelebracion } from "../efectos.js?v=62";
+  rutinaEmpezada,
+  diaDeRutina,
+  guardarSistema,
+} from "../vida.js?v=63";
+import { abrirReceta } from "./vida-menu.js?v=63";
+import { fechaISO, formatFecha } from "../db.js?v=63";
+import { efectoDeCelebracion } from "../efectos.js?v=63";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -104,6 +107,19 @@ export function mountVidaHoy() {
       renderVidaHoy(currentState);
       return;
     }
+    if (e.target.closest("#btn-start")) {
+      // El momento importante. Se pregunta una vez, en serio, y desde ese
+      // día cuenta todo: la racha, los puntos, el bote y el Día 1.
+      if (!confirm("¿Empezamos? Hoy será el Día 1 y a partir de aquí cuenta todo: racha, puntos y bote. 💪")) return;
+      try {
+        await guardarSistema({ fecha_inicio: fechaISO() });
+        efectoDeCelebracion();
+      } catch (err) {
+        const aviso = document.getElementById("hoy-error");
+        if (aviso) aviso.textContent = "No se pudo guardar. Revisa la conexión y vuelve a intentarlo.";
+      }
+      return;
+    }
     if (e.target.closest("#btn-cerrar-dia")) {
       const b = borradorDe(fechaEditando);
       const peso = document.getElementById("hoy-peso")?.value ?? "";
@@ -167,10 +183,8 @@ export function renderVidaHoy(state) {
       <span class="hoy-check__marca"><i class="ph-bold ph-check" aria-hidden="true"></i></span>
     </button>`;
 
-  el.innerHTML = `
-    ${
-      vida.sinPermisos
-        ? `<div class="card hoy-aviso">
+  const avisoPermisos = vida.sinPermisos
+    ? `<div class="card hoy-aviso">
       <h2 class="card__title">Falta un paso en Firebase</h2>
       <p class="entity-card__meta">
         Este apartado guarda en tres colecciones nuevas y tus reglas de
@@ -180,8 +194,98 @@ export function renderVidaHoy(state) {
         Hasta entonces, lo que marques aquí no se puede guardar.
       </p>
     </div>`
-        : ""
-    }
+    : "";
+
+  // La tarjeta de "qué toca hoy" con el horario se pinta igual antes y
+  // después del Start: antes es el avance de cómo será un día; después,
+  // el día mismo.
+  const cardQueToca = `
+      <article class="card">
+        <h2 class="card__title">Qué toca hoy</h2>
+        <div class="hoy-toca">
+          <a class="hoy-toca__fila" href="#/entreno">
+            <span class="hoy-check__icon"><i class="ph ph-barbell" aria-hidden="true"></i></span>
+            <span><strong>${entrenoDelDia.nombre}</strong><br /><span class="entity-card__meta">Tocar para registrarlo</span></span>
+          </a>
+          ${
+            menuHoy?.comida || menuHoy?.cena
+              ? `
+          ${menuHoy.desayuno ? `<button type="button" class="hoy-toca__fila hoy-toca__fila--boton" data-receta="${menuHoy.desayuno.id}">
+            <span class="hoy-check__icon"><i class="ph ph-sun" aria-hidden="true"></i></span>
+            <span><strong>Desayuno:</strong> ${menuHoy.desayuno.nombre}<br /><span class="entity-card__meta">≈ ${menuHoy.desayuno.proteina} g de proteína · toca para la guía</span></span>
+          </button>` : ""}
+          ${menuHoy.comida ? `<button type="button" class="hoy-toca__fila hoy-toca__fila--boton" data-receta="${menuHoy.comida.id}">
+            <span class="hoy-check__icon"><i class="ph ph-fork-knife" aria-hidden="true"></i></span>
+            <span><strong>Comida:</strong> ${menuHoy.comida.nombre}<br /><span class="entity-card__meta">Toca y sale la guía rápida · ≈ ${menuHoy.comida.proteina} g de proteína</span></span>
+          </button>` : ""}
+          ${menuHoy.cena ? `<button type="button" class="hoy-toca__fila hoy-toca__fila--boton" data-receta="${menuHoy.cena.id}">
+            <span class="hoy-check__icon"><i class="ph ph-moon-stars" aria-hidden="true"></i></span>
+            <span><strong>Cena:</strong> ${menuHoy.cena.nombre}<br /><span class="entity-card__meta">Déjala hecha por la mañana · toca para la guía</span></span>
+          </button>` : ""}`
+              : `
+          <div class="hoy-toca__fila">
+            <span class="hoy-check__icon"><i class="ph ph-cooking-pot" aria-hidden="true"></i></span>
+            <span><strong>Comida:</strong> ${sugerenciaDelDia(ROTACION_COMIDAS, fecha)}<br />
+            <strong>Cena:</strong> ${sugerenciaDelDia(ROTACION_CENAS, fecha)}<br />
+            <a href="#/menu" class="entity-card__meta" style="text-decoration:underline dotted;">Haz tu menú de la semana con TUS ingredientes →</a></span>
+          </div>`
+          }
+        </div>
+
+        <h2 class="card__title" style="margin-top:18px;">El día, hora a hora</h2>
+        <div class="dia-linea">
+          ${bloques
+            .map((bl, i) => {
+              const esAhora = !editandoAyer && i === indiceAhora;
+              return `
+            <div class="dia-bloque ${esAhora ? "dia-bloque--ahora" : ""} ${!editandoAyer && i < indiceAhora ? "dia-bloque--pasado" : ""}">
+              <span class="dia-bloque__hora">${bl.h}</span>
+              <span class="dia-bloque__punto" aria-hidden="true"></span>
+              <span class="dia-bloque__cuerpo">
+                <span class="dia-bloque__titulo">${bl.titulo}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
+                ${bl.detalle ? `<span class="dia-bloque__detalle">${bl.detalle}</span>` : ""}
+              </span>
+            </div>`;
+            })
+            .join("")}
+        </div>
+        <a class="btn btn--ghost btn--sm btn--block" href="#/progreso" style="margin-top:14px;">Ver mi progreso y el bote →</a>
+      </article>`;
+
+  // Antes del Start la app está en modo "preparándose": se puede mirar
+  // todo, pero no corre ninguna racha ni se pierde ningún punto. El día
+  // que se pulsa el botón es el Día 1, y a partir de ahí cuenta todo.
+  if (!rutinaEmpezada()) {
+    el.innerHTML = `
+    ${avisoPermisos}
+    <div class="grid grid--hoy">
+      <article class="card start-card">
+        <p class="start-card__emoji" aria-hidden="true">💪</p>
+        <h2 class="card__title">Todo listo. Falta que tú digas YA.</h2>
+        <p class="entity-card__meta">
+          La rutina todavía no ha empezado: aquí no corre ninguna racha ni se
+          pierde ningún punto. Tómate el tiempo de dejarlo todo preparado —
+          mira el horario, marca tus ingredientes en el
+          <a href="#/menu">menú</a>, echa un ojo al
+          <a href="#/entreno">entreno</a> — y cuando lo tengas claro, pulsa
+          el botón. Ese día será tu <strong>Día 1</strong>.
+        </p>
+        <ul class="start-card__lista">
+          <li><i class="ph-fill ph-flame" aria-hidden="true"></i> La racha y los puntos del día</li>
+          <li><i class="ph-fill ph-piggy-bank" aria-hidden="true"></i> El bote de recompensas</li>
+          <li><i class="ph-fill ph-books" aria-hidden="true"></i> La fase de estudio (30 → 60 min)</li>
+          <li><i class="ph-fill ph-trophy" aria-hidden="true"></i> Las semanas 6/7 y los logros</li>
+        </ul>
+        <p class="field-error" id="hoy-error"></p>
+        <button type="button" class="btn btn--primary btn--block hoy-cerrar" id="btn-start">START · empezar hoy 💪</button>
+      </article>
+      ${cardQueToca}
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    ${avisoPermisos}
     ${
       ayerAbierto
         ? `<div class="card hoy-aviso"><p class="entity-card__meta" style="margin:0;">
@@ -193,7 +297,7 @@ export function renderVidaHoy(state) {
     <div class="hoy-cabecera">
       <div>
         <p class="hoy-cabecera__fecha">${editandoAyer ? "Cerrando AYER · " : ""}${tituloFecha.charAt(0).toUpperCase() + tituloFecha.slice(1)}</p>
-        <p class="hoy-cabecera__racha"><i class="ph-fill ph-flame" aria-hidden="true"></i> Racha: <strong>${racha}</strong> ${racha === 1 ? "día" : "días"}</p>
+        <p class="hoy-cabecera__racha"><i class="ph-fill ph-flame" aria-hidden="true"></i> Racha: <strong>${racha}</strong> ${racha === 1 ? "día" : "días"}${diaDeRutina(hoyId) ? ` · Día <strong>${diaDeRutina(hoyId)}</strong>` : ""}</p>
       </div>
       <div class="hoy-puntos ${puntos >= 100 ? "hoy-puntos--pleno" : ""}">
         <span class="hoy-puntos__num">${puntos}</span>
@@ -247,58 +351,7 @@ export function renderVidaHoy(state) {
               </button>`
         }
       </article>
-
-      <article class="card">
-        <h2 class="card__title">Qué toca hoy</h2>
-        <div class="hoy-toca">
-          <a class="hoy-toca__fila" href="#/entreno">
-            <span class="hoy-check__icon"><i class="ph ph-barbell" aria-hidden="true"></i></span>
-            <span><strong>${entrenoDelDia.nombre}</strong><br /><span class="entity-card__meta">Tocar para registrarlo</span></span>
-          </a>
-          ${
-            menuHoy?.comida || menuHoy?.cena
-              ? `
-          ${menuHoy.desayuno ? `<button type="button" class="hoy-toca__fila hoy-toca__fila--boton" data-receta="${menuHoy.desayuno.id}">
-            <span class="hoy-check__icon"><i class="ph ph-sun" aria-hidden="true"></i></span>
-            <span><strong>Desayuno:</strong> ${menuHoy.desayuno.nombre}<br /><span class="entity-card__meta">≈ ${menuHoy.desayuno.proteina} g de proteína · toca para la guía</span></span>
-          </button>` : ""}
-          ${menuHoy.comida ? `<button type="button" class="hoy-toca__fila hoy-toca__fila--boton" data-receta="${menuHoy.comida.id}">
-            <span class="hoy-check__icon"><i class="ph ph-fork-knife" aria-hidden="true"></i></span>
-            <span><strong>Comida:</strong> ${menuHoy.comida.nombre}<br /><span class="entity-card__meta">Toca y sale la guía rápida · ≈ ${menuHoy.comida.proteina} g de proteína</span></span>
-          </button>` : ""}
-          ${menuHoy.cena ? `<button type="button" class="hoy-toca__fila hoy-toca__fila--boton" data-receta="${menuHoy.cena.id}">
-            <span class="hoy-check__icon"><i class="ph ph-moon-stars" aria-hidden="true"></i></span>
-            <span><strong>Cena:</strong> ${menuHoy.cena.nombre}<br /><span class="entity-card__meta">Déjala hecha por la mañana · toca para la guía</span></span>
-          </button>` : ""}`
-              : `
-          <div class="hoy-toca__fila">
-            <span class="hoy-check__icon"><i class="ph ph-cooking-pot" aria-hidden="true"></i></span>
-            <span><strong>Comida:</strong> ${sugerenciaDelDia(ROTACION_COMIDAS, fecha)}<br />
-            <strong>Cena:</strong> ${sugerenciaDelDia(ROTACION_CENAS, fecha)}<br />
-            <a href="#/menu" class="entity-card__meta" style="text-decoration:underline dotted;">Haz tu menú de la semana con TUS ingredientes →</a></span>
-          </div>`
-          }
-        </div>
-
-        <h2 class="card__title" style="margin-top:18px;">El día, hora a hora</h2>
-        <div class="dia-linea">
-          ${bloques
-            .map((bl, i) => {
-              const esAhora = !editandoAyer && i === indiceAhora;
-              return `
-            <div class="dia-bloque ${esAhora ? "dia-bloque--ahora" : ""} ${!editandoAyer && i < indiceAhora ? "dia-bloque--pasado" : ""}">
-              <span class="dia-bloque__hora">${bl.h}</span>
-              <span class="dia-bloque__punto" aria-hidden="true"></span>
-              <span class="dia-bloque__cuerpo">
-                <span class="dia-bloque__titulo">${bl.titulo}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
-                ${bl.detalle ? `<span class="dia-bloque__detalle">${bl.detalle}</span>` : ""}
-              </span>
-            </div>`;
-            })
-            .join("")}
-        </div>
-        <a class="btn btn--ghost btn--sm btn--block" href="#/progreso" style="margin-top:14px;">Ver mi progreso y el bote →</a>
-      </article>
+      ${cardQueToca}
     </div>
   `;
 }

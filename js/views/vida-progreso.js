@@ -22,10 +22,12 @@ import {
   updateRecompensa,
   deleteRecompensa,
   lunesDe,
-} from "../vida.js?v=62";
-import { fechaISO, fromTimestamp, formatEUR } from "../db.js?v=62";
-import { colorTema } from "../tema.js?v=62";
-import { efectoDeCelebracion } from "../efectos.js?v=62";
+  rutinaEmpezada,
+  diaDeRutina,
+} from "../vida.js?v=63";
+import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=63";
+import { colorTema } from "../tema.js?v=63";
+import { efectoDeCelebracion } from "../efectos.js?v=63";
 
 let currentState = null;
 let chartPeso = null;
@@ -153,6 +155,14 @@ export function renderVidaProgreso(state) {
   if (!ejercicioElegido) ejercicioElegido = "Press banca";
 
   el.innerHTML = `
+    ${
+      rutinaEmpezada()
+        ? `<p class="entity-card__meta" style="margin:0 0 10px;">Día <strong>${diaDeRutina()}</strong> · empezaste el ${formatFecha(new Date(vida.sistema.fecha_inicio + "T12:00:00"))}</p>`
+        : `<div class="card hoy-aviso"><p class="entity-card__meta" style="margin:0;">
+            La rutina todavía no ha empezado: todo esto arranca en cero el día
+            que pulses <strong>START</strong> en <a href="#/hoy">Hoy</a>.
+          </p></div>`
+    }
     <div class="progreso-kpis">
       <div class="kpi-tile"><span class="kpi-tile__label">Racha</span><span class="kpi-tile__value">🔥 ${actual}</span><span class="entity-card__meta">mejor: ${mejor}</span></div>
       <div class="kpi-tile"><span class="kpi-tile__label">Semanas 6/7</span><span class="kpi-tile__value">${semanasCumplidas}</span></div>

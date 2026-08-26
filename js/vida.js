@@ -16,8 +16,8 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=62";
-import { fechaISO } from "./db.js?v=62";
+import { db } from "./firebase-init.js?v=63";
+import { fechaISO } from "./db.js?v=63";
 
 // ---------- Las reglas del sistema ----------
 
@@ -147,6 +147,28 @@ const col = (n) => collection(db, n);
 let iniciado = false;
 let onChange = null;
 
+// La rutina no empieza sola: empieza el día que se pulsa START en la
+// pantalla Hoy, y esa fecha queda en configuracion/sistema.fecha_inicio.
+// Cualquier día cerrado ANTES (pruebas, trasteos) se aparta aquí, en un
+// único sitio, para que la racha, el bote, los logros y las gráficas
+// arranquen limpios desde el Día 1 de verdad.
+let diasCrudos = [];
+function aplicarFiltroDeInicio() {
+  const inicio = vida.sistema.fecha_inicio;
+  vida.dias = inicio ? diasCrudos.filter((d) => d.id >= inicio) : diasCrudos;
+}
+
+export const rutinaEmpezada = () => Boolean(vida.sistema.fecha_inicio);
+
+// Qué día de la rutina es una fecha: 1 el día del Start, 2 el siguiente...
+// null si aún no se ha empezado o la fecha es anterior.
+export function diaDeRutina(fechaId = fechaISO()) {
+  const inicio = vida.sistema.fecha_inicio;
+  if (!inicio || fechaId < inicio) return null;
+  const ms = new Date(fechaId + "T12:00:00") - new Date(inicio + "T12:00:00");
+  return Math.round(ms / 86400000) + 1;
+}
+
 export function initVida(cb) {
   onChange = cb;
   if (iniciado) return;
@@ -170,7 +192,10 @@ export function initVida(cb) {
       }
     );
 
-  escucha("dias", (docs) => (vida.dias = docs.sort((a, b) => a.id.localeCompare(b.id))));
+  escucha("dias", (docs) => {
+    diasCrudos = docs.sort((a, b) => a.id.localeCompare(b.id));
+    aplicarFiltroDeInicio();
+  });
   escucha("entrenos", (docs) => (vida.entrenos = docs.sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""))));
   escucha("recompensas", (docs) => (vida.recompensas = docs));
   escucha("inversiones", (docs) => (vida.inversiones = docs.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""))));
@@ -186,6 +211,9 @@ export function initVida(cb) {
     doc(db, "configuracion", "sistema"),
     (snap) => {
       vida.sistema = snap.exists() ? snap.data() : {};
+      // El filtro depende de fecha_inicio, y este documento puede llegar
+      // después de los días: se reaplica con cada cambio.
+      aplicarFiltroDeInicio();
       onChange?.();
     },
     () => onChange?.()
