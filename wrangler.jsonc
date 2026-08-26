@@ -11,6 +11,11 @@
 {
   "name": "finanzasjerry",
   "compatibility_date": "2026-08-01",
+  // wrangler ejecuta esto ANTES de desplegar, así que _site existe
+  // siempre, sin depender de que el panel tenga un comando de build.
+  "build": {
+    "command": "node generar-web.mjs"
+  },
   "assets": {
     "directory": "_site",
     "html_handling": "auto-trailing-slash",
