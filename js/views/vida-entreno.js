@@ -21,16 +21,27 @@ import {
   tecnicaDe,
   urlVideoTecnica,
   TECNICA_CROL,
-} from "../vida.js?v=72";
-import { fechaISO, formatFecha } from "../db.js?v=72";
-import { efectoAlGuardar } from "../efectos.js?v=72";
-import { openModal, closeModal } from "../modal.js?v=72";
+} from "../vida.js?v=73";
+import { fechaISO, formatFecha } from "../db.js?v=73";
+import { efectoAlGuardar } from "../efectos.js?v=73";
+import { openModal, closeModal } from "../modal.js?v=73";
 
 let tipoActivo = null;
 
 function tipoDeHoy() {
   const t = SEMANA_TIPO[new Date().getDay()].tipo;
   return TIPOS_ENTRENO.includes(t) ? t : TIPOS_ENTRENO[0];
+}
+
+// Las zonas del cuerpo que se pueden marcar en una sesión de yoga (o en
+// una rutina simple propia, como unos estiramientos): qué se ha trabajado
+// o estirado hoy. Se guardan en el entreno y se ven en el historial.
+const ZONAS_CUERPO = ["Espalda", "Cuello y hombros", "Caderas", "Piernas", "Brazos", "Core", "Equilibrio", "Relajación"];
+
+// ¿Esta sesión lleva las zonas del cuerpo? El yoga siempre; una rutina
+// propia solo si es simple (sin lista de ejercicios).
+function sesionConZonas(tipo) {
+  return tipo === "yoga" || (esRutinaPropia(tipo) && !PLANES[tipo]);
 }
 
 // Si hay algo escrito en el formulario, no se repinta: un dato que llegue
@@ -40,6 +51,7 @@ function tipoDeHoy() {
 // días de fuerza (los retoques de ejercicios se verían solo al recargar).
 function formularioConDatos(el) {
   if (el.querySelector("#entreno-lleno")?.checked) return true;
+  if (el.querySelector("[data-zona].chip--on")) return true;
   return [...el.querySelectorAll('#form-entreno input:not([type="checkbox"])')].some((i) => i.value !== "" && i.dataset.prefill !== i.value);
 }
 
@@ -50,6 +62,11 @@ export function mountVidaEntreno() {
     if (chip) {
       tipoActivo = chip.dataset.tipoEntreno;
       renderVidaEntreno(null, true);
+      return;
+    }
+    const zona = e.target.closest("[data-zona]");
+    if (zona) {
+      zona.classList.toggle("chip--on");
       return;
     }
     const borrar = e.target.closest("[data-borrar-entreno]");
@@ -347,6 +364,8 @@ async function guardarSesion(root) {
   } else {
     const nota = f.querySelector("#entreno-nota")?.value.trim();
     if (nota) data.nota = nota;
+    const zonas = [...f.querySelectorAll("[data-zona].chip--on")].map((b) => b.dataset.zona);
+    if (zonas.length) data.zonas = zonas;
     if (!data.duracion_min) {
       root.querySelector("#entreno-error").textContent = "Apunta cuántos minutos han sido.";
       return;
@@ -418,6 +437,15 @@ export function renderVidaEntreno(_state, forzar = false) {
               : "Cinta al 10–12 %, 5–5,5 km/h, sin agarrarse a las barras. Cualquier cuesta de la calle vale igual."
       }</p>
       ${tipoActivo === "piscina" ? `<button type="button" class="btn btn--ghost btn--sm" id="btn-tecnica-crol" style="margin-bottom:10px;">🏊 Técnica de crol y sesión para aprender</button>` : ""}
+      ${
+        sesionConZonas(tipoActivo)
+          ? `
+      <p class="field__label" style="margin:4px 0 6px;">¿Qué has trabajado o estirado? (opcional)</p>
+      <div class="chips" style="margin-bottom:12px;">
+        ${ZONAS_CUERPO.map((z) => `<button type="button" class="chip" data-zona="${z}">${z}</button>`).join("")}
+      </div>`
+          : ""
+      }
       <label class="field field--full">
         <span class="field__label">Nota (opcional)</span>
         <input type="text" id="entreno-nota" placeholder="${tipoActivo === "piscina" ? "8×50 m a crol" : tipoActivo === "yoga" ? "Con la abuela" : "12 %, 5 km/h"}" data-prefill="" />
@@ -481,7 +509,7 @@ export function renderVidaEntreno(_state, forzar = false) {
               <div class="mini-row">
                 <div class="mini-row__main" style="flex:1; min-width:0;">
                   <span class="mini-row__title">${NOMBRE_TIPO_ENTRENO[e.tipo] || e.tipo} — ${formatFecha(new Date(e.fecha + "T12:00:00"))}${e.gym_lleno ? " · lleno" : ""}</span>
-                  <span class="mini-row__sub">${resumen || e.nota || (e.duracion_min ? e.duracion_min + " min" : "")}</span>
+                  <span class="mini-row__sub">${resumen || [(e.zonas || []).join(", "), e.nota, e.duracion_min ? e.duracion_min + " min" : ""].filter(Boolean).join(" · ")}</span>
                 </div>
                 <button type="button" class="row-edit-btn" data-borrar-entreno="${e.id}" title="Borrar"><i class="ph-thin ph-trash" aria-hidden="true"></i></button>
               </div>`;

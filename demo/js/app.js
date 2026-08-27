@@ -1,29 +1,29 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=72";
-import { state, subscribe, initStore } from "./store.js?v=72";
+import { onAuthReady } from "./auth.js?v=73";
+import { state, subscribe, initStore } from "./store.js?v=73";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=72";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=72";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=72";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=72";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=72";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=72";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=72";
-import { mountMetas, renderMetas } from "./views/metas.js?v=72";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=73";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=73";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=73";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=73";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=73";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=73";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=73";
+import { mountMetas, renderMetas } from "./views/metas.js?v=73";
 // modulo:rutina:inicio
-import { mountRutina, renderRutina } from "./views/rutina.js?v=72";
+import { mountRutina, renderRutina } from "./views/rutina.js?v=73";
 // modulo:rutina:fin
 // modulo:ciclo:inicio
-import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=72";
+import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=73";
 // modulo:ciclo:fin
 // modulo:gimnasio:inicio
-import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=72";
+import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=73";
 // modulo:gimnasio:fin
-import { mountCuentaPanel } from "./views/cuenta.js?v=72";
-import { refreshAnimations } from "./animations.js?v=72";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=72";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=72";
-import { efectoDeEntrada } from "./efectos.js?v=72";
+import { mountCuentaPanel } from "./views/cuenta.js?v=73";
+import { refreshAnimations } from "./animations.js?v=73";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=73";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=73";
+import { efectoDeEntrada } from "./efectos.js?v=73";
 
 const ROUTES = {
   dashboard: renderDashboard,
@@ -238,6 +238,11 @@ document.addEventListener(
   "touchstart",
   (e) => {
     if (window.innerWidth > 860) return;
+    // Un dedo sobre un control que YA se arrastra en horizontal (el
+    // deslizador de años de la cartera, por ejemplo) es para ese control,
+    // no para abrir el menú: sin esto, el gesto del menú se lo comía y el
+    // deslizador solo respondía a toques sueltos, nunca al arrastre.
+    if (e.target.closest('input[type="range"]')) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
     swipeIsHorizontal = null;
