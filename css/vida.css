@@ -515,6 +515,40 @@ a.hoy-toca__fila:hover strong { color: var(--success); }
 }
 .compras-add input::placeholder { color: var(--text-secondary); opacity: 0.7; }
 .compras-add input:focus { border-bottom-color: var(--accent); }
+.compras-cats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px 0 4px;
+}
+.cat-chip {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  opacity: 0.75;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+.cat-chip--on {
+  color: var(--accent);
+  border-color: var(--accent);
+  opacity: 1;
+}
+.cat-chip--nueva { border: 1px dashed var(--border, rgba(255, 255, 255, 0.15)); }
+.compras-cat {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+  margin: 16px 0 2px;
+}
+.compras-cat:first-child { margin-top: 8px; }
 .compras-lista { margin-top: 6px; }
 .compra {
   display: flex;

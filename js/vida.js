@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=71";
-import { fechaISO } from "./db.js?v=71";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=71";
+import { db } from "./firebase-init.js?v=72";
+import { fechaISO } from "./db.js?v=72";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=72";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -432,6 +432,7 @@ export const vida = {
   sistema: {},       // configuracion/sistema (o sistema_gaby): el del perfil visto
   menu: {},          // configuracion/menu: el menú DE CASA, común a los dos
   compras: [],       // configuracion/compras: la lista de la compra de casa
+  comprasCategorias: null, // sus categorías propias (null = las de serie)
   sinPermisos: false, // true si las reglas nuevas aún no están publicadas
   listo: false,
 };
@@ -543,6 +544,7 @@ export function initVida(cb) {
     doc(db, "configuracion", "compras"),
     (snap) => {
       vida.compras = snap.exists() ? snap.data().items || [] : [];
+      vida.comprasCategorias = (snap.exists() && snap.data().categorias) || null;
       onChange?.();
     },
     () => onChange?.()
@@ -577,7 +579,20 @@ export const updateRecompensa = (id, data) => updateDoc(doc(db, "recompensas", i
 export const deleteRecompensa = (id) => deleteDoc(doc(db, "recompensas", id));
 export const guardarSistema = (data) => setDoc(doc(db, "configuracion", esGaby() ? "sistema_gaby" : "sistema"), data, { merge: true });
 export const guardarMenu = (data) => setDoc(doc(db, "configuracion", "menu"), data, { merge: true });
-export const guardarCompras = (items) => setDoc(doc(db, "configuracion", "compras"), { items }, { merge: true });
+export const guardarCompras = (data) => setDoc(doc(db, "configuracion", "compras"), data, { merge: true });
+
+// Las categorías de la lista de la compra: las cinco de casa vienen de
+// serie (en el orden que pidió Jerry) y se pueden crear más desde la
+// propia pantalla. Las guardadas sustituyen a las de serie por completo.
+export const CATEGORIAS_COMPRAS = [
+  { id: "casa", nombre: "Cosas para la casa" },
+  { id: "comida", nombre: "Comida" },
+  { id: "limpieza", nombre: "Limpieza" },
+  { id: "electro", nombre: "Electrodomésticos" },
+  { id: "muebles", nombre: "Muebles" },
+];
+export const categoriasDeCompras = () =>
+  Array.isArray(vida.comprasCategorias) && vida.comprasCategorias.length ? vida.comprasCategorias : CATEGORIAS_COMPRAS;
 export const addInversion = (data) => addDoc(col("inversiones"), sellar(data));
 export const updateInversion = (id, data) => updateDoc(doc(db, "inversiones", id), data);
 export const deleteInversion = (id) => deleteDoc(doc(db, "inversiones", id));
