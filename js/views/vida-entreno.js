@@ -18,10 +18,13 @@ import {
   rutinaPorTipo,
   planRetocado,
   guardarSistema,
-} from "../vida.js?v=69";
-import { fechaISO, formatFecha } from "../db.js?v=69";
-import { efectoAlGuardar } from "../efectos.js?v=69";
-import { openModal, closeModal } from "../modal.js?v=69";
+  tecnicaDe,
+  urlVideoTecnica,
+  TECNICA_CROL,
+} from "../vida.js?v=70";
+import { fechaISO, formatFecha } from "../db.js?v=70";
+import { efectoAlGuardar } from "../efectos.js?v=70";
+import { openModal, closeModal } from "../modal.js?v=70";
 
 let tipoActivo = null;
 
@@ -83,6 +86,17 @@ export function mountVidaEntreno() {
       abrirEditorEjercicios(tipoActivo);
       return;
     }
+    const tec = e.target.closest("[data-tecnica]");
+    if (tec) {
+      const plan = PLANES[tipoActivo]?.[Number(tec.dataset.tecnica)];
+      const t = tecnicaDe(plan?.nombre);
+      if (t) abrirTecnica(t, plan.nombre);
+      return;
+    }
+    if (e.target.closest("#btn-tecnica-crol")) {
+      abrirTecnicaCrol();
+      return;
+    }
     if (e.target.closest("#btn-plan-serie")) {
       if (confirm("¿Volver al plan de serie de esta rutina? Tus retoques se pierden (el historial no).")) {
         await guardarSistema({ planes: { [tipoActivo]: null } });
@@ -91,6 +105,55 @@ export function mountVidaEntreno() {
       return;
     }
   });
+}
+
+// ---------- La guía de técnica ----------
+//
+// El "vídeo" que pidió Jerry, en versión app: cada ejercicio con su señal
+// mental, la técnica paso a paso, los errores típicos y un botón que abre
+// los mejores vídeos de ese ejercicio en YouTube. Aprende visual: el texto
+// le dice QUÉ mirar, y el vídeo se lo enseña.
+
+function abrirTecnica(t, nombre) {
+  openModal(
+    `
+    <h2 class="modal__title">${nombre}</h2>
+    <p class="tecnica-senal">💡 <strong>La señal:</strong> ${t.senal}</p>
+    <ol class="receta-pasos">
+      ${t.pasos.map((p) => `<li>${p}</li>`).join("")}
+    </ol>
+    <p class="progreso-grupo">Errores típicos</p>
+    <ul class="tecnica-errores">
+      ${t.errores.map((e) => `<li>${e}</li>`).join("")}
+    </ul>
+    <div class="modal__actions">
+      <a class="btn btn--ghost" href="${urlVideoTecnica(t)}" target="_blank" rel="noopener">▶ Verlo en vídeo</a>
+      <button type="button" class="btn btn--primary" id="btn-cerrar-tecnica">Listo</button>
+    </div>`,
+    { onMount: (root) => root.querySelector("#btn-cerrar-tecnica").addEventListener("click", closeModal) }
+  );
+}
+
+function abrirTecnicaCrol() {
+  const g = TECNICA_CROL;
+  openModal(
+    `
+    <h2 class="modal__title">${g.titulo}</h2>
+    ${g.claves.map((c) => `<p class="tecnica-clave"><strong>${c.nombre}.</strong> ${c.texto}</p>`).join("")}
+    <p class="progreso-grupo">Ejercicios técnicos (drills)</p>
+    <ol class="receta-pasos">
+      ${g.drills.map((d) => `<li>${d}</li>`).join("")}
+    </ol>
+    <p class="progreso-grupo">Tu sesión para aprender (30–40 min)</p>
+    <ol class="receta-pasos">
+      ${g.sesion.map((s) => `<li>${s}</li>`).join("")}
+    </ol>
+    <div class="modal__actions">
+      <a class="btn btn--ghost" href="https://www.youtube.com/results?search_query=${encodeURIComponent(g.video)}" target="_blank" rel="noopener">▶ Verlo en vídeo</a>
+      <button type="button" class="btn btn--primary" id="btn-cerrar-tecnica">Listo</button>
+    </div>`,
+    { onMount: (root) => root.querySelector("#btn-cerrar-tecnica").addEventListener("click", closeModal) }
+  );
 }
 
 // ---------- Editar los ejercicios de una rutina de serie ----------
@@ -324,7 +387,7 @@ export function renderVidaEntreno(_state, forzar = false) {
         return `
         <div class="ejercicio">
           <div class="ejercicio__cabecera">
-            <span class="ejercicio__nombre">${plan.nombre}</span>
+            <span class="ejercicio__nombre">${plan.nombre}${tecnicaDe(plan.nombre) ? ` <button type="button" class="info-btn" data-tecnica="${idx}" title="Cómo se hace">?</button>` : ""}</span>
             <span class="ejercicio__objetivo">${plan.series} × ${plan.repsMin === plan.repsMax ? plan.repsMax : `${plan.repsMin}–${plan.repsMax}`}${plan.etiqueta ? ` ${plan.etiqueta}` : ""}</span>
           </div>
           ${plan.nota ? `<p class="ejercicio__nota">${plan.nota}</p>` : ""}
@@ -347,13 +410,14 @@ export function renderVidaEntreno(_state, forzar = false) {
     cuerpo = `
       <p class="entity-card__meta">${
         tipoActivo === "piscina"
-          ? "10 min suave · 20 min de series (8×50 m, 30 s de descanso) · 10 min suave. Cuenta como entreno cumplido."
+          ? "Mientras el crol no salga solo: la sesión para APRENDER que hay en la guía de abajo (drills incluidos). Cuando salga, se vuelve al 10 suave · 8×50 m · 10 suave. Las dos cuentan igual."
           : tipoActivo === "yoga"
             ? "La clase con la abuela (o una sesión en casa con un vídeo). Moverse cuenta, el nivel da igual."
             : esRutinaPropia(tipoActivo)
               ? "Sesión simple: apunta los minutos y, si quieres, una nota de qué hiciste."
               : "Cinta al 10–12 %, 5–5,5 km/h, sin agarrarse a las barras. Cualquier cuesta de la calle vale igual."
       }</p>
+      ${tipoActivo === "piscina" ? `<button type="button" class="btn btn--ghost btn--sm" id="btn-tecnica-crol" style="margin-bottom:10px;">🏊 Técnica de crol y sesión para aprender</button>` : ""}
       <label class="field field--full">
         <span class="field__label">Nota (opcional)</span>
         <input type="text" id="entreno-nota" placeholder="${tipoActivo === "piscina" ? "8×50 m a crol" : tipoActivo === "yoga" ? "Con la abuela" : "12 %, 5 km/h"}" data-prefill="" />

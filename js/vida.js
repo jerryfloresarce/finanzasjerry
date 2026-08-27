@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=69";
-import { fechaISO } from "./db.js?v=69";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=69";
+import { db } from "./firebase-init.js?v=70";
+import { fechaISO } from "./db.js?v=70";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=70";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -66,7 +66,7 @@ export const PUNTOS_BONUS = 5;
 // La semana tipo: qué toca cada día (getDay(): 0 = domingo).
 const SEMANA_TIPO_JERRY = {
   1: { tipo: "fuerza_A", nombre: "Pierna — tus máquinas de siempre" },
-  2: { tipo: "caminata", nombre: "Caminata con elevación, 35 min" },
+  2: { tipo: "core", nombre: "Caminata + core — el día ligero" },
   3: { tipo: "fuerza_B", nombre: "Tirón — espalda y bíceps" },
   4: { tipo: "piscina", nombre: "Piscina con tu hermano" },
   5: { tipo: "fuerza_C", nombre: "Empuje — pecho, hombro y tríceps" },
@@ -88,6 +88,7 @@ export const NOMBRE_TIPO_ENTRENO = {
   fuerza_A: "Pierna",
   fuerza_B: "Tirón",
   fuerza_C: "Empuje",
+  core: "Core + caminata",
   piscina: "Piscina",
   caminata: "Caminata",
   yoga: "Yoga",
@@ -96,7 +97,7 @@ export const NOMBRE_TIPO_ENTRENO = {
 
 // Los chips de la pantalla Entreno, por perfil: Gaby no levanta pesas
 // (por ahora), registra yoga y paseos.
-const TIPOS_ENTRENO_JERRY = ["fuerza_A", "fuerza_B", "fuerza_C", "piscina", "caminata"];
+const TIPOS_ENTRENO_JERRY = ["fuerza_A", "fuerza_B", "fuerza_C", "core", "piscina", "caminata"];
 const TIPOS_ENTRENO_GABY = ["yoga", "caminata"];
 
 // Los planes de fuerza de Jerry: SU rutina de siempre (pierna / espalda y
@@ -126,6 +127,15 @@ const PLANES_JERRY = {
     { nombre: "Curl en máquina", series: 2, repsMin: 12, repsMax: 15, pesoInicial: 0 },
     { nombre: "Lumbar (espalda baja)", series: 2, repsMin: 12, repsMax: 15, pesoInicial: 0, nota: "Si sobra tiempo: la espalda baja que a veces hacías, y protege todo lo demás" },
   ],
+  // Martes, el día ligero: caminata en cuesta para recuperar y quemar sin
+  // machacar (las piernas del lunes lo agradecen), y el core que faltaba —
+  // con su máquina de abdominales de siempre. Todo junto, media horita.
+  core: [
+    { nombre: "Caminata en cuesta (cinta 10–12 % · 5 km/h)", series: 1, repsMin: 25, repsMax: 30, pesoInicial: 0, etiqueta: "minutos", nota: "Cualquier cuesta de la calle vale igual; sin agarrarse a las barras" },
+    { nombre: "Crunch en máquina", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 15, nota: "Tu máquina de siempre: empieza en 15 kg y que la app te suba" },
+    { nombre: "Elevaciones de piernas (tumbado o colgado)", series: 3, repsMin: 10, repsMax: 15, pesoInicial: 0 },
+    { nombre: "Plancha", series: 3, repsMin: 30, repsMax: 40, pesoInicial: 0, etiqueta: "segundos" },
+  ],
   fuerza_C: [
     { nombre: "Press banca", series: 4, repsMin: 6, repsMax: 8, pesoInicial: 70 },
     { nombre: "Press de hombro (máquina o mancuernas)", series: 3, repsMin: 8, repsMax: 10, pesoInicial: 32.5 },
@@ -133,6 +143,139 @@ const PLANES_JERRY = {
     { nombre: "Elevaciones laterales (máquina o mancuernas)", series: 3, repsMin: 12, repsMax: 15, pesoInicial: 8, nota: "La máquina de los aleteos" },
     { nombre: "Posterior en polea cruzada", series: 2, repsMin: 15, repsMax: 15, pesoInicial: 0, nota: "Brazos cruzados y tira hacia los lados, como hacías" },
     { nombre: "Tríceps en polea (cuerda o barra, alterna)", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 20, nota: "El francés, solo si sobra tiempo" },
+  ],
+};
+
+// ---------- La guía de técnica ----------
+//
+// La "presentación" que pidió Jerry: cada ejercicio con su técnica paso a
+// paso, la señal mental que lo arregla casi todo, los errores típicos y un
+// enlace que abre los mejores vídeos de ese ejercicio en YouTube (para la
+// parte visual de verdad). Se busca por palabras clave del nombre, así
+// sigue funcionando aunque renombre o retoque los ejercicios. El orden
+// importa: lo específico antes que lo genérico (curl femoral antes que
+// curl, elevaciones laterales antes que elevaciones de piernas).
+
+const TECNICAS = [
+  { clave: /hacka|hack|prensa/i, video: "tecnica hack squat maquina",
+    senal: "Empuja el suelo con TODO el pie, no con las puntas.",
+    pasos: ["Espalda y cabeza pegadas al respaldo, pies a la anchura de los hombros y puntas un poco hacia fuera.", "Baja controlando 2-3 segundos, hasta que las rodillas pasen de 90° sin que el culo se despegue.", "Sube empujando con todo el pie, sin bloquear las rodillas del todo arriba."],
+    errores: ["Despegar la cadera del respaldo abajo (la espalda lo paga).", "Bajar poco y cargar mucho: media repetición no cuenta.", "Las rodillas metiéndose hacia dentro al subir."] },
+  { clave: /curl femoral/i, video: "tecnica curl femoral tumbado maquina",
+    senal: "Como clavarte los talones en el culo, despacio a la vuelta.",
+    pasos: ["Ajusta el rodillo justo encima de los talones y la rodilla alineada con el eje de la máquina.", "Dobla las piernas llevando los talones hacia el glúteo, sin que la cadera se levante.", "Vuelve LENTO (2-3 segundos): esa mitad es la que hace crecer el femoral."],
+    errores: ["Dar el tirón con la cadera para mover más peso.", "Soltar el peso de golpe a la vuelta."] },
+  { clave: /extensiones de cu|cuadriceps|cuádriceps/i, video: "tecnica extension cuadriceps maquina",
+    senal: "Aprieta el muslo arriba un segundo, como enseñando el cuádriceps.",
+    pasos: ["Rodilla alineada con el eje de la máquina y el rodillo sobre el empeine del tobillo.", "Estira las piernas hasta arriba y aguanta un segundo apretando.", "Baja en 2-3 segundos sin que las placas lleguen a apoyarse del todo."],
+    errores: ["Despegar el culo del asiento en las últimas repes.", "Rebotar abajo con las placas."] },
+  { clave: /rumano|peso muerto/i, video: "tecnica peso muerto rumano mancuernas",
+    senal: "El culo va hacia ATRÁS, no hacia abajo: las mancuernas te rozan las piernas.",
+    pasos: ["De pie, mancuernas delante de los muslos, rodillas un pelín dobladas (y así se quedan).", "Empuja la cadera hacia atrás dejando bajar las mancuernas pegadas a las piernas, espalda recta.", "Cuando notes el tirón fuerte en los femorales (media espinilla más o menos), vuelve apretando el glúteo."],
+    errores: ["Redondear la espalda por querer bajar más de lo que el femoral da.", "Doblar las rodillas y convertirlo en una sentadilla.", "Alejar las mancuernas del cuerpo."] },
+  { clave: /abductor|aductor/i, video: "maquina abductor aductor tecnica",
+    senal: "Abre (o cierra) despacio y aguanta medio segundo al final.",
+    pasos: ["Espalda apoyada y manos en los agarres, sin empujar con ellas.", "Abre (abductor) o cierra (aductor) en 1-2 segundos y aguanta medio segundo.", "Vuelve frenando el peso, no dejándolo caer."],
+    errores: ["Medio recorrido con mucho peso.", "En el aductor: forzar con la ingle cargada — si la notas, baja el peso o sáltalo, y punto."] },
+  { clave: /gemelos/i, video: "tecnica elevacion de gemelos de pie",
+    senal: "Pausa de un segundo ABAJO, con el talón bien caído: ahí está el ejercicio.",
+    pasos: ["Puntas de los pies en el borde, talones colgando.", "Deja caer el talón todo lo que dé y para un segundo (sin rebote).", "Sube de puntillas todo lo alto que puedas y aguanta otro segundo."],
+    errores: ["Rebotar como un muelle: eso es el tendón, no el músculo.", "Recorrido corto por ir cargado."] },
+
+  { clave: /jal[oó]n/i, video: "tecnica jalon al pecho polea",
+    senal: "Tira con los CODOS hacia el suelo, las manos solo sujetan.",
+    pasos: ["Agarra la barra, pecho fuera y una ligera inclinación atrás (poca y fija).", "Lleva la barra hacia la parte alta del pecho tirando de los codos hacia abajo y atrás.", "Sube frenando hasta estirar del todo los brazos y sentir el estirón en la espalda.", "Con el agarre cerrado (puños mirándose) es lo mismo: codos pegados al cuerpo y la barra al pecho."],
+    errores: ["Balancearse hacia atrás para mover más placa.", "Llevar la barra a la nuca o tirar solo con los bíceps.", "No estirar los brazos del todo arriba."] },
+  { clave: /remo/i, video: "tecnica remo en maquina sentado",
+    senal: "Imagina que quieres aplastar una nuez entre los omóplatos.",
+    pasos: ["Pecho apoyado (o torso recto), hombros lejos de las orejas.", "Trae la barra hacia ti llevando los codos atrás, hasta juntar los omóplatos.", "Vuelve en 2 segundos dejando que los hombros se estiren un poco al final."],
+    errores: ["Convertirlo en un balanceo de espalda baja.", "Encoger los hombros hacia las orejas.", "Soltar el peso de golpe."] },
+  { clave: /martillo/i, video: "tecnica curl martillo mancuernas",
+    senal: "Los codos pegados al cuerpo, como si los tuvieras cosidos.",
+    pasos: ["De pie, mancuernas a los lados con las palmas mirándose (agarre de martillo).", "Sube doblando solo el codo, sin que se adelante.", "Baja en 2-3 segundos hasta estirar casi del todo."],
+    errores: ["Dar el impulso con la espalda en las últimas repes.", "Subir las dos a la vez balanceándote: mejor alterna si pasa."] },
+  { clave: /curl en m[aá]quina|predicador/i, video: "tecnica curl biceps maquina predicador",
+    senal: "En esta máquina no hay trampa posible: aprovéchalo y baja LENTO.",
+    pasos: ["Ajusta el asiento para que la axila quede apoyada en el borde del cojín.", "Sube hasta arriba y aprieta el bíceps un segundo.", "Baja en 3 segundos hasta estirar casi del todo, sin apoyar las placas."],
+    errores: ["Recorrido a medias por exceso de peso.", "Despegar el brazo del cojín al subir."] },
+  { clave: /lumbar|espalda baja/i, video: "tecnica extension lumbar banco",
+    senal: "Sube hasta la línea recta del cuerpo, ni un centímetro más.",
+    pasos: ["Ajusta el cojín a la altura de la cadera, pies bien fijos.", "Baja doblándote controlado, espalda ordenada.", "Sube apretando glúteo y lumbar hasta quedar en línea recta con las piernas."],
+    errores: ["Hiperextender arriba (doblarse hacia atrás).", "Hacerlo rápido y con rebote."] },
+
+  { clave: /banca/i, video: "tecnica press banca correcta",
+    senal: "Dobla la barra como si quisieras partirla: los codos a 45°, no en cruz.",
+    pasos: ["Ojos debajo de la barra, pies firmes en el suelo, omóplatos juntos y pecho fuera.", "Baja la barra en 2 segundos hasta rozar el pecho a la altura de los pezones, codos a unos 45° del cuerpo.", "Empuja hasta arriba sin que los hombros se despeguen del banco.", "Con 70 kg o más: pide que te den un pase en la última serie, eso no es debilidad, es cabeza."],
+    errores: ["Rebotar la barra en el pecho.", "Codos abiertos en cruz a 90° (los hombros lo pagan).", "Levantar el culo del banco."] },
+  { clave: /press de hombro|militar/i, video: "tecnica press hombro maquina mancuernas",
+    senal: "Empuja hasta arriba sin sacar las costillas: el abdomen apretado.",
+    pasos: ["Sentado con la espalda apoyada, mancuernas (o agarres) a la altura de las orejas.", "Empuja vertical hasta casi juntar las mancuernas arriba, sin bloquear los codos de golpe.", "Baja en 2 segundos hasta las orejas, no hasta los hombros."],
+    errores: ["Arquear la espalda baja para empujar más.", "Bajar a medias.", "Convertirlo en un press inclinado echándose atrás."] },
+  { clave: /cruces|polea baja|polea alta|aperturas/i, video: "tecnica cruces polea pecho crossover",
+    senal: "Un abrazo grande y redondo, no un empujón.",
+    pasos: ["Un pie adelante, torso un poco inclinado, codos apenas doblados y fijos.", "Junta las manos delante del pecho dibujando un arco, como abrazando un árbol.", "Desde polea ALTA el arco baja (pecho medio); desde polea BAJA el arco sube (pecho superior). Alterna semanas.", "Aguanta un segundo al juntar y vuelve frenando el estirón."],
+    errores: ["Doblar y estirar los codos: eso lo convierte en tríceps.", "Cargar tanto que el torso se va con las poleas."] },
+  { clave: /laterales|aleteo/i, video: "tecnica elevaciones laterales maquina",
+    senal: "Levanta los CODOS, no las manos, y para a la altura de los hombros.",
+    pasos: ["En tu máquina de aleteos: ajusta el asiento para que el eje quede a la altura de los hombros.", "Sube abriendo hasta que los codos lleguen a la altura de los hombros.", "Baja en 2-3 segundos frenando: la bajada es la mitad del ejercicio.", "Con mancuernas es igual: codos un pelín doblados y arriba como si sirvieras dos jarras."],
+    errores: ["Subir por encima de los hombros (ahí ya trabaja el trapecio).", "Dar el tirón con el cuerpo.", "Peso de ego: este ejercicio es de PESO PEQUEÑO y muchas repes."] },
+  { clave: /posterior/i, video: "tecnica posterior hombro polea cruzada reverse fly",
+    senal: "Tira ancho, como abriendo unas cortinas pesadas.",
+    pasos: ["Poleas altas: coge la izquierda con la derecha y la derecha con la izquierda, brazos cruzados delante.", "Abre hacia atrás y a los lados con los codos casi rectos, hasta que los brazos queden en cruz.", "Aguanta medio segundo sintiendo la parte de atrás del hombro y vuelve despacio."],
+    errores: ["Tirar hacia abajo en vez de hacia los lados (eso es espalda).", "Cargar mucho: aquí menos es más."] },
+  { clave: /tr[ií]ceps|franc[eé]s/i, video: "tecnica triceps polea cuerda extension",
+    senal: "El codo es una bisagra clavada al cuerpo: SOLO se mueve el antebrazo.",
+    pasos: ["Con la cuerda: empuja hacia abajo y SEPARA las puntas al final, como abriendo la cuerda.", "Con la barra: empuja hasta estirar del todo y aprieta un segundo abajo.", "Vuelve frenando hasta que el antebrazo pase de 90°, con el codo sin moverse del sitio.", "El francés (tumbado, bajando la barra a la frente) déjalo para cuando sobre tiempo: mismo músculo, más riesgo de codo."],
+    errores: ["Echar el cuerpo encima para empujar con el hombro.", "Abrir los codos hacia fuera.", "Medio recorrido arriba."] },
+
+  { clave: /crunch|abdominal/i, video: "tecnica crunch abdominal maquina",
+    senal: "Enróllate como una persiana: acerca las costillas a la cadera.",
+    pasos: ["Tu máquina de siempre: ajusta el asiento y agarra sin tirar con los brazos.", "Enróllate hacia delante echando el aire, acercando las costillas a la cadera.", "Aguanta un segundo abajo y vuelve en 2-3 segundos sin soltar las placas.", "Los 15-20 kg que ponías van bien: progresa igual que en todo lo demás, cuando salgan las 12 limpias, sube."],
+    errores: ["Tirar con los brazos y el cuello en vez de con el abdomen.", "Hacerlo a rebotes rápidos."] },
+  { clave: /elevaciones de piernas|piernas colgado/i, video: "tecnica elevaciones de piernas abdominales",
+    senal: "La zona lumbar pegada al suelo TODO el rato: si se arquea, dobla más las rodillas.",
+    pasos: ["Tumbado, manos bajo el culo o en el suelo, piernas estiradas (o dobladas si eres nuevo).", "Sube las piernas hasta la vertical echando el aire.", "Bájalas DESPACIO y para antes de que la lumbar se despegue del suelo.", "Colgado de una barra es la versión dura: mismas reglas, sin balancearse."],
+    errores: ["Arquear la lumbar al bajar (acorta el recorrido antes).", "Coger carrerilla balanceando las piernas."] },
+  { clave: /plancha/i, video: "tecnica plancha abdominal correcta",
+    senal: "Un tablón del talón a la cabeza: aprieta culo y abdomen a la vez.",
+    pasos: ["Antebrazos en el suelo, codos bajo los hombros, cuerpo recto.", "Aprieta el abdomen como si fueran a darte un golpe, y el glúteo también.", "Respira normal. Cuando la cadera se caiga o se suba, se acabó la serie: los segundos chapuceros no cuentan."],
+    errores: ["La cadera arriba (una montaña) o caída (una hamaca).", "Aguantar la respiración."] },
+  { clave: /caminata|cuesta|cinta/i, video: "caminata inclinada cinta beneficios tecnica",
+    senal: "Pasos naturales, brazos sueltos, y la cuesta hace el resto.",
+    pasos: ["Cinta al 10-12 % y 5-5,5 km/h: debe costar hablar del tirón, pero sin llegar a jadear.", "Nada de agarrarse a las barras: eso le quita la mitad del trabajo.", "25-30 minutos. Una cuesta buena de la calle vale exactamente igual."],
+    errores: ["Agarrarse a la cinta (el clásico).", "Correr: esto es caminar fuerte, es un día de recuperar."] },
+];
+
+export const tecnicaDe = (nombre) => TECNICAS.find((t) => t.clave.test(nombre || "")) || null;
+
+export const urlVideoTecnica = (t) => "https://www.youtube.com/results?search_query=" + encodeURIComponent(t.video);
+
+// La guía de crol para los jueves de piscina: ahora mismo solo sabe crol y
+// le sale regular — esto es el orden en el que se aprende de verdad, con
+// los ejercicios técnicos y una sesión pensada para aprender, no para
+// sufrir. Cuando la técnica salga sola, se vuelve al 8×50.
+export const TECNICA_CROL = {
+  titulo: "Crol: aprenderlo bien de una vez",
+  video: "tecnica crol natacion principiantes errores",
+  claves: [
+    { nombre: "1 · La postura", texto: "Cuerpo horizontal y MIRADA AL FONDO, no hacia delante. En cuanto levantas la cabeza, las piernas se hunden y todo cuesta el doble. La nuca larga, como si te tiraran del pelo hacia atrás." },
+    { nombre: "2 · La respiración (el 80 % del problema)", texto: "El aire se suelta DENTRO del agua, por la nariz o la boca, de forma continua. Fuera solo se coge. Si aguantas el aire bajo el agua, llegas ahogado a cada respiración. Para respirar, gira la cabeza CON el cuerpo hasta que la boca salga — un ojo se queda dentro del agua." },
+    { nombre: "3 · La patada", texto: "Sale de la CADERA, con la pierna casi recta y el tobillo suelto como un flan. Pequeña, rápida y continua, casi sin salir del agua. La patada de rodilla (pedalear) frena en vez de empujar." },
+    { nombre: "4 · La brazada", texto: "La mano entra delante del hombro, te estiras un momento (como alargando el brazo para coger algo), y luego tiras del agua hacia ATRÁS —no hacia abajo— con el codo alto, hasta terminar en el muslo." },
+    { nombre: "5 · El rolido", texto: "El cuerpo gira un poco de lado con cada brazada, como un pollo en el asador. No nadas plano: ese giro es el que te deja respirar sin levantar la cabeza." },
+  ],
+  drills: [
+    "Patada con tabla (4×25 m): brazos en la tabla, cara dentro del agua soltando el aire, y solo patada. Arregla postura, patada y respiración a la vez.",
+    "Punto muerto (4×25 m): un brazo estirado delante quieto; no empieza su brazada hasta que el otro lo toca. Te obliga a estirarte y a no hacer molinillo.",
+    "Puño cerrado (2×25 m): nada con los puños cerrados. Al abrir las manos después, notas de verdad cómo se agarra el agua.",
+    "Respirar cada 3 (siempre que puedas): una respiración cada tres brazadas, alternando lados. Equilibra el estilo entero.",
+  ],
+  sesion: [
+    "100 m suaves de calentamiento, al estilo que salga.",
+    "4×25 m de patada con tabla, descansando 20-30 s.",
+    "4×25 m de punto muerto (o puño cerrado), descansando 30 s.",
+    "4×50 m de crol CONTANDO las brazadas por largo — la cifra bajando semana a semana es tu progreso. Descansos de 30-45 s.",
+    "50 m suaves de vuelta a la calma. Total ≈ 700 m, 30-40 min, y cuenta como entreno igual.",
   ],
 };
 
