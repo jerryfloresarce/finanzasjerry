@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=70";
-import { fechaISO } from "./db.js?v=70";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=70";
+import { db } from "./firebase-init.js?v=71";
+import { fechaISO } from "./db.js?v=71";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=71";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -431,6 +431,7 @@ export const vida = {
   inversiones: [],   // posiciones de la cartera (Trade Republic, apuntadas a mano)
   sistema: {},       // configuracion/sistema (o sistema_gaby): el del perfil visto
   menu: {},          // configuracion/menu: el menú DE CASA, común a los dos
+  compras: [],       // configuracion/compras: la lista de la compra de casa
   sinPermisos: false, // true si las reglas nuevas aún no están publicadas
   listo: false,
 };
@@ -535,6 +536,17 @@ export function initVida(cb) {
     },
     () => onChange?.()
   );
+  // Las compras de casa también son de los dos: el mismo documento en las
+  // dos apps, y como es un onSnapshot, lo que marca uno aparece en el
+  // móvil del otro al momento — igual que el resto de la app.
+  onSnapshot(
+    doc(db, "configuracion", "compras"),
+    (snap) => {
+      vida.compras = snap.exists() ? snap.data().items || [] : [];
+      onChange?.();
+    },
+    () => onChange?.()
+  );
   // La configuración de los DOS perfiles, siempre: la del visto manda en
   // vida.sistema, y la del otro hace falta para el cara a cara de rachas.
   // El filtro depende de fecha_inicio y estos documentos pueden llegar
@@ -565,6 +577,7 @@ export const updateRecompensa = (id, data) => updateDoc(doc(db, "recompensas", i
 export const deleteRecompensa = (id) => deleteDoc(doc(db, "recompensas", id));
 export const guardarSistema = (data) => setDoc(doc(db, "configuracion", esGaby() ? "sistema_gaby" : "sistema"), data, { merge: true });
 export const guardarMenu = (data) => setDoc(doc(db, "configuracion", "menu"), data, { merge: true });
+export const guardarCompras = (items) => setDoc(doc(db, "configuracion", "compras"), { items }, { merge: true });
 export const addInversion = (data) => addDoc(col("inversiones"), sellar(data));
 export const updateInversion = (id, data) => updateDoc(doc(db, "inversiones", id), data);
 export const deleteInversion = (id) => deleteDoc(doc(db, "inversiones", id));

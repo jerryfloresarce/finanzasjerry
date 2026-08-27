@@ -21,7 +21,7 @@
      Sin esto, al añadirla a la pantalla de inicio se abre DENTRO de Safari
      con su barra de direcciones, y esa barra que aparece y desaparece al
      deslizar es lo que hace que todo se mueva de forma rara. -->
-<link rel="manifest" href="manifest.json?v=70" />
+<link rel="manifest" href="manifest.json?v=71" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <!-- "black-translucent" hace que la app llegue hasta arriba del todo, por
@@ -37,11 +37,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=70" />
+<link rel="stylesheet" href="css/styles.css?v=71" />
 <!-- vida:inicio -->
-<link rel="stylesheet" href="css/vida.css?v=70" />
+<link rel="stylesheet" href="css/vida.css?v=71" />
 <!-- vida:fin -->
-<link rel="stylesheet" href="css/temas.css?v=70" />
+<link rel="stylesheet" href="css/temas.css?v=71" />
 <script>
   /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
      desde un módulo (que se ejecuta al final), la app abriría un instante
@@ -108,6 +108,9 @@
       <a href="#/menu" class="nav__link" data-route="menu">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-fork-knife"></i></span> Menú
       </a>
+      <a href="#/compras" class="nav__link" data-route="compras">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-basket"></i></span> Compras
+      </a>
       <a href="#/cartera" class="nav__link" data-route="cartera">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-line-up"></i></span> Cartera
       </a>
@@ -168,6 +171,9 @@
       </a>
       <a href="#/menu" class="nav__link" data-route="menu">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-fork-knife"></i></span> Menú
+      </a>
+      <a href="#/compras" class="nav__link" data-route="compras">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-basket"></i></span> Compras
       </a>
       <a href="#/cartera" class="nav__link" data-route="cartera">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-line-up"></i></span> Cartera
@@ -232,6 +238,13 @@
         <h1 class="view-title">Menú</h1>
       </div>
       <div id="menu-content"></div>
+    </section>
+
+    <section class="view is-hidden" data-view="compras" id="view-compras">
+      <div class="view-header">
+        <h1 class="view-title">Compras</h1>
+      </div>
+      <div id="compras-content"></div>
     </section>
 
     <section class="view is-hidden" data-view="cartera" id="view-cartera">
@@ -542,6 +555,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=70"></script>
+<script type="module" src="js/app.js?v=71"></script>
 </body>
 </html>

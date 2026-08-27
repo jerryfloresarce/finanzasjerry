@@ -498,6 +498,85 @@ a.hoy-toca__fila:hover strong { color: var(--success); }
   color: var(--text-secondary);
 }
 .tecnica-errores li::marker { content: "✕ "; color: var(--danger, #b06a63); }
+
+/* ---------- Compras de casa ----------
+   Cuanto menos parezca una app, mejor: un campo, una lista que se toca,
+   y la despensa abajo en silencio. Sin un solo botón visible. */
+.compras { max-width: 560px; }
+.compras-add input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  padding: 10px 2px 12px;
+  outline: none;
+}
+.compras-add input::placeholder { color: var(--text-secondary); opacity: 0.7; }
+.compras-add input:focus { border-bottom-color: var(--accent); }
+.compras-lista { margin-top: 6px; }
+.compra {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font-size: 1rem;
+  text-align: left;
+  padding: 12px 2px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  -webkit-user-select: none;
+  user-select: none;
+}
+.compra:last-child { border-bottom: none; }
+.compra__circulo {
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid var(--text-secondary);
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.compra:hover .compra__circulo { border-color: var(--accent); }
+.compra:active .compra__circulo { background: var(--accent); border-color: var(--accent); }
+.compras-vacio {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 26px 0 18px;
+  margin: 0;
+}
+.compras-titulo {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 22px 0 10px;
+}
+.compras-despensa { display: flex; flex-wrap: wrap; gap: 8px; }
+.compra-chip {
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.compra-chip:hover { color: var(--text-primary); border-color: var(--accent); }
+.compras-pista {
+  color: var(--text-secondary);
+  opacity: 0.55;
+  font-size: 0.78rem;
+  margin: 20px 0 0;
+  text-align: center;
+}
 .horario-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
 
 /* Una cita puntual en la línea del día: se nota que no es rutina. */
