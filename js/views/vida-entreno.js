@@ -16,11 +16,12 @@ import {
   deleteEntreno,
   esRutinaPropia,
   rutinaPorTipo,
+  planRetocado,
   guardarSistema,
-} from "../vida.js?v=68";
-import { fechaISO, formatFecha } from "../db.js?v=68";
-import { efectoAlGuardar } from "../efectos.js?v=68";
-import { openModal, closeModal } from "../modal.js?v=68";
+} from "../vida.js?v=69";
+import { fechaISO, formatFecha } from "../db.js?v=69";
+import { efectoAlGuardar } from "../efectos.js?v=69";
+import { openModal, closeModal } from "../modal.js?v=69";
 
 let tipoActivo = null;
 
@@ -31,8 +32,12 @@ function tipoDeHoy() {
 
 // Si hay algo escrito en el formulario, no se repinta: un dato que llegue
 // de Firestore a mitad de sesión no puede borrar las series ya apuntadas.
+// El checkbox va aparte: su value es siempre "on", escrito o no, y si
+// contara como "datos" ningún repintado por snapshot llegaría jamás a los
+// días de fuerza (los retoques de ejercicios se verían solo al recargar).
 function formularioConDatos(el) {
-  return [...el.querySelectorAll("#form-entreno input")].some((i) => i.value !== "" && i.dataset.prefill !== i.value);
+  if (el.querySelector("#entreno-lleno")?.checked) return true;
+  return [...el.querySelectorAll('#form-entreno input:not([type="checkbox"])')].some((i) => i.value !== "" && i.dataset.prefill !== i.value);
 }
 
 export function mountVidaEntreno() {
@@ -74,7 +79,74 @@ export function mountVidaEntreno() {
       }
       return;
     }
+    if (e.target.closest("#btn-editar-ejercicios")) {
+      abrirEditorEjercicios(tipoActivo);
+      return;
+    }
+    if (e.target.closest("#btn-plan-serie")) {
+      if (confirm("¿Volver al plan de serie de esta rutina? Tus retoques se pierden (el historial no).")) {
+        await guardarSistema({ planes: { [tipoActivo]: null } });
+        renderVidaEntreno(null, true);
+      }
+      return;
+    }
   });
+}
+
+// ---------- Editar los ejercicios de una rutina de serie ----------
+//
+// Las rutinas de serie (Pierna, Tirón, Empuje) también son tuyas: añade,
+// quita o cambia ejercicios y el retoque se guarda en tu configuración
+// (sistema.planes). "Volver al de serie" lo deshace cuando quieras.
+
+function abrirEditorEjercicios(tipo) {
+  const plan = PLANES[tipo] || [];
+  openModal(
+    `
+    <h2 class="modal__title">Ejercicios de ${NOMBRE_TIPO_ENTRENO[tipo] || "la rutina"}</h2>
+    <p class="entity-card__meta" style="margin:-8px 0 12px;">
+      Añade, quita o cambia lo que quieras: series, rango de reps y peso de
+      partida. La subida automática funciona igual con tus cambios.
+    </p>
+    <form id="form-ejercicios">
+      <div id="rutina-ejercicios">
+        ${(plan.length ? plan : [{}]).map(filaEjercicio).join("")}
+        <button type="button" class="btn btn--ghost btn--sm" id="btn-mas-ejercicio">+ Otro ejercicio</button>
+      </div>
+      <p class="field-error" id="rutina-error"></p>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>`,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector("#rutina-ejercicios").addEventListener("click", (e) => {
+          const quitar = e.target.closest(".rut-quitar");
+          if (quitar) quitar.closest(".rutina-ejercicio").remove();
+        });
+        root.querySelector("#btn-mas-ejercicio").addEventListener("click", (e) => {
+          e.target.insertAdjacentHTML("beforebegin", filaEjercicio());
+        });
+        root.querySelector("#form-ejercicios").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const ejercicios = leerEjercicios(root);
+          if (!ejercicios.length) {
+            root.querySelector("#rutina-error").textContent = "Pon al menos un ejercicio con nombre.";
+            return;
+          }
+          try {
+            await guardarSistema({ planes: { ...(vida.sistema.planes || {}), [tipo]: ejercicios } });
+            closeModal();
+            renderVidaEntreno(null, true);
+          } catch (err) {
+            root.querySelector("#rutina-error").textContent = "No se pudo guardar. Revisa la conexión.";
+          }
+        });
+      },
+    }
+  );
 }
 
 // ---------- El editor de rutinas propias ----------
@@ -85,8 +157,10 @@ export function mountVidaEntreno() {
 // una sesión simple de duración y nota, como la caminata.
 
 function filaEjercicio(ej = {}) {
+  // etiqueta y nota no se editan en la fila, pero viajan con ella para que
+  // retocar un plan no las pierda ("por mancuerna", los avisos de la ingle…).
   return `
-    <div class="rutina-ejercicio">
+    <div class="rutina-ejercicio" data-etiqueta="${ej.etiqueta || ""}" data-nota="${(ej.nota || "").replace(/"/g, "&quot;")}">
       <input type="text" class="rut-nombre" placeholder="Ejercicio (ej. Flexiones)" value="${ej.nombre || ""}" />
       <input type="number" class="rut-series" placeholder="Series" min="1" value="${ej.series ?? ""}" title="Series" />
       <input type="number" class="rut-min" placeholder="Reps mín" min="1" value="${ej.repsMin ?? ""}" title="Repeticiones mínimas" />
@@ -94,6 +168,23 @@ function filaEjercicio(ej = {}) {
       <input type="number" class="rut-peso" placeholder="kg (0 si sin peso)" step="0.5" value="${ej.pesoInicial ?? ""}" title="Peso de partida" />
       <button type="button" class="row-edit-btn rut-quitar" title="Quitar">✕</button>
     </div>`;
+}
+
+function leerEjercicios(root) {
+  return [...root.querySelectorAll(".rutina-ejercicio")]
+    .map((fila) => {
+      const ej = {
+        nombre: fila.querySelector(".rut-nombre").value.trim(),
+        series: Number(fila.querySelector(".rut-series").value) || 3,
+        repsMin: Number(fila.querySelector(".rut-min").value) || 8,
+        repsMax: Number(fila.querySelector(".rut-max").value) || Number(fila.querySelector(".rut-min").value) || 12,
+        pesoInicial: Number(fila.querySelector(".rut-peso").value) || 0,
+      };
+      if (fila.dataset.etiqueta) ej.etiqueta = fila.dataset.etiqueta;
+      if (fila.dataset.nota) ej.nota = fila.dataset.nota;
+      return ej;
+    })
+    .filter((ej) => ej.nombre);
 }
 
 function abrirEditorRutina(rutina) {
@@ -140,15 +231,7 @@ function abrirEditorRutina(rutina) {
           if (!nombre) return;
           let ejercicios = null;
           if (root.querySelector("#rutina-con-ejercicios").checked) {
-            ejercicios = [...root.querySelectorAll(".rutina-ejercicio")]
-              .map((fila) => ({
-                nombre: fila.querySelector(".rut-nombre").value.trim(),
-                series: Number(fila.querySelector(".rut-series").value) || 3,
-                repsMin: Number(fila.querySelector(".rut-min").value) || 8,
-                repsMax: Number(fila.querySelector(".rut-max").value) || Number(fila.querySelector(".rut-min").value) || 12,
-                pesoInicial: Number(fila.querySelector(".rut-peso").value) || 0,
-              }))
-              .filter((ej) => ej.nombre);
+            ejercicios = leerEjercicios(root);
             if (!ejercicios.length) {
               root.querySelector("#rutina-error").textContent = "Pon al menos un ejercicio con nombre (o desmarca la casilla para una sesión simple).";
               return;
@@ -285,7 +368,11 @@ export function renderVidaEntreno(_state, forzar = false) {
         ? `<p class="entity-card__meta" style="margin:2px 0 10px;">Rutina tuya ·
             <button type="button" class="btn btn--ghost btn--sm" id="btn-editar-rutina">✎ Editar</button>
             <button type="button" class="btn btn--ghost btn--sm" id="btn-borrar-rutina">Borrar</button></p>`
-        : ""
+        : esFuerza
+          ? `<p class="entity-card__meta" style="margin:2px 0 10px;">${planRetocado(tipoActivo) ? "Con tus retoques" : "Plan de serie"} ·
+            <button type="button" class="btn btn--ghost btn--sm" id="btn-editar-ejercicios">✎ Editar ejercicios</button>
+            ${planRetocado(tipoActivo) ? `<button type="button" class="btn btn--ghost btn--sm" id="btn-plan-serie">Volver al de serie</button>` : ""}</p>`
+          : ""
     }
 
     ${deHoy.length ? `<div class="card hoy-aviso"><p class="entity-card__meta" style="margin:0;">✓ Hoy ya has registrado: ${deHoy.map((e) => NOMBRE_TIPO_ENTRENO[e.tipo] || e.tipo).join(" + ")}</p></div>` : ""}

@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=68";
-import { fechaISO } from "./db.js?v=68";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=68";
+import { db } from "./firebase-init.js?v=69";
+import { fechaISO } from "./db.js?v=69";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=69";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -65,11 +65,11 @@ export const PUNTOS_BONUS = 5;
 
 // La semana tipo: qué toca cada día (getDay(): 0 = domingo).
 const SEMANA_TIPO_JERRY = {
-  1: { tipo: "fuerza_A", nombre: "Fuerza A — Empuje + cuádriceps" },
+  1: { tipo: "fuerza_A", nombre: "Pierna — tus máquinas de siempre" },
   2: { tipo: "caminata", nombre: "Caminata con elevación, 35 min" },
-  3: { tipo: "fuerza_B", nombre: "Fuerza B — Tirón + femoral" },
+  3: { tipo: "fuerza_B", nombre: "Tirón — espalda y bíceps" },
   4: { tipo: "piscina", nombre: "Piscina con tu hermano" },
-  5: { tipo: "fuerza_C", nombre: "Fuerza C — Full body" },
+  5: { tipo: "fuerza_C", nombre: "Empuje — pecho, hombro y tríceps" },
   6: { tipo: "libre", nombre: "Libre o caminata suave" },
   0: { tipo: "descanso", nombre: "Descanso · batch cooking" },
 };
@@ -85,9 +85,9 @@ const SEMANA_TIPO_GABY = {
 };
 
 export const NOMBRE_TIPO_ENTRENO = {
-  fuerza_A: "Fuerza A",
-  fuerza_B: "Fuerza B",
-  fuerza_C: "Fuerza C",
+  fuerza_A: "Pierna",
+  fuerza_B: "Tirón",
+  fuerza_C: "Empuje",
   piscina: "Piscina",
   caminata: "Caminata",
   yoga: "Yoga",
@@ -99,36 +99,40 @@ export const NOMBRE_TIPO_ENTRENO = {
 const TIPOS_ENTRENO_JERRY = ["fuerza_A", "fuerza_B", "fuerza_C", "piscina", "caminata"];
 const TIPOS_ENTRENO_GABY = ["yoga", "caminata"];
 
-// Los planes de fuerza, con el rango de la doble progresión y el peso de
-// arranque pactado. repsPorPierna/segundos solo cambian la etiqueta.
+// Los planes de fuerza de Jerry: SU rutina de siempre (pierna / espalda y
+// bíceps / pecho, hombro y tríceps — que es exactamente un push-pull-legs,
+// aunque él no lo llamara así), recortada para sesiones de ~50 minutos: 6
+// ejercicios como mucho, 3 series casi todo, y la doble progresión de la
+// app en vez de ir al fallo en cada serie. Lo que sobraba de la versión de
+// las tardes de 3 horas (cuatro remos, tres poleas de pecho) está fundido
+// en un ejercicio con alternancia. Los pesos a 0 son máquinas nuevas para
+// la app: la primera vez se apunta el que uses y desde ahí lo trae puesto.
 // Gaby no tiene planes de fuerza: su entreno son el yoga y los paseos.
 const PLANES_GABY = {};
 const PLANES_JERRY = {
   fuerza_A: [
-    { nombre: "Sentadilla a cajón / prensa pies altos", series: 4, repsMin: 6, repsMax: 8, pesoInicial: 20, nota: "Stance ancho, puntas fuera, cajón donde no pinche" },
-    { nombre: "Press banca", series: 4, repsMin: 6, repsMax: 8, pesoInicial: 70 },
-    { nombre: "Press militar sentado", series: 3, repsMin: 8, repsMax: 10, pesoInicial: 32.5 },
-    { nombre: "Zancadas / prensa a una pierna", series: 3, repsMin: 10, repsMax: 10, pesoInicial: 20, etiqueta: "por pierna" },
-    { nombre: "Remo en polea", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 50 },
-    { nombre: "Extensión de tríceps en polea", series: 3, repsMin: 12, repsMax: 15, pesoInicial: 20 },
-    { nombre: "Plancha", series: 3, repsMin: 40, repsMax: 40, pesoInicial: 0, etiqueta: "segundos" },
+    { nombre: "Hacka (o prensa)", series: 3, repsMin: 8, repsMax: 10, pesoInicial: 0, nota: "La primera vez apunta tu peso; desde entonces la app te lo trae puesto y avisa cuando toque subir" },
+    { nombre: "Curl femoral (tumbado o sentado)", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 30 },
+    { nombre: "Extensiones de cuádriceps", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 0 },
+    { nombre: "Peso muerto rumano con mancuernas", series: 3, repsMin: 8, repsMax: 10, pesoInicial: 0, nota: "Lo único nuevo: glúteo y femoral de verdad. Si la ingle avisa, menos peso y menos recorrido" },
+    { nombre: "Abductor o aductor (alterna semanas)", series: 3, repsMin: 12, repsMax: 15, pesoInicial: 0, nota: "El aductor con suavidad mientras la ingle esté delicada; si molesta, fuera y punto" },
+    { nombre: "Gemelos de pie", series: 3, repsMin: 12, repsMax: 15, pesoInicial: 0, nota: "Si vas justo de tiempo, este es el que se cae" },
   ],
   fuerza_B: [
-    { nombre: "Peso muerto rumano", series: 4, repsMin: 8, repsMax: 10, pesoInicial: 60, nota: "Si pinza, baja solo hasta media espinilla" },
-    { nombre: "Dominadas / jalón al pecho", series: 4, repsMin: 8, repsMax: 10, pesoInicial: 45 },
-    { nombre: "Remo con barra o máquina", series: 4, repsMin: 8, repsMax: 10, pesoInicial: 50 },
-    { nombre: "Curl femoral", series: 3, repsMin: 12, repsMax: 12, pesoInicial: 30 },
-    { nombre: "Curl de bíceps", series: 3, repsMin: 12, repsMax: 12, pesoInicial: 20 },
-    { nombre: "Face pull", series: 3, repsMin: 15, repsMax: 15, pesoInicial: 15 },
-    { nombre: "Gemelos", series: 4, repsMin: 15, repsMax: 15, pesoInicial: 40 },
+    { nombre: "Jalón al pecho", series: 3, repsMin: 8, repsMax: 10, pesoInicial: 45 },
+    { nombre: "Remo en máquina (la barra hacia ti)", series: 3, repsMin: 8, repsMax: 10, pesoInicial: 50, nota: "El agarre que prefieras de los dos; cambiarlo cada pocas semanas viene bien" },
+    { nombre: "Jalón agarre cerrado (puños mirándose)", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 40 },
+    { nombre: "Curl martillo con mancuernas", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 10, etiqueta: "por mancuerna" },
+    { nombre: "Curl en máquina", series: 2, repsMin: 12, repsMax: 15, pesoInicial: 0 },
+    { nombre: "Lumbar (espalda baja)", series: 2, repsMin: 12, repsMax: 15, pesoInicial: 0, nota: "Si sobra tiempo: la espalda baja que a veces hacías, y protege todo lo demás" },
   ],
   fuerza_C: [
-    { nombre: "Hip thrust / peso muerto", series: 3, repsMin: 8, repsMax: 10, pesoInicial: 60 },
-    { nombre: "Press inclinado con mancuernas", series: 3, repsMin: 8, repsMax: 10, pesoInicial: 22.5, etiqueta: "por mancuerna" },
-    { nombre: "Remo con mancuerna", series: 3, repsMin: 10, repsMax: 10, pesoInicial: 25, etiqueta: "por brazo" },
-    { nombre: "Elevaciones laterales", series: 4, repsMin: 15, repsMax: 15, pesoInicial: 8 },
-    { nombre: "Superserie curl + tríceps", series: 3, repsMin: 12, repsMax: 12, pesoInicial: 15 },
-    { nombre: "Cinta 10–12 % · 5 km/h", series: 1, repsMin: 20, repsMax: 20, pesoInicial: 0, etiqueta: "minutos" },
+    { nombre: "Press banca", series: 4, repsMin: 6, repsMax: 8, pesoInicial: 70 },
+    { nombre: "Press de hombro (máquina o mancuernas)", series: 3, repsMin: 8, repsMax: 10, pesoInicial: 32.5 },
+    { nombre: "Cruces en polea (alta o baja, alterna)", series: 3, repsMin: 12, repsMax: 15, pesoInicial: 0, nota: "Tus dos poleas de siempre fundidas en una: una semana desde arriba, la otra desde abajo" },
+    { nombre: "Elevaciones laterales (máquina o mancuernas)", series: 3, repsMin: 12, repsMax: 15, pesoInicial: 8, nota: "La máquina de los aleteos" },
+    { nombre: "Posterior en polea cruzada", series: 2, repsMin: 15, repsMax: 15, pesoInicial: 0, nota: "Brazos cruzados y tira hacia los lados, como hacías" },
+    { nombre: "Tríceps en polea (cuerda o barra, alterna)", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 20, nota: "El francés, solo si sobra tiempo" },
   ],
 };
 
@@ -261,7 +265,19 @@ function aplicarRutinasPropias() {
     NOMBRE_TIPO_ENTRENO[tipo] = r.nombre || "Rutina";
     if (Array.isArray(r.ejercicios) && r.ejercicios.length) PLANES[tipo] = r.ejercicios;
   }
+  // Los planes de serie también se pueden retocar desde Entreno ("Editar
+  // ejercicios"): el retoque vive en sistema.planes[tipo] y aquí pisa al
+  // de serie. Un retoque puesto a null vuelve al plan de serie — se borra
+  // así, y no quitando la clave, porque el merge de Firestore no sabe
+  // quitar claves de un mapa anidado.
+  const retoques = vida.sistema.planes || {};
+  for (const [tipo, ejercicios] of Object.entries(retoques)) {
+    if (BASE_PLANES[tipo] && Array.isArray(ejercicios) && ejercicios.length) PLANES[tipo] = ejercicios;
+  }
 }
+
+// ¿El plan de este tipo está retocado por el usuario?
+export const planRetocado = (tipo) => Boolean(BASE_PLANES[tipo] && Array.isArray(vida.sistema.planes?.[tipo]) && vida.sistema.planes[tipo].length);
 
 // ---------- Estado y listeners propios ----------
 
@@ -1155,10 +1171,54 @@ export function recetasDisponibles(marcados) {
 // pasos como mucho: la comida de diario no puede ser un proyecto.
 const esRapida = (r) => Boolean(r.aire) || (r.pasos?.length ?? 9) <= 3 || r.propio;
 
-// El menú de la semana: un plato de comida y uno de cena por día, solo con
-// recetas cuyas piezas están marcadas. La semilla es el lunes de la semana,
-// así el mismo lunes siempre da el mismo menú, pero cada semana varía.
-// Los platos rápidos van primero: si hay bastantes, la semana sale de ahí.
+// Un barajado con semilla: el mismo lunes baraja siempre igual, pero cada
+// semana sale un orden distinto — nada de que el menú empiece siempre por
+// los mismos platos de la lista.
+function barajar(lista, semilla) {
+  const arr = [...lista];
+  let x = (semilla || 1) * 2 + 1;
+  for (let i = arr.length - 1; i > 0; i--) {
+    x = (x * 1103515245 + 12345) % 2147483648;
+    const j = x % (i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// La proteína que manda en un plato, para no comer pollo tres días
+// seguidos. Un plato vuestro cuenta como proteína única (no agrupa).
+const PROTEINAS = ["pollo", "ternera", "lomo", "salmon", "merluza", "atun", "salchichas", "bacon", "jamon", "chorizo", "huevos"];
+const proteinaDe = (r) => r.req?.find((i) => PROTEINAS.includes(i)) || r.id;
+
+// Reparte una semana de un momento del día: baraja con la semilla, evita
+// repetir plato mientras haya donde elegir, y procura no repetir la misma
+// proteína dos días seguidos ni coincidir con la que ese día ya cae en la
+// comida (evitarPorDia). Si el surtido es corto, prefiere repetir plato a
+// dejar un hueco.
+function repartirSemana(pool, semilla, evitarPorDia = {}) {
+  const orden = barajar(pool, semilla);
+  const dias = {};
+  let prev = null;
+  for (let d = 1; d <= 7; d++) {
+    const i = (d - 1) % orden.length;
+    const repite = (r) => proteinaDe(r) === prev || proteinaDe(r) === evitarPorDia[d];
+    if (repite(orden[i])) {
+      const j = orden.findIndex((r, k) => k > i && !repite(r));
+      if (j > i) [orden[i], orden[j]] = [orden[j], orden[i]];
+    }
+    dias[d] = orden[i].id;
+    prev = proteinaDe(orden[i]);
+  }
+  return dias;
+}
+
+// El menú de la semana: desayuno, comida y cena por día, solo con recetas
+// cuyas piezas están marcadas. La semilla es el lunes de la semana, así el
+// mismo lunes siempre da el mismo menú, pero cada semana varía. Los platos
+// rápidos van primero: si hay bastantes, la semana sale solo de ahí. Y las
+// combinaciones se cuidan: sin repetir plato en la semana mientras se
+// pueda, y sin la misma proteína dos días seguidos ni en la comida y la
+// cena del mismo día.
 export function generarMenuSemana(lunesISO, marcados) {
   const disponibles = recetasDisponibles(marcados);
   const pool = (momento) => {
@@ -1173,11 +1233,14 @@ export function generarMenuSemana(lunesISO, marcados) {
   let semilla = 0;
   for (const c of lunesISO) semilla = (semilla * 31 + c.charCodeAt(0)) % 9973;
   const menu = { lunes: lunesISO, desayunos: {}, comidas: {}, cenas: {} };
+  menu.comidas = repartirSemana(comidas, semilla);
+  const proteinaComida = {};
   for (let d = 1; d <= 7; d++) {
-    if (desayunos.length >= 3) menu.desayunos[d] = desayunos[(semilla + d) % desayunos.length].id;
-    menu.comidas[d] = comidas[(semilla + d) % comidas.length].id;
-    menu.cenas[d] = cenas[(semilla + d) % cenas.length].id;
+    const r = comidas.find((x) => x.id === menu.comidas[d]);
+    if (r) proteinaComida[d] = proteinaDe(r);
   }
+  menu.cenas = repartirSemana(cenas, semilla * 31 + 7, proteinaComida);
+  if (desayunos.length >= 3) menu.desayunos = repartirSemana(desayunos, semilla * 17 + 3);
   return menu;
 }
 
