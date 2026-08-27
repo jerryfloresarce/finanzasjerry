@@ -6,7 +6,7 @@
 // borrarlo, ver los gráficos moverse. Lo único que no hace es guardar: al
 // recargar la página, vuelve a estar como al principio.
 
-import { datosDeDemostracion } from "./datos-demo.js?v=73";
+import { datosDeDemostracion } from "./datos-demo.js?v=74";
 
 const almacen = new Map();
 const oyentes = new Set();

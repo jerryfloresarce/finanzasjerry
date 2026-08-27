@@ -13,11 +13,11 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=73";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=73";
-import { initials, avatarColor, icon } from "../icons.js?v=73";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=73";
-import { efectoDeCelebracion } from "../efectos.js?v=73";
+} from "../db.js?v=74";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=74";
+import { initials, avatarColor, icon } from "../icons.js?v=74";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=74";
+import { efectoDeCelebracion } from "../efectos.js?v=74";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -55,10 +55,70 @@ function interesActualDe(p) {
   return capital * (pct / 100);
 }
 
+// Los pagos que ha hecho una persona: los ingresos que crearon los botones
+// de "Pagó", los días del plan y la liquidación. Los nuevos llevan el id
+// del préstamo grabado; los de antes de que existiera ese campo se
+// reconocen por el texto que siempre les puso la app ("Interés préstamo ·
+// Sandra", etc.), así el historial también enseña lo ya registrado.
+function pagosDelPrestamo(p, movimientos) {
+  return movimientos
+    .filter(
+      (m) =>
+        m.tipo === "Ingreso" &&
+        (m.prestamo_id === p.id ||
+          (typeof m.subcategoria === "string" &&
+            m.subcategoria.includes(`· ${p.persona}`) &&
+            (m.subcategoria.startsWith("Interés préstamo") || m.subcategoria.startsWith("Plan de pagos") || m.subcategoria.startsWith("Préstamo liquidado"))))
+    )
+    .sort((a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0));
+}
+
+// Qué historial está desplegado (se recuerda entre repintados).
+const historialAbierto = new Set();
+
+function renderHistorialPagos(p, movimientos) {
+  const pagos = pagosDelPrestamo(p, movimientos);
+  if (pagos.length === 0) return "";
+  const total = pagos.reduce((acc, m) => acc + Number(m.importe ?? 0), 0);
+  const abierto = historialAbierto.has(p.id);
+  const etiqueta = (m) =>
+    m.subcategoria?.startsWith("Interés préstamo")
+      ? "Interés"
+      : m.subcategoria?.startsWith("Plan de pagos")
+        ? "Cuota del plan"
+        : m.subcategoria?.startsWith("Préstamo liquidado")
+          ? "Liquidación"
+          : "Pago";
+  return `
+    <button type="button" class="prestamo-historial__toggle" data-historial="${p.id}">
+      Historial: ${pagos.length} ${pagos.length === 1 ? "pago" : "pagos"} · ${formatEUR(total)} cobrados ${abierto ? "▴" : "▾"}
+    </button>
+    ${
+      abierto
+        ? `<div class="pago-list">
+        ${pagos
+          .map(
+            (m) => `
+          <div class="mini-row">
+            <div class="mini-row__body">
+              <div class="mini-row__main">
+                <span class="mini-row__title">${etiqueta(m)}</span>
+                <span class="mini-row__sub">${formatFecha(fromTimestamp(m.fecha))}</span>
+              </div>
+            </div>
+            <span class="mini-row__amount mini-row__amount--pos">+ ${formatEUR(Number(m.importe ?? 0))}</span>
+          </div>`
+          )
+          .join("")}
+      </div>`
+        : ""
+    }`;
+}
+
 export function renderPrestamos(state) {
   currentState = state;
   const el = document.getElementById("prestamos-grid");
-  const { prestamos, pagosPrestamos } = state;
+  const { prestamos, pagosPrestamos, movimientos } = state;
 
   const activos = prestamos.filter((p) => p.estado !== "Pagado");
   // Un préstamo con plan de pagos diario no tiene un
@@ -111,6 +171,7 @@ export function renderPrestamos(state) {
           ${p.notas ? `<p class="entity-card__meta">${p.notas}</p>` : ""}
 
           ${p.estado === "Pagado" ? `<p class="entity-card__meta">Préstamo cerrado.</p>` : planPagos ? renderPlanPagos(p, pagosPrestamos) : renderInteresMensual(p, pct, interesActual, etiquetaInteres)}
+          ${renderHistorialPagos(p, movimientos)}
           ${
             p.estado !== "Pagado"
               ? `<button type="button" class="btn btn--ghost btn--sm btn--block prestamo-liquidar-btn" data-liquidar="${p.id}">💰 Ha pagado capital + interés (liquidar deuda)</button>`
@@ -133,6 +194,14 @@ export function renderPrestamos(state) {
   );
   el.querySelectorAll("[data-liquidar]").forEach((btn) =>
     btn.addEventListener("click", () => openLiquidarForm(prestamos.find((p) => p.id === btn.dataset.liquidar), state))
+  );
+  el.querySelectorAll("[data-historial]").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.historial;
+      if (historialAbierto.has(id)) historialAbierto.delete(id);
+      else historialAbierto.add(id);
+      renderPrestamos(currentState);
+    })
   );
   el.querySelectorAll("[data-dia-pendiente]").forEach((btn) =>
     btn.addEventListener("click", () => openDiaPagadoForm(pagosPrestamos.find((pg) => pg.id === btn.dataset.diaPendiente), state))
@@ -295,6 +364,7 @@ function openInteresPagadoForm(prestamo, state) {
               fecha: toTimestamp(f.fecha.value),
               subcategoria: `Interés préstamo · ${prestamo.persona}`,
               nota: "",
+              prestamo_id: prestamo.id,
             });
             await updatePrestamo(prestamo.id, { fecha_interes: unMesDespues(prestamo.fecha_interes) });
             closeModal();
@@ -354,6 +424,7 @@ function openDiaPagadoForm(pago, state) {
               fecha: toTimestamp(f.fecha.value),
               subcategoria: `Plan de pagos · ${prestamo?.persona ?? ""} · ${formatFecha(fecha)}`,
               nota: "",
+              prestamo_id: prestamo?.id ?? null,
             });
             await updatePagoPrestamo(pago.id, { pagado: true, importe, movimiento_id: movimiento.id });
             closeModal();
@@ -438,6 +509,7 @@ function openLiquidarForm(prestamo, state) {
               fecha: toTimestamp(f.fecha.value),
               subcategoria: `Préstamo liquidado · ${prestamo.persona}`,
               nota: "",
+              prestamo_id: prestamo.id,
             });
             await updatePrestamo(prestamo.id, { capital: 0, estado: "Pagado" });
             // El ingreso de arriba ya cubre TODO lo que quedaba, así que los

@@ -463,6 +463,21 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
    tarjeta parecía un fallo (y en el tema claro, encima, se veía negra). */
 .susc-row .field-check > input[type="checkbox"] { margin-left: 6px; flex-shrink: 0; }
 
+/* El historial de pagos de un préstamo: una línea discreta que se
+   despliega al tocarla. Cerrada no ocupa ni molesta. */
+.prestamo-historial__toggle {
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  text-align: left;
+  padding: 8px 2px 6px;
+  cursor: pointer;
+}
+.prestamo-historial__toggle:hover { color: var(--text-primary); }
+
 /* El importe de un gasto fijo ya pagado es pulsable: abre sus pagos del mes,
    que pueden ser varios si el recibo se pagó desde sitios distintos. Se
    subraya de puntos para que se note que se puede tocar sin meter otro
