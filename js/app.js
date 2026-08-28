@@ -1,29 +1,30 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=75";
-import { state, subscribe, initStore } from "./store.js?v=75";
+import { onAuthReady } from "./auth.js?v=76";
+import { state, subscribe, initStore } from "./store.js?v=76";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=75";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=75";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=75";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=75";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=75";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=75";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=75";
-import { mountMetas, renderMetas } from "./views/metas.js?v=75";
-import { mountCuentaPanel } from "./views/cuenta.js?v=75";
-import { refreshAnimations } from "./animations.js?v=75";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=75";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=75";
-import { efectoDeEntrada } from "./efectos.js?v=75";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=76";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=76";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=76";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=76";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=76";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=76";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=76";
+import { mountMetas, renderMetas } from "./views/metas.js?v=76";
+import { mountCuentaPanel } from "./views/cuenta.js?v=76";
+import { refreshAnimations } from "./animations.js?v=76";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=76";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=76";
+import { efectoDeEntrada } from "./efectos.js?v=76";
 // vida:inicio
-import { initPerfil } from "./vida-perfil.js?v=75";
-import { initVida } from "./vida.js?v=75";
-import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=75";
-import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=75";
-import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=75";
-import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=75";
-import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=75";
-import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=75";
+import { initPerfil } from "./vida-perfil.js?v=76";
+import { initVida } from "./vida.js?v=76";
+import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=76";
+import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=76";
+import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=76";
+import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=76";
+import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=76";
+import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=76";
+import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=76";
 // vida:fin
 
 const ROUTES = {
@@ -34,6 +35,7 @@ const ROUTES = {
   cartera: renderVidaCartera,
   menu: renderVidaMenu,
   compras: renderVidaCompras,
+  agenda: renderVidaAgenda,
   // vida:fin
   dashboard: renderDashboard,
   graficos: renderGraficos,
@@ -325,10 +327,11 @@ onAuthReady((user) => {
     mountVidaCartera();
     mountVidaMenu();
     mountVidaCompras();
+    mountVidaAgenda();
     // Sus colecciones llegan por listeners propios (no pasan por el store):
     // cuando cambian, se repinta la vista de vida que esté abierta.
     initVida(() => {
-      if (["hoy", "entreno", "progreso", "cartera", "menu", "compras"].includes(currentRoute)) renderCurrentView();
+      if (["hoy", "entreno", "progreso", "cartera", "menu", "compras", "agenda"].includes(currentRoute)) renderCurrentView();
     });
     // vida:fin
   }

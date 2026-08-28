@@ -478,6 +478,39 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
 }
 .prestamo-historial__toggle:hover { color: var(--text-primary); }
 
+/* El resumen del día en el calendario: secciones (Gastos / Ingresos /
+   Entre cuentas) con su total, y el balance del día al final. */
+.dia-seccion {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 14px 0 4px;
+}
+.dia-seccion:first-child { margin-top: 0; }
+.dia-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  padding: 8px 2px 0;
+  margin: 4px 0 0;
+}
+.dia-total--balance { font-weight: 600; color: var(--text-primary); }
+
+/* Accesos poco usados desde el Dashboard (Cuentas y Categorías viven aquí
+   en vez de ocupar sitio en el menú). */
+.dash-atajos {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-align: center;
+  margin: 18px 0 4px;
+}
+.dash-atajos a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; }
+.dash-atajos a:hover { color: var(--text-primary); }
+
 /* El importe de un gasto fijo ya pagado es pulsable: abre sus pagos del mes,
    que pueden ser varios si el recibo se pagó desde sitios distintos. Se
    subraya de puntos para que se note que se puede tocar sin meter otro

@@ -10,11 +10,11 @@ import {
   destinoTransferencia,
   textoPeriodo,
   nombreDeCuenta,
-} from "../db.js?v=75";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=75";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=75";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=75";
-import { colorTema } from "../tema.js?v=75";
+} from "../db.js?v=76";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=76";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=76";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=76";
+import { colorTema } from "../tema.js?v=76";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -150,11 +150,14 @@ function renderCalendario(movimientosMes, categorias, cuentas) {
   for (let dia = 1; dia <= diasEnMes; dia++) {
     const totales = porDia.get(dia);
     const esHoy = hoy.getFullYear() === year && hoy.getMonth() === month && hoy.getDate() === dia;
+    // Un solo número por día: el balance (ingresos − gastos). Con 100 de
+    // ingreso y 10 de gasto, el día dice +90 — el desglose completo está
+    // al tocar el día.
+    const neto = (totales?.ingreso ?? 0) - (totales?.gasto ?? 0);
     celdas.push(`
       <button type="button" class="cal-cell ${esHoy ? "cal-cell--hoy" : ""}" data-dia="${dia}">
         <span class="cal-cell__num">${dia}</span>
-        ${totales?.gasto ? `<span class="cal-cell__gasto">−${formatEUR(totales.gasto)}</span>` : ""}
-        ${totales?.ingreso ? `<span class="cal-cell__ingreso">+${formatEUR(totales.ingreso)}</span>` : ""}
+        ${totales ? `<span class="${neto >= 0 ? "cal-cell__ingreso" : "cal-cell__gasto"}">${neto >= 0 ? "+" : "−"}${formatEUR(Math.abs(neto))}</span>` : ""}
       </button>`);
   }
 
@@ -187,28 +190,37 @@ function openDiaDetalle(fecha, state) {
     })
     .sort((a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0));
 
-  const filas = delDia
-    .map((m) => {
-      const esTransferencia = m.tipo === "Transferencia";
-      let titulo, sub, amountClass, amountSign, iconHTML;
-      if (esTransferencia) {
-        iconHTML = icon("movimientos", { size: 16 });
-        titulo = `${nombreDeCuenta(cuentaMap, m.cuenta_id)} → ${destinoTransferencia(m, cuentaMap)}`;
-        sub = "Transferencia" + (m.nota ? " · " + m.nota : "");
-        const sentido = sentidoDeTransferencia(m, new Set(cuentaMap.keys()));
-        amountClass = sentido === "Gasto" ? "mini-row__amount--neg" : sentido === "Ingreso" ? "mini-row__amount--pos" : "";
-        amountSign = sentido === "Gasto" ? "− " : sentido === "Ingreso" ? "+ " : "";
-      } else {
-        const cat = catMap.get(m.categoria_id);
-        iconHTML = entityIcon(cat, iconForCategoriaTipo(cat?.tipo), { size: 16 });
-        titulo = m.subcategoria || cat?.nombre || "Movimiento";
-        const periodo = textoPeriodo(m);
-        sub = `${cat?.nombre || "—"} · ${nombreDeCuenta(cuentaMap, m.cuenta_id)}${periodo ? " · " + periodo : ""}${m.nota ? " · " + m.nota : ""}`;
-        amountClass = m.tipo === "Ingreso" ? "mini-row__amount--pos" : "mini-row__amount--neg";
-        amountSign = m.tipo === "Ingreso" ? "+ " : "− ";
-      }
-      return wrapSwipe(
-        `
+  // Cada movimiento del día cae en su grupo: gastos, ingresos, o los que
+  // solo mueven dinero entre cuentas propias. Los Bizum hacia fuera / desde
+  // fuera cuentan como gasto/ingreso, igual que en la celda del calendario.
+  const grupoDe = (m) => {
+    if (m.tipo === "Gasto") return "gastos";
+    if (m.tipo === "Ingreso") return "ingresos";
+    const sentido = sentidoDeTransferencia(m, new Set(cuentaMap.keys()));
+    return sentido === "Gasto" ? "gastos" : sentido === "Ingreso" ? "ingresos" : "neutros";
+  };
+
+  const filaDe = (m) => {
+    const esTransferencia = m.tipo === "Transferencia";
+    let titulo, sub, amountClass, amountSign, iconHTML;
+    if (esTransferencia) {
+      iconHTML = icon("movimientos", { size: 16 });
+      titulo = `${nombreDeCuenta(cuentaMap, m.cuenta_id)} → ${destinoTransferencia(m, cuentaMap)}`;
+      sub = "Transferencia" + (m.nota ? " · " + m.nota : "");
+      const sentido = sentidoDeTransferencia(m, new Set(cuentaMap.keys()));
+      amountClass = sentido === "Gasto" ? "mini-row__amount--neg" : sentido === "Ingreso" ? "mini-row__amount--pos" : "";
+      amountSign = sentido === "Gasto" ? "− " : sentido === "Ingreso" ? "+ " : "";
+    } else {
+      const cat = catMap.get(m.categoria_id);
+      iconHTML = entityIcon(cat, iconForCategoriaTipo(cat?.tipo), { size: 16 });
+      titulo = m.subcategoria || cat?.nombre || "Movimiento";
+      const periodo = textoPeriodo(m);
+      sub = `${cat?.nombre || "—"} · ${nombreDeCuenta(cuentaMap, m.cuenta_id)}${periodo ? " · " + periodo : ""}${m.nota ? " · " + m.nota : ""}`;
+      amountClass = m.tipo === "Ingreso" ? "mini-row__amount--pos" : "mini-row__amount--neg";
+      amountSign = m.tipo === "Ingreso" ? "+ " : "− ";
+    }
+    return wrapSwipe(
+      `
         <div class="mini-row">
           <div class="mini-row__body" style="flex:1; min-width:0;">
             <span class="mini-row__icon">${iconHTML}</span>
@@ -220,10 +232,33 @@ function openDiaDetalle(fecha, state) {
           <span class="mini-row__amount ${amountClass}">${amountSign}${formatEUR(Math.abs(Number(m.importe)))}</span>
           <button type="button" class="row-edit-btn" data-edit="${m.id}" title="Editar">${icon("edit", { size: 15 })}</button>
         </div>`,
-        m.id
-      );
-    })
-    .join("");
+      m.id
+    );
+  };
+
+  // El resumen del día: los gastos con su total, los ingresos con el suyo,
+  // los movimientos entre cuentas aparte, y el balance al final.
+  const gastos = delDia.filter((m) => grupoDe(m) === "gastos");
+  const ingresos = delDia.filter((m) => grupoDe(m) === "ingresos");
+  const neutros = delDia.filter((m) => grupoDe(m) === "neutros");
+  const totalGastos = gastos.reduce((acc, m) => acc + Number(m.importe ?? 0), 0);
+  const totalIngresos = ingresos.reduce((acc, m) => acc + Number(m.importe ?? 0), 0);
+  const neto = totalIngresos - totalGastos;
+
+  const filas = [
+    gastos.length
+      ? `<p class="dia-seccion">Gastos</p>${gastos.map(filaDe).join("")}
+         <p class="dia-total"><span>Total de gastos</span><span class="mini-row__amount--neg">− ${formatEUR(totalGastos)}</span></p>`
+      : "",
+    ingresos.length
+      ? `<p class="dia-seccion">Ingresos</p>${ingresos.map(filaDe).join("")}
+         <p class="dia-total"><span>Total de ingresos</span><span class="mini-row__amount--pos">+ ${formatEUR(totalIngresos)}</span></p>`
+      : "",
+    neutros.length ? `<p class="dia-seccion">Entre cuentas</p>${neutros.map(filaDe).join("")}` : "",
+    gastos.length && ingresos.length
+      ? `<p class="dia-total dia-total--balance"><span>Balance del día</span><span class="${neto >= 0 ? "mini-row__amount--pos" : "mini-row__amount--neg"}">${neto >= 0 ? "+" : "−"} ${formatEUR(Math.abs(neto))}</span></p>`
+      : "",
+  ].join("");
 
   openModal(
     `

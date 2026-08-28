@@ -29,12 +29,12 @@ import {
   guardarSistema,
   guardarDia,
   avisoDeEntrenoSinHueco,
-} from "../vida.js?v=75";
-import { abrirReceta } from "./vida-menu.js?v=75";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=75";
-import { fechaISO, formatFecha } from "../db.js?v=75";
-import { efectoDeCelebracion } from "../efectos.js?v=75";
-import { openModal, closeModal } from "../modal.js?v=75";
+} from "../vida.js?v=76";
+import { abrirReceta } from "./vida-menu.js?v=76";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=76";
+import { fechaISO, formatFecha } from "../db.js?v=76";
+import { efectoDeCelebracion } from "../efectos.js?v=76";
+import { openModal, closeModal } from "../modal.js?v=76";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -426,7 +426,7 @@ function filaBloque(b = {}) {
     </div>`;
 }
 
-function abrirEditorHorario(fecha) {
+export function abrirEditorHorario(fecha) {
   const dia = fecha.getDay();
   const propio = vida.sistema.horario?.[dia];
   const base = Array.isArray(propio) && propio.length ? propio : bloquesDelDia(fecha).filter((b) => !b.cita);
@@ -491,7 +491,7 @@ function abrirEditorHorario(fecha) {
 // en la línea del día con su 📌. Un médico, un recado, una visita: cosas
 // que no cambian la plantilla de la semana.
 
-function abrirAgendaDia(fechaId) {
+export function abrirAgendaDia(fechaId) {
   let agenda = [...(diaPorFecha(fechaId)?.agenda || [])];
   const fecha = new Date(fechaId + "T12:00:00");
   const titulo = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(fecha);
@@ -502,7 +502,7 @@ function abrirAgendaDia(fechaId) {
           .map(
             (a, i) => `
         <div class="mini-row">
-          <span class="mini-row__title">📌 ${a.h} · ${a.titulo}${a.detalle ? ` <span class="entity-card__meta">— ${a.detalle}</span>` : ""}</span>
+          <span class="mini-row__title">📌 ${a.h} · ${a.titulo}${a.duracion ? ` · ~${a.duracion} min` : ""}${a.duracion_real ? ` <span class="entity-card__meta">(${a.duracion_real} min reales)</span>` : ""}${a.detalle ? ` <span class="entity-card__meta">— ${a.detalle}</span>` : ""}</span>
           <button type="button" class="row-edit-btn" data-quitar-cita="${i}" title="Quitar">✕</button>
         </div>`
           )
@@ -513,10 +513,11 @@ function abrirAgendaDia(fechaId) {
     `
     <h2 class="modal__title">Solo el ${titulo}</h2>
     <div id="agenda-lista">${listaHTML()}</div>
-    <div class="horario-fila" style="margin-top:10px;">
+    <div class="horario-fila horario-fila--cita" style="margin-top:10px;">
       <input type="time" id="cita-hora" />
       <input type="text" id="cita-titulo" placeholder="Médico, recado, visita…" />
       <input type="text" id="cita-detalle" placeholder="Detalle (opcional)" />
+      <input type="number" id="cita-duracion" placeholder="min aprox" min="1" title="Cuánto crees que tardarás" />
       <button type="button" class="btn btn--ghost btn--sm" id="btn-add-cita">Añadir</button>
     </div>
     <p class="field-error" id="cita-error"></p>
@@ -542,11 +543,13 @@ function abrirAgendaDia(fechaId) {
             root.querySelector("#cita-error").textContent = "Hora y título, como mínimo.";
             return;
           }
-          agenda.push({ h, titulo: tituloCita, detalle: root.querySelector("#cita-detalle").value.trim() });
+          const duracion = Number(root.querySelector("#cita-duracion").value) || null;
+          agenda.push({ h, titulo: tituloCita, detalle: root.querySelector("#cita-detalle").value.trim(), ...(duracion ? { duracion } : {}) });
           agenda.sort((a, b) => minutosDeHora(a.h) - minutosDeHora(b.h));
           root.querySelector("#cita-hora").value = "";
           root.querySelector("#cita-titulo").value = "";
           root.querySelector("#cita-detalle").value = "";
+          root.querySelector("#cita-duracion").value = "";
           root.querySelector("#cita-error").textContent = "";
           repintar();
         });

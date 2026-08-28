@@ -604,6 +604,82 @@ a.hoy-toca__fila:hover strong { color: var(--success); }
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 .compra-chip:hover { color: var(--text-primary); border-color: var(--accent); }
+/* La fila de nueva cita lleva un campo más (los minutos aprox). */
+.horario-fila--cita { grid-template-columns: auto minmax(100px, 1.2fr) minmax(100px, 1.4fr) 84px auto; }
+@media (max-width: 560px) {
+  .horario-fila--cita { grid-template-columns: auto 1fr 84px auto; }
+  .horario-fila--cita .hor-detalle,
+  .horario-fila--cita #cita-detalle { grid-column: 1 / -1; }
+}
+
+/* ---------- Calendario personal ----------
+   La semana en tarjetas: hoy resaltado, bloques en dos columnas de texto
+   tranquilo, citas con su 📌 tocables para apuntar la duración real. */
+.agenda-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.agenda-nav__titulo {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0;
+  text-align: center;
+  flex: 1;
+}
+.agenda-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 14px;
+}
+.agenda-dia--hoy { border-color: var(--accent); }
+.agenda-dia__cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.agenda-dia__nombre {
+  margin: 0;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.agenda-dia__nombre span { color: var(--text-secondary); font-weight: 400; font-size: 0.85rem; }
+.agenda-dia__acciones { display: flex; gap: 2px; }
+.agenda-dia__toca {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin: 2px 0 8px;
+}
+.agenda-bloque {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  text-align: left;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  padding: 3px 0;
+}
+button.agenda-bloque { cursor: pointer; }
+.agenda-bloque__hora {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  width: 44px;
+}
+.agenda-bloque__detalle { color: var(--text-secondary); font-size: 0.8rem; }
+.agenda-bloque--cita .agenda-bloque__titulo { color: var(--accent); }
+.agenda-dia__aviso {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin: 8px 0 0;
+}
+
 .compras-pista {
   color: var(--text-secondary);
   opacity: 0.55;

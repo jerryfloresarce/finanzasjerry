@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=75";
-import { fechaISO } from "./db.js?v=75";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=75";
+import { db } from "./firebase-init.js?v=76";
+import { fechaISO } from "./db.js?v=76";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=76";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -1068,7 +1068,16 @@ export function bloquesDelDia(fecha = new Date()) {
   if (!Array.isArray(agenda) || !agenda.length) return base;
   const todos = [
     ...base.map((b, i) => ({ b, min: minutosDeBloque(b.h, i === 0) })),
-    ...agenda.map((a) => ({ b: { ...a, cita: true }, min: minutosDeBloque(a.h, false) })),
+    ...agenda.map((a) => ({
+      b: {
+        ...a,
+        cita: true,
+        // La duración viaja en el detalle para que cualquier pantalla que
+        // pinte bloques la enseñe sin saber nada de citas.
+        detalle: [a.detalle, a.duracion ? `~${a.duracion} min` : "", a.duracion_real ? `${a.duracion_real} min reales` : ""].filter(Boolean).join(" · "),
+      },
+      min: minutosDeBloque(a.h, false),
+    })),
   ];
   todos.sort((x, y) => x.min - y.min);
   return todos.map((x) => x.b);

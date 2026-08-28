@@ -23,7 +23,7 @@ import {
   listenGymSuplementos,
   listenGymTomas,
 // modulo:gimnasio:fin
-} from "./db.js?v=75";
+} from "./db.js?v=76";
 
 export const state = {
   cuentas: [],
