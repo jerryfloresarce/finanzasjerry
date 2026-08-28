@@ -1,41 +1,64 @@
 // vida:inicio
-// Calendario personal: la semana entera de un vistazo — qué toca cada día,
-// hora a hora, con las citas y sus duraciones. Todo editable desde aquí:
-// el lápiz cambia la plantilla de ese día de la semana, el ＋ apunta citas
-// solo de esa fecha (con cuánto crees que tardarás), y al tocar una cita
-// ya pasada apuntas cuánto tardaste al final. Si un día personalizado
-// deja el entreno sin hueco, el día lo avisa — la rutina sigue contando
-// con los imprevistos, no a pesar de ellos.
+// Calendario personal: un calendario de verdad, como el del iPhone, con
+// tres vistas — MES (todos los días, con sus puntitos de citas y tareas),
+// SEMANA (las tarjetas de cada día) y DÍA (la línea hora a hora de "Hoy",
+// con el AHORA marcando en qué momento estás). Tocar un día del mes lleva
+// a su vista de día. Todo editable: ✎ cambia la plantilla de ese día de
+// la semana, ＋ apunta citas con sus minutos aprox, ☑ abre la to-do list
+// del día, y tocar una cita apunta cuánto tardaste al final.
 
-import { vida, bloquesDelDia, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=77";
-import { abrirEditorHorario, abrirAgendaDia } from "./vida-hoy.js?v=77";
-import { openModal, closeModal } from "../modal.js?v=77";
-import { fechaISO } from "../db.js?v=77";
+import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=78";
+import { abrirEditorHorario, abrirAgendaDia } from "./vida-hoy.js?v=78";
+import { openModal, closeModal } from "../modal.js?v=78";
+import { fechaISO } from "../db.js?v=78";
 
-// Qué semana se está viendo: 0 = esta, 1 = la que viene, -1 = la pasada…
-let semanaVista = 0;
+// Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
+// que mandan las flechas: en mes salta de mes en mes, en semana de semana
+// en semana y en día de día en día.
+let vista = "mes"; // "mes" | "semana" | "dia"
+let fechaFoco = alMediodia(new Date());
 
-function lunesDeSemana(offset) {
-  const hoy = new Date();
-  const lunes = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - ((hoy.getDay() + 6) % 7) + offset * 7, 12);
-  return lunes;
+function alMediodia(d) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12);
 }
+
+function sumarDias(d, n) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n, 12);
+}
+
+function lunesDe(d) {
+  return sumarDias(d, -((d.getDay() + 6) % 7));
+}
+
+const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
 
 export function mountVidaAgenda() {
   const root = document.getElementById("view-agenda");
   root.addEventListener("click", async (e) => {
-    if (e.target.closest("#agenda-prev")) {
-      semanaVista -= 1;
+    const cambioVista = e.target.closest("[data-vista]");
+    if (cambioVista) {
+      vista = cambioVista.dataset.vista;
       renderVidaAgenda(null);
       return;
     }
-    if (e.target.closest("#agenda-next")) {
-      semanaVista += 1;
+    if (e.target.closest("#agenda-prev") || e.target.closest("#agenda-next")) {
+      const dir = e.target.closest("#agenda-next") ? 1 : -1;
+      if (vista === "mes") fechaFoco = new Date(fechaFoco.getFullYear(), fechaFoco.getMonth() + dir, 1, 12);
+      else if (vista === "semana") fechaFoco = sumarDias(fechaFoco, dir * 7);
+      else fechaFoco = sumarDias(fechaFoco, dir);
       renderVidaAgenda(null);
       return;
     }
     if (e.target.closest("#agenda-hoy")) {
-      semanaVista = 0;
+      fechaFoco = alMediodia(new Date());
+      renderVidaAgenda(null);
+      return;
+    }
+    // Tocar un día del mes (o el nombre de un día de la semana) abre su día.
+    const diaMes = e.target.closest("[data-ver-dia]");
+    if (diaMes) {
+      fechaFoco = alMediodia(new Date(diaMes.dataset.verDia + "T12:00:00"));
+      vista = "dia";
       renderVidaAgenda(null);
       return;
     }
@@ -82,8 +105,7 @@ export function mountVidaAgenda() {
 }
 
 // La to-do list de UN día: lo que hay que hacer ese día además del horario
-// (recados, llamadas, papeleos). Vive en el documento del día (tareas) y
-// se ve también en la tarjeta del día, donde un toque la marca hecha.
+// (recados, llamadas, papeleos). Vive en el documento del día (tareas).
 function abrirTareasDia(fechaId) {
   let tareas = [...(diaPorFecha(fechaId)?.tareas || [])];
   const fecha = new Date(fechaId + "T12:00:00");
@@ -156,30 +178,63 @@ function abrirTareasDia(fechaId) {
   );
 }
 
-export function renderVidaAgenda(_state) {
-  const el = document.getElementById("agenda-content");
-  if (!el) return;
+// ---------- Las tres vistas ----------
 
-  const lunes = lunesDeSemana(semanaVista);
-  const hoyISO = fechaISO();
+// MES: la cuadrícula entera, con un puntito por lo que tenga cada día
+// (citas en color, tareas pendientes en gris). Tocar un día abre su día.
+function vistaMes() {
+  const year = fechaFoco.getFullYear();
+  const month = fechaFoco.getMonth();
+  const diasEnMes = new Date(year, month + 1, 0).getDate();
+  const offset = (new Date(year, month, 1).getDay() + 6) % 7;
+  const hoyId = fechaISO();
+
+  const celdas = [];
+  for (let i = 0; i < offset; i++) celdas.push(`<div class="cal-cell cal-cell--vacia"></div>`);
+  for (let dia = 1; dia <= diasEnMes; dia++) {
+    const fechaId = fechaISO(new Date(year, month, dia, 12));
+    const doc = diaPorFecha(fechaId);
+    const citas = doc?.agenda?.length || 0;
+    const pendientes = (doc?.tareas || []).filter((t) => !t.hecho).length;
+    celdas.push(`
+      <button type="button" class="cal-cell ${fechaId === hoyId ? "cal-cell--hoy" : ""}" data-ver-dia="${fechaId}">
+        <span class="cal-cell__num">${dia}</span>
+        <span class="agenda-puntos">
+          ${citas ? `<span class="agenda-punto agenda-punto--cita" title="${citas} cita(s)"></span>` : ""}
+          ${pendientes ? `<span class="agenda-punto agenda-punto--tarea" title="${pendientes} por hacer"></span>` : ""}
+        </span>
+      </button>`);
+  }
+
+  return `
+    <article class="card">
+      <div class="cal-weekdays">
+        <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+      </div>
+      <div class="cal-days">${celdas.join("")}</div>
+      <p class="compras-pista">Toca un día y lo ves entero · el punto de color son citas, el gris cosas por hacer</p>
+    </article>`;
+}
+
+// SEMANA: las siete tarjetas, cada una con su horario, citas y tareas.
+function vistaSemana() {
+  const lunes = lunesDe(fechaFoco);
+  const hoyId = fechaISO();
   const fmtDia = new Intl.DateTimeFormat("es-ES", { weekday: "long" });
   const fmtCorto = new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short" });
-  const domingo = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + 6, 12);
 
   const dias = Array.from({ length: 7 }, (_, i) => {
-    const fecha = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + i, 12);
+    const fecha = sumarDias(lunes, i);
     const fechaId = fechaISO(fecha);
     const bloques = bloquesDelDia(fecha);
-    const agenda = diaPorFecha(fechaId)?.agenda || [];
     const tareas = diaPorFecha(fechaId)?.tareas || [];
     const aviso = avisoDeEntrenoSinHueco(fecha);
     const toca = SEMANA_TIPO[fecha.getDay()];
-    // Para enlazar cada bloque-cita con su posición en la agenda del día.
     let nCita = -1;
     return `
-      <article class="card agenda-dia ${fechaId === hoyISO ? "agenda-dia--hoy" : ""}">
+      <article class="card agenda-dia ${fechaId === hoyId ? "agenda-dia--hoy" : ""}">
         <div class="agenda-dia__cabecera">
-          <p class="agenda-dia__nombre">${fmtDia.format(fecha)} <span>${fmtCorto.format(fecha).replace(".", "")}</span>${fechaId === hoyISO ? " · hoy" : ""}</p>
+          <button type="button" class="agenda-dia__nombre" data-ver-dia="${fechaId}" title="Ver este día entero">${fmtDia.format(fecha)} <span>${fmtCorto.format(fecha).replace(".", "")}</span>${fechaId === hoyId ? " · hoy" : ""}</button>
           <div class="agenda-dia__acciones">
             <button type="button" class="menu-dia__editar" data-editar-dia-semana="${fechaId}" title="Cambiar la plantilla de este día de la semana">✎</button>
             <button type="button" class="menu-dia__editar" data-cita-fecha="${fechaId}" title="Cita o imprevisto solo de este día">＋</button>
@@ -224,14 +279,101 @@ export function renderVidaAgenda(_state) {
       </article>`;
   }).join("");
 
+  return `
+    <div class="agenda-grid">${dias}</div>
+    <p class="compras-pista">✎ cambia ese día de la semana · ＋ cita con sus minutos aprox · ☑ la to-do list del día · toca una cita para apuntar cuánto tardaste</p>`;
+}
+
+// DÍA: el día entero como lo enseña "Hoy" — la línea hora a hora con el
+// AHORA marcando dónde estás (si es hoy), las citas 📌 tocables, las
+// tareas del día y su aviso si el entreno se quedó sin hueco.
+function vistaDia() {
+  const fecha = fechaFoco;
+  const fechaId = fechaISO(fecha);
+  const esHoy = fechaId === fechaISO();
+  const ahora = new Date();
+  const bloques = bloquesDelDia(fecha);
+  const indiceAhora = esHoy ? bloqueActual(ahora) : -1;
+  const horaTxt = `${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}`;
+  const tareas = diaPorFecha(fechaId)?.tareas || [];
+  const aviso = avisoDeEntrenoSinHueco(fecha);
+  const toca = SEMANA_TIPO[fecha.getDay()];
+  let nCita = -1;
+
+  return `
+    <article class="card">
+      <div class="agenda-dia__cabecera">
+        ${toca ? `<p class="agenda-dia__toca" style="margin:0;">${toca.nombre}</p>` : "<span></span>"}
+        <div class="agenda-dia__acciones">
+          <button type="button" class="menu-dia__editar" data-editar-dia-semana="${fechaId}" title="Cambiar la plantilla de este día de la semana">✎</button>
+          <button type="button" class="menu-dia__editar" data-cita-fecha="${fechaId}" title="Cita o imprevisto solo de este día">＋</button>
+          <button type="button" class="menu-dia__editar" data-tareas-fecha="${fechaId}" title="La to-do list de este día">☑</button>
+        </div>
+      </div>
+      <div class="dia-linea" style="margin-top:10px;">
+        ${bloques
+          .map((bl, i) => {
+            const esAhora = esHoy && i === indiceAhora;
+            const citaAttr = bl.cita ? ` data-cita-real="${fechaId}|${(nCita += 1)}" role="button" title="Toca para apuntar cuánto tardaste"` : "";
+            return `
+          <div class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${esHoy && i < indiceAhora ? "dia-bloque--pasado" : ""}"${citaAttr}>
+            <span class="dia-bloque__hora">${bl.h}</span>
+            <span class="dia-bloque__punto" aria-hidden="true"></span>
+            <span class="dia-bloque__cuerpo">
+              <span class="dia-bloque__titulo">${bl.cita ? "📌 " : ""}${bl.titulo}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
+              ${bl.detalle ? `<span class="dia-bloque__detalle">${bl.detalle}</span>` : ""}
+            </span>
+          </div>`;
+          })
+          .join("")}
+      </div>
+      ${
+        tareas.length
+          ? `<p class="compras-titulo">Para hacer este día</p>
+      <div class="agenda-tareas" style="border-top:none; padding-top:0;">
+        ${tareas
+          .map(
+            (t, i) => `
+          <button type="button" class="agenda-tarea ${t.hecho ? "agenda-tarea--hecha" : ""}" data-tarea-toggle="${fechaId}|${i}">
+            <span class="agenda-tarea__circulo">${t.hecho ? "✓" : ""}</span>${t.texto}
+          </button>`
+          )
+          .join("")}
+      </div>`
+          : ""
+      }
+      ${aviso ? `<p class="agenda-dia__aviso">⚠️ ${aviso}</p>` : ""}
+    </article>`;
+}
+
+export function renderVidaAgenda(_state) {
+  const el = document.getElementById("agenda-content");
+  if (!el) return;
+
+  const fmtMes = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" });
+  const fmtCorto = new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short" });
+  const fmtLargo = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const esHoyFoco = fechaISO(fechaFoco) === fechaISO();
+
+  let titulo;
+  if (vista === "mes") titulo = cap(fmtMes.format(fechaFoco));
+  else if (vista === "semana") {
+    const lunes = lunesDe(fechaFoco);
+    titulo = `Semana del ${fmtCorto.format(lunes).replace(".", "")} al ${fmtCorto.format(sumarDias(lunes, 6)).replace(".", "")}`;
+  } else titulo = cap(fmtLargo.format(fechaFoco)) + (esHoyFoco ? " · hoy" : "");
+
   el.innerHTML = `
     <div class="agenda-nav">
       <button type="button" class="btn btn--ghost btn--sm" id="agenda-prev">‹</button>
-      <p class="agenda-nav__titulo">Semana del ${fmtCorto.format(lunes).replace(".", "")} al ${fmtCorto.format(domingo).replace(".", "")}${semanaVista !== 0 ? ` · <button type="button" class="btn btn--ghost btn--sm" id="agenda-hoy">volver a hoy</button>` : ""}</p>
+      <p class="agenda-nav__titulo">${titulo}${esHoyFoco ? "" : ` · <button type="button" class="btn btn--ghost btn--sm" id="agenda-hoy">hoy</button>`}</p>
       <button type="button" class="btn btn--ghost btn--sm" id="agenda-next">›</button>
     </div>
-    <div class="agenda-grid">${dias}</div>
-    <p class="compras-pista">✎ cambia ese día de la semana · ＋ cita con sus minutos aprox · ☑ la to-do list del día · toca una cita para apuntar cuánto tardaste</p>
+    <div class="chips agenda-vistas">
+      <button type="button" class="chip ${vista === "mes" ? "chip--on" : ""}" data-vista="mes">Mes</button>
+      <button type="button" class="chip ${vista === "semana" ? "chip--on" : ""}" data-vista="semana">Semana</button>
+      <button type="button" class="chip ${vista === "dia" ? "chip--on" : ""}" data-vista="dia">Día</button>
+    </div>
+    ${vista === "mes" ? vistaMes() : vista === "semana" ? vistaSemana() : vistaDia()}
   `;
 }
 // vida:fin
