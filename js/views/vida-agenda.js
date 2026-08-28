@@ -7,10 +7,10 @@
 // la semana, ＋ apunta citas con sus minutos aprox, ☑ abre la to-do list
 // del día, y tocar una cita apunta cuánto tardaste al final.
 
-import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=80";
-import { abrirEditorHorario, abrirAgendaDia } from "./vida-hoy.js?v=80";
-import { openModal, closeModal } from "../modal.js?v=80";
-import { fechaISO } from "../db.js?v=80";
+import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=81";
+import { abrirEditorHorario, abrirAgendaDia } from "./vida-hoy.js?v=81";
+import { openModal, closeModal } from "../modal.js?v=81";
+import { fechaISO } from "../db.js?v=81";
 
 // Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
 // que mandan las flechas: en mes salta de mes en mes, en semana de semana
@@ -252,6 +252,20 @@ function vistaSemana() {
           </div>
         </div>
         ${toca ? `<p class="agenda-dia__toca">${toca.nombre}</p>` : ""}
+        ${
+          tareas.length
+            ? `<div class="agenda-tareas" style="border-top:none; padding-top:0; margin:2px 0 6px;">
+          ${tareas
+            .map(
+              (t, i) => `
+            <button type="button" class="agenda-tarea ${t.hecho ? "agenda-tarea--hecha" : ""}" data-tarea-toggle="${fechaId}|${i}">
+              <span class="agenda-tarea__circulo">${t.hecho ? "✓" : ""}</span>${t.texto}
+            </button>`
+            )
+            .join("")}
+        </div>`
+            : ""
+        }
         <div class="agenda-dia__bloques">
           ${bloques
             .map((b) => {
@@ -279,20 +293,6 @@ function vistaSemana() {
             })
             .join("")}
         </div>
-        ${
-          tareas.length
-            ? `<div class="agenda-tareas">
-          ${tareas
-            .map(
-              (t, i) => `
-            <button type="button" class="agenda-tarea ${t.hecho ? "agenda-tarea--hecha" : ""}" data-tarea-toggle="${fechaId}|${i}">
-              <span class="agenda-tarea__circulo">${t.hecho ? "✓" : ""}</span>${t.texto}
-            </button>`
-            )
-            .join("")}
-        </div>`
-            : ""
-        }
         ${aviso ? `<p class="agenda-dia__aviso">⚠️ ${aviso}</p>` : ""}
       </article>`;
   }).join("");
@@ -327,6 +327,20 @@ function vistaDia() {
           <button type="button" class="menu-dia__editar" data-tareas-fecha="${fechaId}" title="La to-do list de este día">☑</button>
         </div>
       </div>
+      ${
+        tareas.length
+          ? `<div class="agenda-tareas" style="border-top:none; padding-top:0; margin:8px 0 4px;">
+        ${tareas
+          .map(
+            (t, i) => `
+          <button type="button" class="agenda-tarea ${t.hecho ? "agenda-tarea--hecha" : ""}" data-tarea-toggle="${fechaId}|${i}">
+            <span class="agenda-tarea__circulo">${t.hecho ? "✓" : ""}</span>${t.texto}
+          </button>`
+          )
+          .join("")}
+      </div>`
+          : ""
+      }
       <div class="dia-linea" style="margin-top:10px;">
         ${bloques
           .map((bl, i) => {
@@ -350,21 +364,6 @@ function vistaDia() {
           })
           .join("")}
       </div>
-      ${
-        tareas.length
-          ? `<p class="compras-titulo">Para hacer este día</p>
-      <div class="agenda-tareas" style="border-top:none; padding-top:0;">
-        ${tareas
-          .map(
-            (t, i) => `
-          <button type="button" class="agenda-tarea ${t.hecho ? "agenda-tarea--hecha" : ""}" data-tarea-toggle="${fechaId}|${i}">
-            <span class="agenda-tarea__circulo">${t.hecho ? "✓" : ""}</span>${t.texto}
-          </button>`
-          )
-          .join("")}
-      </div>`
-          : ""
-      }
       ${aviso ? `<p class="agenda-dia__aviso">⚠️ ${aviso}</p>` : ""}
     </article>`;
 }

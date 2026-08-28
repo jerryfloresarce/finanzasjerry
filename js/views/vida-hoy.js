@@ -29,12 +29,12 @@ import {
   guardarSistema,
   guardarDia,
   avisoDeEntrenoSinHueco,
-} from "../vida.js?v=80";
-import { abrirReceta } from "./vida-menu.js?v=80";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=80";
-import { fechaISO, formatFecha } from "../db.js?v=80";
-import { efectoDeCelebracion } from "../efectos.js?v=80";
-import { openModal, closeModal } from "../modal.js?v=80";
+} from "../vida.js?v=81";
+import { abrirReceta } from "./vida-menu.js?v=81";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=81";
+import { fechaISO, formatFecha } from "../db.js?v=81";
+import { efectoDeCelebracion } from "../efectos.js?v=81";
+import { openModal, closeModal } from "../modal.js?v=81";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -127,6 +127,16 @@ export function mountVidaHoy() {
     }
     if (e.target.closest("#btn-editar-horario")) {
       abrirEditorHorario(new Date((fechaEditando ?? fechaISO()) + "T12:00:00"));
+      return;
+    }
+    const tareaHoy = e.target.closest("[data-tarea-hoy]");
+    if (tareaHoy) {
+      const fid = fechaEditando ?? fechaISO();
+      const tareas = [...(diaPorFecha(fid)?.tareas || [])];
+      const i = Number(tareaHoy.dataset.tareaHoy);
+      if (!tareas[i]) return;
+      tareas[i] = { ...tareas[i], hecho: !tareas[i].hecho };
+      guardarDia(fid, { tareas }).catch(() => {});
       return;
     }
     if (e.target.closest("#btn-cita-dia")) {
@@ -258,6 +268,21 @@ export function renderVidaHoy(state) {
           }
         </div>
 
+        ${
+          (guardado?.tareas || []).length
+            ? `<h2 class="card__title" style="margin-top:18px;">Para hacer hoy</h2>
+        <div class="agenda-tareas" style="border-top:none; padding-top:0;">
+          ${(guardado?.tareas || [])
+            .map(
+              (t, i) => `
+            <button type="button" class="agenda-tarea ${t.hecho ? "agenda-tarea--hecha" : ""}" data-tarea-hoy="${i}">
+              <span class="agenda-tarea__circulo">${t.hecho ? "✓" : ""}</span>${t.texto}
+            </button>`
+            )
+            .join("")}
+        </div>`
+            : ""
+        }
         <h2 class="card__title" style="margin-top:18px;">El día, hora a hora</h2>
         <div class="dia-linea">
           ${bloques
@@ -493,9 +518,13 @@ export function abrirEditorHorario(fecha) {
 // que no cambian la plantilla de la semana.
 
 export function abrirAgendaDia(fechaId) {
-  let agenda = [...(diaPorFecha(fechaId)?.agenda || [])];
-  const fecha = new Date(fechaId + "T12:00:00");
-  const titulo = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(fecha);
+  // El modal abre en el día desde el que se llamó, pero el campo de fecha
+  // permite apuntar citas para más adelante: al cambiarlo se guarda lo del
+  // día actual y se carga la agenda del día elegido.
+  let fechaSel = fechaId;
+  let agenda = [...(diaPorFecha(fechaSel)?.agenda || [])];
+  const tituloDe = (fid) => new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(new Date(fid + "T12:00:00"));
+  const titulo = tituloDe(fechaSel);
 
   const listaHTML = () =>
     agenda.length
@@ -512,9 +541,13 @@ export function abrirAgendaDia(fechaId) {
 
   openModal(
     `
-    <h2 class="modal__title">Solo el ${titulo}</h2>
+    <h2 class="modal__title" id="agenda-modal-titulo">Solo el ${titulo}</h2>
     <div id="agenda-lista">${listaHTML()}</div>
     <div class="form-grid" style="margin-top:12px;">
+      <label class="field">
+        <span class="field__label">¿Para qué día?</span>
+        <input type="date" id="cita-fecha" value="${fechaId}" />
+      </label>
       <label class="field">
         <span class="field__label">Hora</span>
         <input type="time" id="cita-hora" />
@@ -544,6 +577,16 @@ export function abrirAgendaDia(fechaId) {
       onMount: (root) => {
         const repintar = () => (root.querySelector("#agenda-lista").innerHTML = listaHTML());
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector("#cita-fecha").addEventListener("change", async (e) => {
+          const nueva = e.target.value;
+          if (!nueva || nueva === fechaSel) return;
+          // Lo apuntado hasta ahora se guarda en su día antes de cambiar.
+          await guardarDia(fechaSel, { agenda }).catch(() => {});
+          fechaSel = nueva;
+          agenda = [...(diaPorFecha(fechaSel)?.agenda || [])];
+          root.querySelector("#agenda-modal-titulo").textContent = "Solo el " + tituloDe(fechaSel);
+          repintar();
+        });
         root.querySelector("#agenda-lista").addEventListener("click", (e) => {
           const quitar = e.target.closest("[data-quitar-cita]");
           if (quitar) {
@@ -570,7 +613,7 @@ export function abrirAgendaDia(fechaId) {
         });
         root.querySelector("#btn-guardar-agenda").addEventListener("click", async () => {
           try {
-            await guardarDia(fechaId, { agenda });
+            await guardarDia(fechaSel, { agenda });
             closeModal();
           } catch (err) {
             root.querySelector("#cita-error").textContent = "No se pudo guardar. Revisa la conexión.";
