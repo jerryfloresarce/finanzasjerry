@@ -7,10 +7,10 @@
 // la semana, ＋ apunta citas con sus minutos aprox, ☑ abre la to-do list
 // del día, y tocar una cita apunta cuánto tardaste al final.
 
-import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=78";
-import { abrirEditorHorario, abrirAgendaDia } from "./vida-hoy.js?v=78";
-import { openModal, closeModal } from "../modal.js?v=78";
-import { fechaISO } from "../db.js?v=78";
+import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=79";
+import { abrirEditorHorario, abrirAgendaDia } from "./vida-hoy.js?v=79";
+import { openModal, closeModal } from "../modal.js?v=79";
+import { fechaISO } from "../db.js?v=79";
 
 // Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
 // que mandan las flechas: en mes salta de mes en mes, en semana de semana
@@ -31,6 +31,17 @@ function lunesDe(d) {
 }
 
 const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+
+// Un bloque del día no es solo texto: el del entreno lleva a Entreno, los
+// de comer llevan al Menú. Se reconoce por el título, así también funciona
+// con horarios editados a mano.
+function rutaDeBloque(b) {
+  if (b.cita) return null;
+  const t = `${b.titulo || ""} ${b.detalle || ""}`;
+  if (/entren|gym|gim|fuerza|piscina|yoga|calisten|pierna|tir[oó]n|empuje|core|caminat|estir/i.test(t)) return { href: "#/entreno", icono: "ph-barbell" };
+  if (/desayun|comida|cena|batch|cocin|comer/i.test(t)) return { href: "#/menu", icono: "ph-fork-knife" };
+  return null;
+}
 
 export function mountVidaAgenda() {
   const root = document.getElementById("view-agenda");
@@ -212,7 +223,6 @@ function vistaMes() {
         <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
       </div>
       <div class="cal-days">${celdas.join("")}</div>
-      <p class="compras-pista">Toca un día y lo ves entero · el punto de color son citas, el gris cosas por hacer</p>
     </article>`;
 }
 
@@ -253,10 +263,18 @@ function vistaSemana() {
                 <span class="agenda-bloque__titulo">📌 ${b.titulo}${b.detalle ? ` <span class="agenda-bloque__detalle">· ${b.detalle}</span>` : ""}</span>
               </button>`;
               }
+              const ruta = rutaDeBloque(b);
+              if (ruta) {
+                return `
+              <a class="agenda-bloque agenda-bloque--link" href="${ruta.href}">
+                <span class="agenda-bloque__hora">${b.h}</span>
+                <span class="agenda-bloque__titulo"><i class="ph ${ruta.icono}" aria-hidden="true"></i> ${b.titulo} <span class="agenda-bloque__ir">›</span></span>
+              </a>`;
+              }
               return `
               <div class="agenda-bloque">
                 <span class="agenda-bloque__hora">${b.h}</span>
-                <span class="agenda-bloque__titulo">${b.titulo}${b.detalle ? ` <span class="agenda-bloque__detalle">· ${b.detalle}</span>` : ""}</span>
+                <span class="agenda-bloque__titulo">${b.titulo}</span>
               </div>`;
             })
             .join("")}
@@ -280,8 +298,7 @@ function vistaSemana() {
   }).join("");
 
   return `
-    <div class="agenda-grid">${dias}</div>
-    <p class="compras-pista">✎ cambia ese día de la semana · ＋ cita con sus minutos aprox · ☑ la to-do list del día · toca una cita para apuntar cuánto tardaste</p>`;
+    <div class="agenda-grid">${dias}</div>`;
 }
 
 // DÍA: el día entero como lo enseña "Hoy" — la línea hora a hora con el
@@ -314,16 +331,22 @@ function vistaDia() {
         ${bloques
           .map((bl, i) => {
             const esAhora = esHoy && i === indiceAhora;
-            const citaAttr = bl.cita ? ` data-cita-real="${fechaId}|${(nCita += 1)}" role="button" title="Toca para apuntar cuánto tardaste"` : "";
+            const ruta = rutaDeBloque(bl);
+            const etiqueta = ruta ? "a" : "div";
+            const attrs = ruta
+              ? ` href="${ruta.href}"`
+              : bl.cita
+                ? ` data-cita-real="${fechaId}|${(nCita += 1)}" role="button" title="Toca para apuntar cuánto tardaste"`
+                : "";
             return `
-          <div class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${esHoy && i < indiceAhora ? "dia-bloque--pasado" : ""}"${citaAttr}>
+          <${etiqueta} class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${esHoy && i < indiceAhora ? "dia-bloque--pasado" : ""}"${attrs}>
             <span class="dia-bloque__hora">${bl.h}</span>
             <span class="dia-bloque__punto" aria-hidden="true"></span>
             <span class="dia-bloque__cuerpo">
-              <span class="dia-bloque__titulo">${bl.cita ? "📌 " : ""}${bl.titulo}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
+              <span class="dia-bloque__titulo">${bl.cita ? "📌 " : ""}${ruta ? `<i class="ph ${ruta.icono}" aria-hidden="true"></i> ` : ""}${bl.titulo}${ruta ? ` <span class="agenda-bloque__ir">›</span>` : ""}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
               ${bl.detalle ? `<span class="dia-bloque__detalle">${bl.detalle}</span>` : ""}
             </span>
-          </div>`;
+          </${etiqueta}>`;
           })
           .join("")}
       </div>

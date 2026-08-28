@@ -15,9 +15,9 @@
 <script type="importmap">
 {
   "imports": {
-    "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js": "./js/demo/app-falso.js?v=78",
-    "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js": "./js/demo/auth-falso.js?v=78",
-    "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js": "./js/demo/firestore-falso.js?v=78"
+    "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js": "./js/demo/app-falso.js?v=79",
+    "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js": "./js/demo/auth-falso.js?v=79",
+    "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js": "./js/demo/firestore-falso.js?v=79"
   }
 }
 </script>
@@ -30,7 +30,7 @@
      Sin esto, al añadirla a la pantalla de inicio se abre DENTRO de Safari
      con su barra de direcciones, y esa barra que aparece y desaparece al
      deslizar es lo que hace que todo se mueva de forma rara. -->
-<link rel="manifest" href="manifest.json?v=78" />
+<link rel="manifest" href="manifest.json?v=79" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <!-- "black-translucent" hace que la app llegue hasta arriba del todo, por
@@ -46,9 +46,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=78" />
-<link rel="stylesheet" href="css/temas.css?v=78" />
-<link rel="stylesheet" href="css/paletas.css?v=78" />
+<link rel="stylesheet" href="css/styles.css?v=79" />
+<link rel="stylesheet" href="css/temas.css?v=79" />
+<link rel="stylesheet" href="css/paletas.css?v=79" />
 <script>
   /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
      desde un módulo (que se ejecuta al final), la app abriría un instante
@@ -68,7 +68,7 @@
 </script>
 <link rel="icon" href="data:,">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
-<link rel="stylesheet" href="css/visita.css?v=78" />
+<link rel="stylesheet" href="css/visita.css?v=79" />
 </head>
 <body>
 
@@ -106,20 +106,14 @@
       <a href="#/dashboard" class="nav__link" data-route="dashboard">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-squares-four"></i></span> Dashboard
       </a>
+      <a href="#/movimientos" class="nav__link" data-route="movimientos">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-left-right"></i></span> Movimientos
+      </a>
       <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Gastos fijos
       </a>
-      <a href="#/movimientos" class="nav__link" data-route="movimientos">
-        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-left-right"></i></span> Calendario
-      </a>
       <a href="#/prestamos" class="nav__link" data-route="prestamos">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-hand-coins"></i></span> Préstamos
-      </a>
-      <a href="#/metas" class="nav__link" data-route="metas">
-        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-piggy-bank"></i></span> Metas
-      </a>
-      <a href="#/graficos" class="nav__link" data-route="graficos">
-        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
       </a>
       <!-- modulo:rutina:inicio -->
         <a href="#/rutina" class="nav__link" data-route="rutina">
@@ -155,20 +149,14 @@
       <a href="#/dashboard" class="nav__link" data-route="dashboard">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-squares-four"></i></span> Dashboard
     </a>
+    <a href="#/movimientos" class="nav__link" data-route="movimientos">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-left-right"></i></span> Movimientos
+    </a>
     <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Gastos fijos
     </a>
-    <a href="#/movimientos" class="nav__link" data-route="movimientos">
-      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-left-right"></i></span> Calendario
-    </a>
     <a href="#/prestamos" class="nav__link" data-route="prestamos">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-hand-coins"></i></span> Préstamos
-    </a>
-    <a href="#/metas" class="nav__link" data-route="metas">
-      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-piggy-bank"></i></span> Metas
-    </a>
-    <a href="#/graficos" class="nav__link" data-route="graficos">
-      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-donut"></i></span> Gráficos
     </a>
       <!-- modulo:rutina:inicio -->
       <a href="#/rutina" class="nav__link" data-route="rutina">
@@ -274,7 +262,7 @@
           <div id="top-lugares" class="mini-list dash-scroll"></div>
         </article>
       </div>
-      <p class="dash-atajos">Ajustes que se tocan poco: <a href="#/cuentas">Cuentas</a> · <a href="#/categorias">Categorías</a></p>
+      <p class="dash-atajos"><a href="#/metas">Metas</a> · <a href="#/graficos">Gráficos</a> · <a href="#/cuentas">Cuentas</a> · <a href="#/categorias">Categorías</a></p>
       </div>
     </section>
 
@@ -525,9 +513,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=78"></script>
+<script type="module" src="js/app.js?v=79"></script>
 <script type="module">
-  import { montarBotonDeVisita } from "./js/demo/visita.js?v=78";
+  import { montarBotonDeVisita } from "./js/demo/visita.js?v=79";
   montarBotonDeVisita();
 </script>
 </body>

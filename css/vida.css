@@ -659,6 +659,20 @@ a.hoy-toca__fila:hover strong { color: var(--success); }
 .agenda-punto--cita { background: var(--accent); }
 .agenda-punto--tarea { background: var(--text-secondary); opacity: 0.7; }
 .dia-bloque[data-cita-real] { cursor: pointer; }
+
+/* Bloques con destino: el entreno lleva a Entreno, la comida al Menú.
+   Un icono, el título y un › que invita — sin más texto. */
+a.agenda-bloque,
+a.dia-bloque { text-decoration: none; color: inherit; }
+.agenda-bloque--link .agenda-bloque__titulo i,
+a.dia-bloque .dia-bloque__titulo i { color: var(--accent); }
+.agenda-bloque__ir {
+  color: var(--text-secondary);
+  opacity: 0.6;
+  font-size: 0.9em;
+}
+.agenda-bloque--link:hover .agenda-bloque__ir,
+a.dia-bloque:hover .agenda-bloque__ir { color: var(--accent); opacity: 1; }
 .agenda-dia__cabecera {
   display: flex;
   align-items: baseline;
