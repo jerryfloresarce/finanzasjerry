@@ -13,11 +13,11 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=74";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=74";
-import { initials, avatarColor, icon } from "../icons.js?v=74";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=74";
-import { efectoDeCelebracion } from "../efectos.js?v=74";
+} from "../db.js?v=75";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=75";
+import { initials, avatarColor, icon } from "../icons.js?v=75";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=75";
+import { efectoDeCelebracion } from "../efectos.js?v=75";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -68,9 +68,26 @@ function pagosDelPrestamo(p, movimientos) {
         (m.prestamo_id === p.id ||
           (typeof m.subcategoria === "string" &&
             m.subcategoria.includes(`· ${p.persona}`) &&
-            (m.subcategoria.startsWith("Interés préstamo") || m.subcategoria.startsWith("Plan de pagos") || m.subcategoria.startsWith("Préstamo liquidado"))))
+            (m.subcategoria.startsWith("Interés préstamo") ||
+              m.subcategoria.startsWith("Plan de pagos") ||
+              m.subcategoria.startsWith("Abono préstamo") ||
+              m.subcategoria.startsWith("Préstamo liquidado"))))
     )
     .sort((a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0));
+}
+
+// En qué fecha toca el próximo cobro de un préstamo: la del interés, o el
+// primer día pendiente de su plan de pagos diario. Sin fecha, al final.
+function fechaProximoCobro(p, pagosPrestamos) {
+  if (esPlanDePagos(p)) {
+    const pendiente = pagosPrestamos
+      .filter((pg) => pg.prestamo_id === p.id && !pg.pagado)
+      .map((pg) => fromTimestamp(pg.fecha))
+      .filter(Boolean)
+      .sort((a, b) => a - b)[0];
+    return pendiente ? diaISO(pendiente) : "9999-12-31";
+  }
+  return p.fecha_interes || "9999-12-31";
 }
 
 // Qué historial está desplegado (se recuerda entre repintados).
@@ -86,9 +103,11 @@ function renderHistorialPagos(p, movimientos) {
       ? "Interés"
       : m.subcategoria?.startsWith("Plan de pagos")
         ? "Cuota del plan"
-        : m.subcategoria?.startsWith("Préstamo liquidado")
-          ? "Liquidación"
-          : "Pago";
+        : m.subcategoria?.startsWith("Abono préstamo")
+          ? "Abono"
+          : m.subcategoria?.startsWith("Préstamo liquidado")
+            ? "Liquidación"
+            : "Pago";
   return `
     <button type="button" class="prestamo-historial__toggle" data-historial="${p.id}">
       Historial: ${pagos.length} ${pagos.length === 1 ? "pago" : "pagos"} · ${formatEUR(total)} cobrados ${abierto ? "▴" : "▾"}
@@ -141,7 +160,16 @@ export function renderPrestamos(state) {
     return;
   }
 
-  el.innerHTML = prestamos
+  // Orden: a quién le toca pagar antes, primero — por la fecha del próximo
+  // cobro. Los que no tienen fecha van después, y los ya pagados al final.
+  const ordenados = [...prestamos].sort((a, b) => {
+    const pagadoA = a.estado === "Pagado";
+    const pagadoB = b.estado === "Pagado";
+    if (pagadoA !== pagadoB) return pagadoA ? 1 : -1;
+    return fechaProximoCobro(a, pagosPrestamos).localeCompare(fechaProximoCobro(b, pagosPrestamos));
+  });
+
+  el.innerHTML = ordenados
     .map((p) => {
       // capital_inicial es el campo antiguo (de antes de simplificar
       // préstamos): si un préstamo todavía no tiene `capital` fijado, se
@@ -173,6 +201,11 @@ export function renderPrestamos(state) {
           ${p.estado === "Pagado" ? `<p class="entity-card__meta">Préstamo cerrado.</p>` : planPagos ? renderPlanPagos(p, pagosPrestamos) : renderInteresMensual(p, pct, interesActual, etiquetaInteres)}
           ${renderHistorialPagos(p, movimientos)}
           ${
+            p.estado !== "Pagado" && !planPagos
+              ? `<button type="button" class="btn btn--ghost btn--sm btn--block" data-abono="${p.id}">± Ha pagado una parte (abono)</button>`
+              : ""
+          }
+          ${
             p.estado !== "Pagado"
               ? `<button type="button" class="btn btn--ghost btn--sm btn--block prestamo-liquidar-btn" data-liquidar="${p.id}">💰 Ha pagado capital + interés (liquidar deuda)</button>`
               : ""
@@ -194,6 +227,9 @@ export function renderPrestamos(state) {
   );
   el.querySelectorAll("[data-liquidar]").forEach((btn) =>
     btn.addEventListener("click", () => openLiquidarForm(prestamos.find((p) => p.id === btn.dataset.liquidar), state))
+  );
+  el.querySelectorAll("[data-abono]").forEach((btn) =>
+    btn.addEventListener("click", () => openAbonoForm(prestamos.find((p) => p.id === btn.dataset.abono), state))
   );
   el.querySelectorAll("[data-historial]").forEach((btn) =>
     btn.addEventListener("click", () => {
@@ -319,6 +355,9 @@ async function marcarInteresImpago(prestamo) {
   await updatePrestamo(prestamo.id, {
     capital: nuevoCapital,
     fecha_interes: unMesDespues(prestamo.fecha_interes),
+    // Igual que al cobrar: si el % es la regla, el mes congelado por un
+    // abono parcial se suelta y el próximo interés se calcula del capital.
+    ...(Number(prestamo.interes_porcentaje ?? 0) > 0 ? { interes_manual: null } : {}),
   });
 }
 
@@ -366,7 +405,12 @@ function openInteresPagadoForm(prestamo, state) {
               nota: "",
               prestamo_id: prestamo.id,
             });
-            await updatePrestamo(prestamo.id, { fecha_interes: unMesDespues(prestamo.fecha_interes) });
+            await updatePrestamo(prestamo.id, {
+              fecha_interes: unMesDespues(prestamo.fecha_interes),
+              // Si el interés va por % y este mes quedó congelado a mano
+              // (por un abono parcial), al cobrarlo se vuelve al % normal.
+              ...(Number(prestamo.interes_porcentaje ?? 0) > 0 ? { interes_manual: null } : {}),
+            });
             closeModal();
           } catch (err) {
             root.querySelector("#form-interes-pago-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
@@ -449,6 +493,114 @@ async function deshacerDiaPagado(pago) {
     }
   }
   await updatePagoPrestamo(pago.id, { pagado: false, movimiento_id: null });
+}
+
+const round2 = (n) => Math.round(n * 100) / 100;
+
+// Un abono parcial: la persona paga una parte de lo que debe (30 € de una
+// deuda de 60, por ejemplo) y el resto queda para otro día. El dinero se
+// aplica como se hace siempre con las deudas: primero al interés del mes y
+// lo que sobre baja el capital. Si el interés queda cubierto del todo, el
+// mes se da por resuelto (la fecha salta al siguiente); si queda a medias,
+// el resto del mes se guarda como interés fijo hasta que se cobre. Y si el
+// abono cubre TODO lo pendiente, el préstamo se cierra solo.
+function openAbonoForm(prestamo, state) {
+  const capital = Number(prestamo.capital ?? prestamo.capital_inicial ?? 0);
+  const interesActual = interesActualDe(prestamo);
+  const total = capital + interesActual;
+  const pct = Number(prestamo.interes_porcentaje ?? 0);
+
+  const resumenDe = (importe) => {
+    if (!(importe > 0)) {
+      return `Debe ${formatEUR(capital)} de capital${interesActual > 0 ? ` + ${formatEUR(interesActual)} de interés = <strong>${formatEUR(total)}</strong>` : ""}. Escribe cuánto ha pagado.`;
+    }
+    if (importe >= total - 0.004) {
+      return `Con ${formatEUR(importe)} queda <strong>todo saldado</strong>: el préstamo se cerrará como Pagado.`;
+    }
+    const cubreInteres = Math.min(importe, interesActual);
+    const aCapital = importe - cubreInteres;
+    const quedaInteres = round2(interesActual - cubreInteres);
+    const quedaCapital = round2(capital - aCapital);
+    const partes = [];
+    if (cubreInteres > 0) partes.push(`${formatEUR(cubreInteres)} al interés`);
+    if (aCapital > 0) partes.push(`${formatEUR(aCapital)} al capital`);
+    return `${partes.join(" y ")} → quedará <strong>${formatEUR(quedaCapital)}</strong> de capital${quedaInteres > 0 ? ` + ${formatEUR(quedaInteres)} de interés` : ""}.`;
+  };
+
+  openModal(
+    `
+    <h2 class="modal__title">Abono · ${prestamo.persona}</h2>
+    <form id="form-abono" class="form-grid">
+      <label class="field">
+        <span class="field__label">¿Cuánto ha pagado?</span>
+        <input type="number" step="0.01" min="0.01" name="importe" required placeholder="30.00" />
+      </label>
+      <label class="field">
+        <span class="field__label">¿A qué cuenta entra?</span>
+        <select name="cuenta_id">${optionsFrom(state.cuentas, { selected: prestamo.cuenta_id })}</select>
+      </label>
+      <label class="field field--full">
+        <span class="field__label">Fecha</span>
+        <input type="date" name="fecha" value="${todayISO()}" required />
+      </label>
+      <p class="entity-card__meta field--full" id="abono-resumen">${resumenDe(0)}</p>
+      <p class="field-error" id="form-abono-error"></p>
+      <div class="modal__actions field--full">
+        <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Registrar el abono</button>
+      </div>
+    </form>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector('#form-abono [name="importe"]').addEventListener("input", (e) => {
+          root.querySelector("#abono-resumen").innerHTML = resumenDe(Number(e.target.value || 0));
+        });
+        root.querySelector("#form-abono").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const f = e.target;
+          const importe = Number(f.importe.value);
+          if (!(importe > 0)) return;
+          try {
+            await addMovimiento({
+              tipo: "Ingreso",
+              importe,
+              categoria_id: null,
+              cuenta_id: f.cuenta_id.value,
+              cuenta_destino_id: null,
+              fecha: toTimestamp(f.fecha.value),
+              subcategoria: `Abono préstamo · ${prestamo.persona}`,
+              nota: "",
+              prestamo_id: prestamo.id,
+            });
+            if (importe >= total - 0.004) {
+              await updatePrestamo(prestamo.id, { capital: 0, interes_manual: null, estado: "Pagado" });
+              efectoDeCelebracion();
+            } else {
+              const cubreInteres = Math.min(importe, interesActual);
+              const cambios = { capital: round2(capital - (importe - cubreInteres)) };
+              if (interesActual > 0) {
+                const quedaInteres = round2(interesActual - cubreInteres);
+                if (quedaInteres > 0) {
+                  // El resto del interés del mes queda fijado hasta cobrarlo.
+                  cambios.interes_manual = quedaInteres;
+                } else {
+                  // Interés del mes cubierto entero: mes resuelto.
+                  cambios.interes_manual = null;
+                  if (prestamo.fecha_interes) cambios.fecha_interes = unMesDespues(prestamo.fecha_interes);
+                }
+              }
+              await updatePrestamo(prestamo.id, cambios);
+            }
+            closeModal();
+          } catch (err) {
+            root.querySelector("#form-abono-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
+          }
+        });
+      },
+    }
+  );
 }
 
 // Cuando la persona paga TODO de golpe (el capital pendiente + el interés
@@ -591,8 +743,8 @@ function openPrestamoForm(prestamo, state) {
         <select name="estado">${ESTADOS.map((e) => `<option ${prestamo?.estado === e ? "selected" : ""}>${e}</option>`).join("")}</select>
       </label>
       <label class="field field--full">
-        <span class="field__label">Notas (opcional)</span>
-        <textarea name="notas" rows="2" placeholder="Notas breves…">${prestamo?.notas ?? ""}</textarea>
+        <span class="field__label">Notas del préstamo (opcional)</span>
+        <textarea name="notas" rows="3" placeholder="Los detalles para tenerlo controlado: qué acordasteis, cuándo prometió pagar, si dejó algo a cuenta…">${prestamo?.notas ?? ""}</textarea>
       </label>
       <p class="field-error" id="form-prestamo-error"></p>
       <div class="modal__actions field--full">
