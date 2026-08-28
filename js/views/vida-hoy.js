@@ -29,12 +29,12 @@ import {
   guardarSistema,
   guardarDia,
   avisoDeEntrenoSinHueco,
-} from "../vida.js?v=79";
-import { abrirReceta } from "./vida-menu.js?v=79";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=79";
-import { fechaISO, formatFecha } from "../db.js?v=79";
-import { efectoDeCelebracion } from "../efectos.js?v=79";
-import { openModal, closeModal } from "../modal.js?v=79";
+} from "../vida.js?v=80";
+import { abrirReceta } from "./vida-menu.js?v=80";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=80";
+import { fechaISO, formatFecha } from "../db.js?v=80";
+import { efectoDeCelebracion } from "../efectos.js?v=80";
+import { openModal, closeModal } from "../modal.js?v=80";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -435,6 +435,7 @@ export function abrirEditorHorario(fecha) {
     <h2 class="modal__title">El horario de los ${DIAS_SEMANA[dia]}s</h2>
     <p class="entity-card__meta">Esto cambia la plantilla de TODOS los ${DIAS_SEMANA[dia]}s. Para algo de un solo día, usa "Cita o imprevisto".</p>
     <form id="form-horario">
+      <div class="horario-fila horario-cabecera" aria-hidden="true"><span>Hora</span><span>Qué toca</span><span>Detalle</span><span></span></div>
       <div id="horario-bloques">${base.map(filaBloque).join("")}</div>
       <button type="button" class="btn btn--ghost btn--sm" id="btn-mas-bloque">+ Otro bloque</button>
       <p class="field-error" id="horario-error"></p>
@@ -513,12 +514,26 @@ export function abrirAgendaDia(fechaId) {
     `
     <h2 class="modal__title">Solo el ${titulo}</h2>
     <div id="agenda-lista">${listaHTML()}</div>
-    <div class="horario-fila horario-fila--cita" style="margin-top:10px;">
-      <input type="time" id="cita-hora" />
-      <input type="text" id="cita-titulo" placeholder="Médico, recado, visita…" />
-      <input type="text" id="cita-detalle" placeholder="Detalle (opcional)" />
-      <input type="number" id="cita-duracion" placeholder="min aprox" min="1" title="Cuánto crees que tardarás" />
-      <button type="button" class="btn btn--ghost btn--sm" id="btn-add-cita">Añadir</button>
+    <div class="form-grid" style="margin-top:12px;">
+      <label class="field">
+        <span class="field__label">Hora</span>
+        <input type="time" id="cita-hora" />
+      </label>
+      <label class="field">
+        <span class="field__label">¿Qué es?</span>
+        <input type="text" id="cita-titulo" placeholder="Médico, recado, visita…" />
+      </label>
+      <label class="field">
+        <span class="field__label">¿Cuánto durará? (min, opcional)</span>
+        <input type="number" id="cita-duracion" placeholder="30" min="1" />
+      </label>
+      <label class="field">
+        <span class="field__label">Detalle (opcional)</span>
+        <input type="text" id="cita-detalle" placeholder="Llevar los informes…" />
+      </label>
+      <div class="field--full">
+        <button type="button" class="btn btn--ghost btn--block" id="btn-add-cita">＋ Añadir esta cita</button>
+      </div>
     </div>
     <p class="field-error" id="cita-error"></p>
     <div class="modal__actions">

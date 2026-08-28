@@ -514,6 +514,18 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
 .dash-atajos a { color: var(--text-secondary); text-decoration: underline; text-underline-offset: 3px; }
 .dash-atajos a:hover { color: var(--text-primary); }
 
+/* iOS hace zoom automático al tocar cualquier campo cuya letra sea menor
+   de 16px, y luego toca pellizcar para volver. Con los campos a 16px en
+   pantallas de móvil, ese zoom no se dispara y el pellizco manual sigue
+   funcionando como siempre. */
+@media (max-width: 860px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* El importe de un gasto fijo ya pagado es pulsable: abre sus pagos del mes,
    que pueden ser varios si el recibo se pagó desde sitios distintos. Se
    subraya de puntos para que se note que se puede tocar sin meter otro

@@ -604,12 +604,12 @@ a.hoy-toca__fila:hover strong { color: var(--success); }
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 .compra-chip:hover { color: var(--text-primary); border-color: var(--accent); }
-/* La fila de nueva cita lleva un campo más (los minutos aprox). */
-.horario-fila--cita { grid-template-columns: auto minmax(100px, 1.2fr) minmax(100px, 1.4fr) 84px auto; }
-@media (max-width: 560px) {
-  .horario-fila--cita { grid-template-columns: auto 1fr 84px auto; }
-  .horario-fila--cita .hor-detalle,
-  .horario-fila--cita #cita-detalle { grid-column: 1 / -1; }
+/* La cabecera del editor de horario: dice qué es cada columna. */
+.horario-cabecera span {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 /* ---------- Calendario personal ----------
