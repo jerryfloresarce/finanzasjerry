@@ -11,8 +11,8 @@
 //
 // Este archivo es PERSONAL (vida-*): el kit lo excluye entero.
 
-import { registrarGanchosDeDatos, refiltrarColeccion } from "./db.js?v=76";
-import { usarClaveDeTema, aplicarTema, temaGuardadoEnLocal } from "./tema.js?v=76";
+import { registrarGanchosDeDatos, refiltrarColeccion } from "./db.js?v=77";
+import { usarClaveDeTema, aplicarTema, temaGuardadoEnLocal } from "./tema.js?v=77";
 
 export const PERFILES = {
   jerry: {
@@ -127,7 +127,10 @@ if (esGaby()) {
   // datos de JERRY (seed.js): en el perfil de Gaby no pinta nada — lo suyo
   // se crea desde su tarjeta de arranque en Hoy.
   const estilo = document.createElement("style");
-  estilo.textContent = "#seed-banner{display:none!important}";
+  // Además del banner de datos de Jerry, en su app se esconde Préstamos:
+  // ella no presta dinero, y un apartado que no se usa solo estorba. La
+  // ruta sigue existiendo por si algún día lo quiere.
+  estilo.textContent = "#seed-banner{display:none!important} .nav__link[data-route=\"prestamos\"]{display:none!important}";
   document.head.appendChild(estilo);
 }
 

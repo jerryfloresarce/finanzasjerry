@@ -680,6 +680,40 @@ button.agenda-bloque { cursor: pointer; }
   margin: 8px 0 0;
 }
 
+/* La to-do list del día: líneas tocables con su circulito, tachadas al
+   marcarse. Igual de silenciosa que la lista de la compra. */
+.agenda-tareas {
+  margin-top: 8px;
+  border-top: 1px dashed var(--border, rgba(255, 255, 255, 0.08));
+  padding-top: 6px;
+}
+.agenda-tarea {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  text-align: left;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.agenda-tarea__circulo {
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid var(--text-secondary);
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  line-height: 12px;
+  text-align: center;
+  color: var(--success, #7a9b81);
+}
+.agenda-tarea--hecha { color: var(--text-secondary); text-decoration: line-through; }
+.agenda-tarea--hecha .agenda-tarea__circulo { border-color: var(--success, #7a9b81); }
+
 .compras-pista {
   color: var(--text-secondary);
   opacity: 0.55;
