@@ -7,10 +7,10 @@
 // la semana, ＋ apunta citas con sus minutos aprox, ☑ abre la to-do list
 // del día, y tocar una cita apunta cuánto tardaste al final.
 
-import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=82";
-import { abrirEditorHorario, abrirAgendaDia } from "./vida-hoy.js?v=82";
-import { openModal, closeModal } from "../modal.js?v=82";
-import { fechaISO } from "../db.js?v=82";
+import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=83";
+import { abrirEditorHorario, abrirAgendaDia } from "./vida-hoy.js?v=83";
+import { openModal, closeModal } from "../modal.js?v=83";
+import { fechaISO } from "../db.js?v=83";
 
 // Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
 // que mandan las flechas: en mes salta de mes en mes, en semana de semana
@@ -167,16 +167,23 @@ function abrirTareasDia(fechaId) {
             repintar();
           }
         });
-        root.querySelector("#form-tarea").addEventListener("submit", (e) => {
-          e.preventDefault();
+        // El texto del campo entra en la lista, venga de donde venga el
+        // toque: Enter, o directamente el botón de Guardar. Que escribir
+        // y guardar nunca tire lo escrito.
+        const absorberTexto = () => {
           const input = root.querySelector("#tarea-texto");
           const texto = input.value.trim();
           if (!texto) return;
           tareas.push({ texto, hecho: false });
           input.value = "";
           repintar();
+        };
+        root.querySelector("#form-tarea").addEventListener("submit", (e) => {
+          e.preventDefault();
+          absorberTexto();
         });
         root.querySelector("#btn-guardar-tareas").addEventListener("click", async () => {
+          absorberTexto();
           try {
             await guardarDia(fechaId, { tareas });
             closeModal();

@@ -29,12 +29,12 @@ import {
   guardarSistema,
   guardarDia,
   avisoDeEntrenoSinHueco,
-} from "../vida.js?v=82";
-import { abrirReceta } from "./vida-menu.js?v=82";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=82";
-import { fechaISO, formatFecha } from "../db.js?v=82";
-import { efectoDeCelebracion } from "../efectos.js?v=82";
-import { openModal, closeModal } from "../modal.js?v=82";
+} from "../vida.js?v=83";
+import { abrirReceta } from "./vida-menu.js?v=83";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=83";
+import { fechaISO, formatFecha } from "../db.js?v=83";
+import { efectoDeCelebracion } from "../efectos.js?v=83";
+import { openModal, closeModal } from "../modal.js?v=83";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -577,9 +577,36 @@ export function abrirAgendaDia(fechaId) {
       onMount: (root) => {
         const repintar = () => (root.querySelector("#agenda-lista").innerHTML = listaHTML());
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        // Lo escrito en el formulario entra en la lista sin más ceremonia:
+        // al darle a Guardar (o al cambiar de día) no debe perderse nada.
+        // Devuelve false solo si la cita está a medias (hora sin título o
+        // al revés), para no guardar algo roto ni tirar lo escrito.
+        const absorberFormulario = () => {
+          const h = root.querySelector("#cita-hora").value;
+          const tituloCita = root.querySelector("#cita-titulo").value.trim();
+          if (!h && !tituloCita) return true; // formulario vacío: nada que absorber
+          if (!h || !tituloCita) {
+            root.querySelector("#cita-error").textContent = !h ? "A esta cita le falta la hora." : "A esta cita le falta el título (¿qué es?).";
+            return false;
+          }
+          const duracion = Number(root.querySelector("#cita-duracion").value) || null;
+          agenda.push({ h, titulo: tituloCita, detalle: root.querySelector("#cita-detalle").value.trim(), ...(duracion ? { duracion } : {}) });
+          agenda.sort((a, b) => minutosDeHora(a.h) - minutosDeHora(b.h));
+          root.querySelector("#cita-hora").value = "";
+          root.querySelector("#cita-titulo").value = "";
+          root.querySelector("#cita-detalle").value = "";
+          root.querySelector("#cita-duracion").value = "";
+          root.querySelector("#cita-error").textContent = "";
+          repintar();
+          return true;
+        };
         root.querySelector("#cita-fecha").addEventListener("change", async (e) => {
           const nueva = e.target.value;
           if (!nueva || nueva === fechaSel) return;
+          if (!absorberFormulario()) {
+            e.target.value = fechaSel; // la cita a medias se queda en su día
+            return;
+          }
           // Lo apuntado hasta ahora se guarda en su día antes de cambiar.
           await guardarDia(fechaSel, { agenda }).catch(() => {});
           fechaSel = nueva;
@@ -595,23 +622,15 @@ export function abrirAgendaDia(fechaId) {
           }
         });
         root.querySelector("#btn-add-cita").addEventListener("click", () => {
-          const h = root.querySelector("#cita-hora").value;
-          const tituloCita = root.querySelector("#cita-titulo").value.trim();
-          if (!h || !tituloCita) {
+          const vacio = !root.querySelector("#cita-hora").value && !root.querySelector("#cita-titulo").value.trim();
+          if (vacio) {
             root.querySelector("#cita-error").textContent = "Hora y título, como mínimo.";
             return;
           }
-          const duracion = Number(root.querySelector("#cita-duracion").value) || null;
-          agenda.push({ h, titulo: tituloCita, detalle: root.querySelector("#cita-detalle").value.trim(), ...(duracion ? { duracion } : {}) });
-          agenda.sort((a, b) => minutosDeHora(a.h) - minutosDeHora(b.h));
-          root.querySelector("#cita-hora").value = "";
-          root.querySelector("#cita-titulo").value = "";
-          root.querySelector("#cita-detalle").value = "";
-          root.querySelector("#cita-duracion").value = "";
-          root.querySelector("#cita-error").textContent = "";
-          repintar();
+          absorberFormulario();
         });
         root.querySelector("#btn-guardar-agenda").addEventListener("click", async () => {
+          if (!absorberFormulario()) return;
           try {
             await guardarDia(fechaSel, { agenda });
             closeModal();

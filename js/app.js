@@ -1,30 +1,30 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=82";
-import { state, subscribe, initStore } from "./store.js?v=82";
+import { onAuthReady } from "./auth.js?v=83";
+import { state, subscribe, initStore } from "./store.js?v=83";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=82";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=82";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=82";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=82";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=82";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=82";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=82";
-import { mountMetas, renderMetas } from "./views/metas.js?v=82";
-import { mountCuentaPanel } from "./views/cuenta.js?v=82";
-import { refreshAnimations } from "./animations.js?v=82";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=82";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=82";
-import { efectoDeEntrada } from "./efectos.js?v=82";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=83";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=83";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=83";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=83";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=83";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=83";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=83";
+import { mountMetas, renderMetas } from "./views/metas.js?v=83";
+import { mountCuentaPanel } from "./views/cuenta.js?v=83";
+import { refreshAnimations } from "./animations.js?v=83";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=83";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=83";
+import { efectoDeEntrada } from "./efectos.js?v=83";
 // vida:inicio
-import { initPerfil } from "./vida-perfil.js?v=82";
-import { initVida } from "./vida.js?v=82";
-import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=82";
-import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=82";
-import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=82";
-import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=82";
-import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=82";
-import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=82";
-import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=82";
+import { initPerfil } from "./vida-perfil.js?v=83";
+import { initVida } from "./vida.js?v=83";
+import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=83";
+import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=83";
+import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=83";
+import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=83";
+import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=83";
+import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=83";
+import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=83";
 // vida:fin
 
 const ROUTES = {
