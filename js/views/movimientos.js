@@ -10,11 +10,11 @@ import {
   destinoTransferencia,
   textoPeriodo,
   nombreDeCuenta,
-} from "../db.js?v=84";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=84";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=84";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=84";
-import { colorTema } from "../tema.js?v=84";
+} from "../db.js?v=85";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=85";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=85";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=85";
+import { colorTema } from "../tema.js?v=85";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -110,7 +110,7 @@ function renderComparativa(ingresos, gastos) {
 // Bizum a otra persona), ese dinero SE VA de verdad — y al revés, el que
 // llega desde una cuenta que no es tuya, entra de verdad. El calendario
 // las cuenta así. Cuando todas las cuentas son tuyas, nada cambia.
-function sentidoDeTransferencia(m, idsVisibles) {
+export function sentidoDeTransferencia(m, idsVisibles) {
   if (m.tipo !== "Transferencia" || !m.cuenta_destino_id) return null;
   const origenMio = idsVisibles.has(m.cuenta_id);
   const destinoMio = idsVisibles.has(m.cuenta_destino_id);

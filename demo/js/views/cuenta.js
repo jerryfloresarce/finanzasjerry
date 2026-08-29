@@ -1,9 +1,9 @@
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=84";
-import { state } from "../store.js?v=84";
-import { exportarDatos, importarDatos } from "../backup.js?v=84";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=84";
-import { montarSelectorTemas } from "../tema.js?v=84";
+import { auth } from "../firebase-init.js?v=85";
+import { state } from "../store.js?v=85";
+import { exportarDatos, importarDatos } from "../backup.js?v=85";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=85";
+import { montarSelectorTemas } from "../tema.js?v=85";
 
 let panel = null;
 let scrim = null;

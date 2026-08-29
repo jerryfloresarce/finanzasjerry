@@ -1298,6 +1298,16 @@ canvas { max-width: 100%; }
 
 .mini-row__amount { font-family: var(--font-display); font-size: 1rem; white-space: nowrap; flex-shrink: 0; }
 .mini-row__amount--pos { color: var(--success); }
+
+/* La fila de Total al pie de "Movimientos recientes": separada con su
+   raya y en negrita, para leerla de un vistazo. */
+.mini-row--total {
+  border-top: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  margin-top: 4px;
+  padding-top: 10px;
+}
+.mini-row--total .mini-row__title,
+.mini-row--total .mini-row__amount { font-weight: 700; }
 .mini-row__amount--neg { color: var(--text-primary); }
 .mini-row > .btn { flex-shrink: 0; }
 

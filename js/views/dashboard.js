@@ -10,12 +10,13 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   nombreDeCuenta,
-} from "../db.js?v=84";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=84";
-import { seedInitialData } from "../seed.js?v=84";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=84";
-import { openHistorial } from "./cuentas.js?v=84";
-import { colorTema, paletaTema } from "../tema.js?v=84";
+} from "../db.js?v=85";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=85";
+import { seedInitialData } from "../seed.js?v=85";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=85";
+import { openHistorial } from "./cuentas.js?v=85";
+import { sentidoDeTransferencia } from "./movimientos.js?v=85";
+import { colorTema, paletaTema } from "../tema.js?v=85";
 
 let chartInstance = null;
 
@@ -219,6 +220,19 @@ function renderRecientes(movimientos, categorias, cuentas) {
     return;
   }
 
+  // El total de la lista, para verlo de un vistazo sin sumar de cabeza:
+  // ingresos menos gastos. Un Bizum a una cuenta que no es de este perfil
+  // cuenta como gasto (y al revés, como ingreso), igual que en el
+  // calendario; mover dinero entre cuentas propias no cambia el total.
+  const idsVisibles = new Set(cuentas.map((c) => c.id));
+  const aporteDe = (m) => {
+    const sentido = m.tipo === "Transferencia" ? sentidoDeTransferencia(m, idsVisibles) : m.tipo;
+    if (sentido === "Ingreso") return Number(m.importe) || 0;
+    if (sentido === "Gasto") return -(Number(m.importe) || 0);
+    return 0;
+  };
+  const neto = recientes.reduce((acc, m) => acc + aporteDe(m), 0);
+
   el.innerHTML = recientes
     .map((m) => {
       if (m.tipo === "Transferencia") {
@@ -249,7 +263,16 @@ function renderRecientes(movimientos, categorias, cuentas) {
           <span class="mini-row__amount ${cls}">${signo} ${formatEUR(Math.abs(Number(m.importe)))}</span>
         </div>`;
     })
-    .join("");
+    .join("")
+    .concat(`
+        <div class="mini-row mini-row--total">
+          <div class="mini-row__body">
+            <div class="mini-row__main">
+              <span class="mini-row__title">Total</span>
+            </div>
+          </div>
+          <span class="mini-row__amount ${neto >= 0 ? "mini-row__amount--pos" : "mini-row__amount--neg"}">${neto >= 0 ? "+" : "−"} ${formatEUR(Math.abs(neto))}</span>
+        </div>`);
 }
 
 function renderPrestamos(prestamos, pagosPrestamos) {
