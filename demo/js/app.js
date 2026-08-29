@@ -1,29 +1,29 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=83";
-import { state, subscribe, initStore } from "./store.js?v=83";
+import { onAuthReady } from "./auth.js?v=84";
+import { state, subscribe, initStore } from "./store.js?v=84";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=83";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=83";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=83";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=83";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=83";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=83";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=83";
-import { mountMetas, renderMetas } from "./views/metas.js?v=83";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=84";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=84";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=84";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=84";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=84";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=84";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=84";
+import { mountMetas, renderMetas } from "./views/metas.js?v=84";
 // modulo:rutina:inicio
-import { mountRutina, renderRutina } from "./views/rutina.js?v=83";
+import { mountRutina, renderRutina } from "./views/rutina.js?v=84";
 // modulo:rutina:fin
 // modulo:ciclo:inicio
-import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=83";
+import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=84";
 // modulo:ciclo:fin
 // modulo:gimnasio:inicio
-import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=83";
+import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=84";
 // modulo:gimnasio:fin
-import { mountCuentaPanel } from "./views/cuenta.js?v=83";
-import { refreshAnimations } from "./animations.js?v=83";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=83";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=83";
-import { efectoDeEntrada } from "./efectos.js?v=83";
+import { mountCuentaPanel } from "./views/cuenta.js?v=84";
+import { refreshAnimations } from "./animations.js?v=84";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=84";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=84";
+import { efectoDeEntrada } from "./efectos.js?v=84";
 
 const ROUTES = {
   dashboard: renderDashboard,

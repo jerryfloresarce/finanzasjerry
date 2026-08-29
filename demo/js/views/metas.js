@@ -4,12 +4,12 @@
 // Por eso una aportación NO toca el saldo de ninguna cuenta: no es un
 // gasto, es una etiqueta encima de dinero que sigue siendo tuyo.
 
-import { addMetaAhorro, updateMetaAhorro, deleteMetaAhorro, formatEUR, formatFecha, fechaISO } from "../db.js?v=83";
-import { openModal, closeModal, todayISO } from "../modal.js?v=83";
-import { icon } from "../icons.js?v=83";
-import { emojiFieldHTML, attachEmojiPicker } from "../emoji-picker.js?v=83";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=83";
-import { efectoDeCelebracion } from "../efectos.js?v=83";
+import { addMetaAhorro, updateMetaAhorro, deleteMetaAhorro, formatEUR, formatFecha, fechaISO } from "../db.js?v=84";
+import { openModal, closeModal, todayISO } from "../modal.js?v=84";
+import { icon } from "../icons.js?v=84";
+import { emojiFieldHTML, attachEmojiPicker } from "../emoji-picker.js?v=84";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=84";
+import { efectoDeCelebracion } from "../efectos.js?v=84";
 
 const META_EMOJIS = ["✈️", "🏠", "🔧", "🚗", "🏍️", "💻", "🎁", "💍", "🎓", "🛋️", "📱", "🐷"];
 

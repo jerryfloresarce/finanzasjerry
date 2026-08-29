@@ -13,11 +13,11 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=83";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=83";
-import { initials, avatarColor, icon } from "../icons.js?v=83";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=83";
-import { efectoDeCelebracion } from "../efectos.js?v=83";
+} from "../db.js?v=84";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=84";
+import { initials, avatarColor, icon } from "../icons.js?v=84";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=84";
+import { efectoDeCelebracion } from "../efectos.js?v=84";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -721,8 +721,8 @@ function openPrestamoForm(prestamo, state) {
         <input type="date" name="fecha_entrega" value="${todayISO()}" />
       </label>
       <p class="entity-card__meta field--full" style="margin:-4px 0 4px;">
-        Se descontará el capital de esa cuenta. No cuenta como gasto del mes:
-        es dinero prestado, no gastado.
+        El capital sale de esa cuenta y cuenta como gasto del día: ese dinero
+        ya no lo tienes. Cuando te lo devuelvan, entrará como ingreso.
       </p>`
           : ""
       }
@@ -774,19 +774,16 @@ function openPrestamoForm(prestamo, state) {
             } else {
               const cuentaOrigen = preguntarOrigen ? f.cuenta_origen_id.value : "";
               if (cuentaOrigen) {
-                // Se guarda como "Transferencia" y no como "Gasto" a
-                // propósito: prestar dinero no es gastarlo, vuelve. Así el
-                // saldo de la cuenta baja de verdad, pero el préstamo no
-                // aparece en los gastos del mes ni en el gráfico de
-                // categorías, que es donde falsearía las cuentas.
+                // Se guarda como "Gasto": ese dinero ya no está, y así las
+                // cuentas del mes cuadran con la realidad. La otra mitad de
+                // la simetría ya existe — cada cobro (interés, plan,
+                // liquidación) entra como "Ingreso" cuando llega.
+                const categoriaPrestamos = (state?.categorias ?? []).find((c) => /pr[eé]stamo/i.test(c.nombre || ""));
                 const movimiento = await addMovimiento({
-                  tipo: "Transferencia",
+                  tipo: "Gasto",
                   importe: data.capital,
-                  categoria_id: null,
+                  categoria_id: categoriaPrestamos?.id ?? null,
                   cuenta_id: cuentaOrigen,
-                  // No hay cuenta de destino: el dinero se lo lleva la
-                  // persona. Quien lo enseña en pantalla usa la
-                  // subcategoría de abajo como destino.
                   cuenta_destino_id: null,
                   fecha: toTimestamp(f.fecha_entrega.value || todayISO()),
                   subcategoria: `Préstamo a ${data.persona}`,
