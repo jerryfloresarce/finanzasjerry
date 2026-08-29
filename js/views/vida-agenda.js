@@ -7,10 +7,10 @@
 // la semana, ＋ apunta citas con sus minutos aprox, ☑ abre la to-do list
 // del día, y tocar una cita apunta cuánto tardaste al final.
 
-import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=81";
-import { abrirEditorHorario, abrirAgendaDia } from "./vida-hoy.js?v=81";
-import { openModal, closeModal } from "../modal.js?v=81";
-import { fechaISO } from "../db.js?v=81";
+import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=82";
+import { abrirEditorHorario, abrirAgendaDia } from "./vida-hoy.js?v=82";
+import { openModal, closeModal } from "../modal.js?v=82";
+import { fechaISO } from "../db.js?v=82";
 
 // Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
 // que mandan las flechas: en mes salta de mes en mes, en semana de semana
@@ -278,15 +278,16 @@ function vistaSemana() {
               </button>`;
               }
               const ruta = rutaDeBloque(b);
+              const tapado = b.tapado ? " agenda-bloque--tapado" : "";
               if (ruta) {
                 return `
-              <a class="agenda-bloque agenda-bloque--link" href="${ruta.href}">
+              <a class="agenda-bloque agenda-bloque--link${tapado}" href="${ruta.href}">
                 <span class="agenda-bloque__hora">${b.h}</span>
                 <span class="agenda-bloque__titulo"><i class="ph ${ruta.icono}" aria-hidden="true"></i> ${b.titulo} <span class="agenda-bloque__ir">›</span></span>
               </a>`;
               }
               return `
-              <div class="agenda-bloque">
+              <div class="agenda-bloque${tapado}">
                 <span class="agenda-bloque__hora">${b.h}</span>
                 <span class="agenda-bloque__titulo">${b.titulo}</span>
               </div>`;
@@ -353,7 +354,7 @@ function vistaDia() {
                 ? ` data-cita-real="${fechaId}|${(nCita += 1)}" role="button" title="Toca para apuntar cuánto tardaste"`
                 : "";
             return `
-          <${etiqueta} class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${esHoy && i < indiceAhora ? "dia-bloque--pasado" : ""}"${attrs}>
+          <${etiqueta} class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${bl.tapado ? "dia-bloque--tapado" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${esHoy && i < indiceAhora ? "dia-bloque--pasado" : ""}"${attrs}>
             <span class="dia-bloque__hora">${bl.h}</span>
             <span class="dia-bloque__punto" aria-hidden="true"></span>
             <span class="dia-bloque__cuerpo">

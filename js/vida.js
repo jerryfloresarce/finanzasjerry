@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=81";
-import { fechaISO } from "./db.js?v=81";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=81";
+import { db } from "./firebase-init.js?v=82";
+import { fechaISO } from "./db.js?v=82";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=82";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -1066,18 +1066,34 @@ export function bloquesDelDia(fecha = new Date()) {
   const base = Array.isArray(propios) && propios.length ? propios : bloquesDeSerie(fecha);
   const agenda = diaPorFecha(fechaISO(fecha))?.agenda;
   if (!Array.isArray(agenda) || !agenda.length) return base;
-  const todos = [
-    ...base.map((b, i) => ({ b, min: minutosDeBloque(b.h, i === 0) })),
-    ...agenda.map((a) => ({
+  const enHoras = (min) => (min >= 60 ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ""}` : `${min} min`);
+  const horaDe = (min) => `${String(Math.floor((min % (24 * 60)) / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+  const citas = agenda.map((a) => {
+    const min = minutosDeBloque(a.h, false);
+    const fin = a.duracion ? min + Number(a.duracion) : null;
+    return {
+      min,
+      fin,
       b: {
         ...a,
         cita: true,
         // La duración viaja en el detalle para que cualquier pantalla que
         // pinte bloques la enseñe sin saber nada de citas.
-        detalle: [a.detalle, a.duracion ? `~${a.duracion} min` : "", a.duracion_real ? `${a.duracion_real} min reales` : ""].filter(Boolean).join(" · "),
+        detalle: [a.detalle, fin ? `hasta las ${horaDe(fin)} · ${enHoras(Number(a.duracion))}` : "", a.duracion_real ? `${a.duracion_real} min reales` : ""]
+          .filter(Boolean)
+          .join(" · "),
       },
-      min: minutosDeBloque(a.h, false),
-    })),
+    };
+  });
+  const todos = [
+    ...base.map((b, i) => {
+      const min = minutosDeBloque(b.h, i === 0);
+      // Si una cita con duración ocupa esta hora, el bloque de siempre se
+      // apaga mientras dure: la cita manda sobre la plantilla del día.
+      const tapa = citas.find((c) => c.fin && min >= c.min && min < c.fin);
+      return { b: tapa ? { ...b, tapado: true, tapadoHasta: tapa.fin } : b, min };
+    }),
+    ...citas.map((c) => ({ b: c.b, min: c.min })),
   ];
   todos.sort((x, y) => x.min - y.min);
   return todos.map((x) => x.b);
@@ -1115,6 +1131,9 @@ export function bloqueActual(fecha = new Date()) {
     let min = hh * 60 + mm;
     // El "00:00" del sábado es el final del día, no el principio.
     if (i > 0 && min === 0) min = 24 * 60;
+    // Mientras una cita con duración tape este bloque, el AHORA es de la
+    // cita; cuando la cita acaba, el bloque vuelve a contar.
+    if (b.tapadoHasta && ahora < b.tapadoHasta) return;
     if (ahora >= min) indice = i;
   });
   return indice;

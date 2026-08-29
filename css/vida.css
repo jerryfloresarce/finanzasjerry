@@ -764,4 +764,11 @@ button.agenda-bloque { cursor: pointer; }
 /* Una cita puntual en la línea del día: se nota que no es rutina. */
 .dia-bloque--cita .dia-bloque__titulo { color: var(--accent); }
 .dia-bloque--cita .dia-bloque__punto { background: var(--accent); border-color: var(--accent); }
+
+/* Bloque de la plantilla tapado por una cita con duración: se queda en
+   segundo plano, tachado suave, mientras la cita ocupa su rato. */
+.dia-bloque--tapado { opacity: 0.35; }
+.dia-bloque--tapado .dia-bloque__titulo { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--text-soft, inherit); }
+.agenda-bloque--tapado { opacity: 0.35; }
+.agenda-bloque--tapado .agenda-bloque__titulo { text-decoration: line-through; text-decoration-thickness: 1px; }
 /* vida:fin */

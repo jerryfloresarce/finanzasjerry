@@ -29,12 +29,12 @@ import {
   guardarSistema,
   guardarDia,
   avisoDeEntrenoSinHueco,
-} from "../vida.js?v=81";
-import { abrirReceta } from "./vida-menu.js?v=81";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=81";
-import { fechaISO, formatFecha } from "../db.js?v=81";
-import { efectoDeCelebracion } from "../efectos.js?v=81";
-import { openModal, closeModal } from "../modal.js?v=81";
+} from "../vida.js?v=82";
+import { abrirReceta } from "./vida-menu.js?v=82";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=82";
+import { fechaISO, formatFecha } from "../db.js?v=82";
+import { efectoDeCelebracion } from "../efectos.js?v=82";
+import { openModal, closeModal } from "../modal.js?v=82";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -289,7 +289,7 @@ export function renderVidaHoy(state) {
             .map((bl, i) => {
               const esAhora = !editandoAyer && i === indiceAhora;
               return `
-            <div class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${!editandoAyer && i < indiceAhora ? "dia-bloque--pasado" : ""}">
+            <div class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${bl.tapado ? "dia-bloque--tapado" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${!editandoAyer && i < indiceAhora ? "dia-bloque--pasado" : ""}">
               <span class="dia-bloque__hora">${bl.h}</span>
               <span class="dia-bloque__punto" aria-hidden="true"></span>
               <span class="dia-bloque__cuerpo">
@@ -302,7 +302,7 @@ export function renderVidaHoy(state) {
         </div>
         <div class="horario-acciones">
           <button type="button" class="btn btn--ghost btn--sm" id="btn-editar-horario">✎ Ajustar este horario</button>
-          <button type="button" class="btn btn--ghost btn--sm" id="btn-cita-dia">＋ Cita o imprevisto (solo hoy)</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="btn-cita-dia">＋ Cita o imprevisto</button>
         </div>
         <a class="btn btn--ghost btn--sm btn--block" href="#/progreso" style="margin-top:10px;">Ver mi progreso y el bote →</a>
       </article>`;
