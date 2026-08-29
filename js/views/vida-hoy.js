@@ -29,12 +29,12 @@ import {
   guardarSistema,
   guardarDia,
   avisoDeEntrenoSinHueco,
-} from "../vida.js?v=85";
-import { abrirReceta } from "./vida-menu.js?v=85";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=85";
-import { fechaISO, formatFecha } from "../db.js?v=85";
-import { efectoDeCelebracion } from "../efectos.js?v=85";
-import { openModal, closeModal } from "../modal.js?v=85";
+} from "../vida.js?v=86";
+import { abrirReceta } from "./vida-menu.js?v=86";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=86";
+import { fechaISO, formatFecha } from "../db.js?v=86";
+import { efectoDeCelebracion } from "../efectos.js?v=86";
+import { openModal, closeModal } from "../modal.js?v=86";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -141,6 +141,10 @@ export function mountVidaHoy() {
     }
     if (e.target.closest("#btn-cita-dia")) {
       abrirAgendaDia(fechaEditando ?? fechaISO());
+      return;
+    }
+    if (e.target.closest("#btn-tareas-dia")) {
+      abrirTareasDia(fechaEditando ?? fechaISO());
       return;
     }
     if (e.target.closest("#btn-start")) {
@@ -303,6 +307,7 @@ export function renderVidaHoy(state) {
         <div class="horario-acciones">
           <button type="button" class="btn btn--ghost btn--sm" id="btn-editar-horario">✎ Ajustar este horario</button>
           <button type="button" class="btn btn--ghost btn--sm" id="btn-cita-dia">＋ Cita o imprevisto</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="btn-tareas-dia">☑ Para hacer hoy</button>
         </div>
         <a class="btn btn--ghost btn--sm btn--block" href="#/progreso" style="margin-top:10px;">Ver mi progreso y el bote →</a>
       </article>`;
@@ -516,6 +521,88 @@ export function abrirEditorHorario(fecha) {
 // Van en la agenda del documento de ese día (dias/fecha) y se intercalan
 // en la línea del día con su 📌. Un médico, un recado, una visita: cosas
 // que no cambian la plantilla de la semana.
+
+// La to-do list de UN día: lo que hay que hacer ese día además del horario
+// (recados, llamadas, papeleos). Vive en el documento del día (tareas).
+// Se abre desde "Hoy" (botón ☑) y desde el Calendario personal.
+export function abrirTareasDia(fechaId) {
+  let tareas = [...(diaPorFecha(fechaId)?.tareas || [])];
+  const fecha = new Date(fechaId + "T12:00:00");
+  const titulo = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(fecha);
+
+  const listaHTML = () =>
+    tareas.length
+      ? tareas
+          .map(
+            (t, i) => `
+        <div class="mini-row">
+          <button type="button" class="agenda-tarea ${t.hecho ? "agenda-tarea--hecha" : ""}" data-t-toggle="${i}" style="flex:1;">
+            <span class="agenda-tarea__circulo">${t.hecho ? "✓" : ""}</span>${t.texto}
+          </button>
+          <button type="button" class="row-edit-btn" data-t-quitar="${i}" title="Quitar">✕</button>
+        </div>`
+          )
+          .join("")
+      : `<p class="empty-state" style="padding:8px 0;">Nada por hacer este día ✨</p>`;
+
+  openModal(
+    `
+    <h2 class="modal__title">Para hacer el ${titulo}</h2>
+    <div id="tareas-lista">${listaHTML()}</div>
+    <form id="form-tarea" class="compras-add" style="margin-top:10px;">
+      <input type="text" id="tarea-texto" placeholder="¿Qué hay que hacer?" autocomplete="off" maxlength="80" />
+    </form>
+    <p class="field-error" id="tarea-error"></p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
+      <button type="button" class="btn btn--primary" id="btn-guardar-tareas">Guardar</button>
+    </div>`,
+    {
+      onMount: (root) => {
+        const repintar = () => (root.querySelector("#tareas-lista").innerHTML = listaHTML());
+        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector("#tareas-lista").addEventListener("click", (e) => {
+          const alterna = e.target.closest("[data-t-toggle]");
+          if (alterna) {
+            const i = Number(alterna.dataset.tToggle);
+            tareas[i] = { ...tareas[i], hecho: !tareas[i].hecho };
+            repintar();
+            return;
+          }
+          const quitar = e.target.closest("[data-t-quitar]");
+          if (quitar) {
+            tareas.splice(Number(quitar.dataset.tQuitar), 1);
+            repintar();
+          }
+        });
+        // El texto del campo entra en la lista, venga de donde venga el
+        // toque: Enter, o directamente el botón de Guardar. Que escribir
+        // y guardar nunca tire lo escrito.
+        const absorberTexto = () => {
+          const input = root.querySelector("#tarea-texto");
+          const texto = input.value.trim();
+          if (!texto) return;
+          tareas.push({ texto, hecho: false });
+          input.value = "";
+          repintar();
+        };
+        root.querySelector("#form-tarea").addEventListener("submit", (e) => {
+          e.preventDefault();
+          absorberTexto();
+        });
+        root.querySelector("#btn-guardar-tareas").addEventListener("click", async () => {
+          absorberTexto();
+          try {
+            await guardarDia(fechaId, { tareas });
+            closeModal();
+          } catch (err) {
+            root.querySelector("#tarea-error").textContent = "No se pudo guardar. Revisa la conexión.";
+          }
+        });
+      },
+    }
+  );
+}
 
 export function abrirAgendaDia(fechaId) {
   // El modal abre en el día desde el que se llamó, pero el campo de fecha

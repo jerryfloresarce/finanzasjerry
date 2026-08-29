@@ -21,10 +21,10 @@ import {
   tecnicaDe,
   urlVideoTecnica,
   TECNICA_CROL,
-} from "../vida.js?v=85";
-import { fechaISO, formatFecha } from "../db.js?v=85";
-import { efectoAlGuardar } from "../efectos.js?v=85";
-import { openModal, closeModal } from "../modal.js?v=85";
+} from "../vida.js?v=86";
+import { fechaISO, formatFecha } from "../db.js?v=86";
+import { efectoAlGuardar } from "../efectos.js?v=86";
+import { openModal, closeModal } from "../modal.js?v=86";
 
 let tipoActivo = null;
 
@@ -67,6 +67,18 @@ export function mountVidaEntreno() {
     const zona = e.target.closest("[data-zona]");
     if (zona) {
       zona.classList.toggle("chip--on");
+      return;
+    }
+    // Poner (o quitar) la rutina activa en un día de la semana: toca un
+    // día y esa rutina pasa a ser lo que toca ese día; tócalo otra vez y
+    // el día vuelve a su plan de serie.
+    const diaRutina = e.target.closest("[data-dia-rutina]");
+    if (diaRutina) {
+      const dia = Number(diaRutina.dataset.diaRutina);
+      const semana = { ...(vida.sistema.semana || {}) };
+      semana[dia] = SEMANA_TIPO[dia]?.tipo === tipoActivo ? null : tipoActivo;
+      await guardarSistema({ semana });
+      renderVidaEntreno(null, true);
       return;
     }
     const borrar = e.target.closest("[data-borrar-entreno]");
@@ -466,6 +478,15 @@ export function renderVidaEntreno(_state, forzar = false) {
             ${planRetocado(tipoActivo) ? `<button type="button" class="btn btn--ghost btn--sm" id="btn-plan-serie">Volver al de serie</button>` : ""}</p>`
           : ""
     }
+    <div class="rutina-dias">
+      <span class="entity-card__meta">Los días que toca:</span>
+      ${[1, 2, 3, 4, 5, 6, 0]
+        .map(
+          (d) =>
+            `<button type="button" class="chip chip--dia ${SEMANA_TIPO[d]?.tipo === tipoActivo ? "chip--on" : ""}" data-dia-rutina="${d}" title="Ahora: ${SEMANA_TIPO[d]?.nombre || "—"}">${["D", "L", "M", "X", "J", "V", "S"][d]}</button>`
+        )
+        .join("")}
+    </div>
 
     ${deHoy.length ? `<div class="card hoy-aviso"><p class="entity-card__meta" style="margin:0;">✓ Hoy ya has registrado: ${deHoy.map((e) => NOMBRE_TIPO_ENTRENO[e.tipo] || e.tipo).join(" + ")}</p></div>` : ""}
 

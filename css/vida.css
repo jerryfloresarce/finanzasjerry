@@ -765,6 +765,22 @@ button.agenda-bloque { cursor: pointer; }
 .dia-bloque--cita .dia-bloque__titulo { color: var(--accent); }
 .dia-bloque--cita .dia-bloque__punto { background: var(--accent); border-color: var(--accent); }
 
+/* Los días de la semana en que toca la rutina activa (pantalla Entreno):
+   una letra por día, encendida donde toca. */
+.rutina-dias {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 2px 0 12px;
+}
+.chip--dia {
+  min-width: 34px;
+  justify-content: center;
+  padding: 6px 0;
+  font-weight: 600;
+}
+
 /* Bloque de la plantilla tapado por una cita con duración: se queda en
    segundo plano, tachado suave, mientras la cita ocupa su rato. */
 .dia-bloque--tapado { opacity: 0.35; }

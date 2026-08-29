@@ -1,30 +1,30 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=85";
-import { state, subscribe, initStore } from "./store.js?v=85";
+import { onAuthReady } from "./auth.js?v=86";
+import { state, subscribe, initStore } from "./store.js?v=86";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=85";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=85";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=85";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=85";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=85";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=85";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=85";
-import { mountMetas, renderMetas } from "./views/metas.js?v=85";
-import { mountCuentaPanel } from "./views/cuenta.js?v=85";
-import { refreshAnimations } from "./animations.js?v=85";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=85";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=85";
-import { efectoDeEntrada } from "./efectos.js?v=85";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=86";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=86";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=86";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=86";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=86";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=86";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=86";
+import { mountMetas, renderMetas } from "./views/metas.js?v=86";
+import { mountCuentaPanel } from "./views/cuenta.js?v=86";
+import { refreshAnimations } from "./animations.js?v=86";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=86";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=86";
+import { efectoDeEntrada } from "./efectos.js?v=86";
 // vida:inicio
-import { initPerfil } from "./vida-perfil.js?v=85";
-import { initVida } from "./vida.js?v=85";
-import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=85";
-import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=85";
-import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=85";
-import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=85";
-import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=85";
-import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=85";
-import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=85";
+import { initPerfil } from "./vida-perfil.js?v=86";
+import { initVida } from "./vida.js?v=86";
+import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=86";
+import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=86";
+import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=86";
+import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=86";
+import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=86";
+import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=86";
+import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=86";
 // vida:fin
 
 const ROUTES = {
@@ -338,4 +338,43 @@ onAuthReady((user) => {
 
   if (!window.location.hash) history.replaceState(null, "", `#/${DEFAULT_ROUTE}`);
   navigate();
+  vigilarVersion();
 });
+
+// En el iPhone la app puede quedarse abierta días en segundo plano sin
+// recargar nunca: aunque se publique una versión nueva, se sigue ejecutando
+// el código viejo. Aquí se comprueba de vez en cuando (al volver a la app y
+// cada 10 minutos) si hay versión nueva publicada, y si la hay se ofrece
+// actualizar con un toque. No se recarga sola para no perder nada a medias.
+function vigilarVersion() {
+  const actual = Number((document.querySelector('link[href*="?v="]')?.href.match(/\?v=(\d+)/) || [])[1]) || 0;
+  if (!actual || location.protocol === "file:") return;
+  let avisado = false;
+  const comprobar = async () => {
+    if (avisado || document.hidden) return;
+    try {
+      const u = new URL(location.href);
+      u.hash = "";
+      u.searchParams.set("nv", Date.now());
+      const res = await fetch(u, { cache: "no-store" });
+      if (!res.ok) return;
+      const m = (await res.text()).match(/\?v=(\d+)/);
+      if (m && Number(m[1]) > actual) {
+        avisado = true;
+        const b = document.createElement("button");
+        b.type = "button";
+        b.id = "aviso-version";
+        b.textContent = "✨ Hay una versión nueva · toca para actualizar";
+        b.addEventListener("click", () => location.reload());
+        document.body.appendChild(b);
+      }
+    } catch {
+      /* sin red o sin permiso: se reintenta en la siguiente */
+    }
+  };
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) comprobar();
+  });
+  setInterval(comprobar, 10 * 60 * 1000);
+  setTimeout(comprobar, 15000);
+}

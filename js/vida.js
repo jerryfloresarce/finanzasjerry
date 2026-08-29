@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=85";
-import { fechaISO } from "./db.js?v=85";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=85";
+import { db } from "./firebase-init.js?v=86";
+import { fechaISO } from "./db.js?v=86";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=86";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -389,6 +389,7 @@ if (esGaby()) {
 // una sin ejercicios es una sesión simple, como la caminata.
 const BASE_PLANES = PLANES;
 const BASE_TIPOS = TIPOS_ENTRENO;
+const BASE_SEMANA = SEMANA_TIPO;
 
 export const esRutinaPropia = (tipo) => typeof tipo === "string" && tipo.startsWith("rut_");
 
@@ -416,6 +417,18 @@ function aplicarRutinasPropias() {
   const retoques = vida.sistema.planes || {};
   for (const [tipo, ejercicios] of Object.entries(retoques)) {
     if (BASE_PLANES[tipo] && Array.isArray(ejercicios) && ejercicios.length) PLANES[tipo] = ejercicios;
+  }
+  // La semana también es suya: desde Entreno se puede poner CUALQUIER
+  // rutina (las propias incluidas) en el día que se quiera. El cambio vive
+  // en sistema.semana[diaSemana] = tipo; null vuelve a lo de serie (mismo
+  // truco que los planes: el merge de Firestore no sabe quitar claves).
+  SEMANA_TIPO = { ...BASE_SEMANA };
+  const semana = vida.sistema.semana || {};
+  for (const [dia, tipo] of Object.entries(semana)) {
+    if (!tipo || !BASE_SEMANA[dia]) continue;
+    // Si apuntaba a una rutina propia que ya no existe, vuelve a lo de serie.
+    if (esRutinaPropia(tipo) && !TIPOS_ENTRENO.includes(tipo)) continue;
+    SEMANA_TIPO[dia] = { tipo, nombre: NOMBRE_TIPO_ENTRENO[tipo] || tipo };
   }
 }
 

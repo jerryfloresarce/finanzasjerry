@@ -9,7 +9,7 @@
 // Solo se ofrece cuando no hay ninguna cuenta creada todavía, para no
 // duplicar nada si ya has empezado a usarla.
 
-import { addCuenta, addCategoria, addSuscripcion } from "./db.js?v=85";
+import { addCuenta, addCategoria, addSuscripcion } from "./db.js?v=86";
 
 const ahora = new Date();
 const hoy = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, "0")}-${String(ahora.getDate()).padStart(2, "0")}`;

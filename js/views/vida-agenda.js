@@ -7,10 +7,10 @@
 // la semana, ＋ apunta citas con sus minutos aprox, ☑ abre la to-do list
 // del día, y tocar una cita apunta cuánto tardaste al final.
 
-import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=85";
-import { abrirEditorHorario, abrirAgendaDia } from "./vida-hoy.js?v=85";
-import { openModal, closeModal } from "../modal.js?v=85";
-import { fechaISO } from "../db.js?v=85";
+import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=86";
+import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=86";
+import { openModal, closeModal } from "../modal.js?v=86";
+import { fechaISO } from "../db.js?v=86";
 
 // Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
 // que mandan las flechas: en mes salta de mes en mes, en semana de semana
@@ -113,87 +113,6 @@ export function mountVidaAgenda() {
       return;
     }
   });
-}
-
-// La to-do list de UN día: lo que hay que hacer ese día además del horario
-// (recados, llamadas, papeleos). Vive en el documento del día (tareas).
-function abrirTareasDia(fechaId) {
-  let tareas = [...(diaPorFecha(fechaId)?.tareas || [])];
-  const fecha = new Date(fechaId + "T12:00:00");
-  const titulo = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(fecha);
-
-  const listaHTML = () =>
-    tareas.length
-      ? tareas
-          .map(
-            (t, i) => `
-        <div class="mini-row">
-          <button type="button" class="agenda-tarea ${t.hecho ? "agenda-tarea--hecha" : ""}" data-t-toggle="${i}" style="flex:1;">
-            <span class="agenda-tarea__circulo">${t.hecho ? "✓" : ""}</span>${t.texto}
-          </button>
-          <button type="button" class="row-edit-btn" data-t-quitar="${i}" title="Quitar">✕</button>
-        </div>`
-          )
-          .join("")
-      : `<p class="empty-state" style="padding:8px 0;">Nada por hacer este día ✨</p>`;
-
-  openModal(
-    `
-    <h2 class="modal__title">Para hacer el ${titulo}</h2>
-    <div id="tareas-lista">${listaHTML()}</div>
-    <form id="form-tarea" class="compras-add" style="margin-top:10px;">
-      <input type="text" id="tarea-texto" placeholder="¿Qué hay que hacer?" autocomplete="off" maxlength="80" />
-    </form>
-    <p class="field-error" id="tarea-error"></p>
-    <div class="modal__actions">
-      <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
-      <button type="button" class="btn btn--primary" id="btn-guardar-tareas">Guardar</button>
-    </div>`,
-    {
-      onMount: (root) => {
-        const repintar = () => (root.querySelector("#tareas-lista").innerHTML = listaHTML());
-        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
-        root.querySelector("#tareas-lista").addEventListener("click", (e) => {
-          const alterna = e.target.closest("[data-t-toggle]");
-          if (alterna) {
-            const i = Number(alterna.dataset.tToggle);
-            tareas[i] = { ...tareas[i], hecho: !tareas[i].hecho };
-            repintar();
-            return;
-          }
-          const quitar = e.target.closest("[data-t-quitar]");
-          if (quitar) {
-            tareas.splice(Number(quitar.dataset.tQuitar), 1);
-            repintar();
-          }
-        });
-        // El texto del campo entra en la lista, venga de donde venga el
-        // toque: Enter, o directamente el botón de Guardar. Que escribir
-        // y guardar nunca tire lo escrito.
-        const absorberTexto = () => {
-          const input = root.querySelector("#tarea-texto");
-          const texto = input.value.trim();
-          if (!texto) return;
-          tareas.push({ texto, hecho: false });
-          input.value = "";
-          repintar();
-        };
-        root.querySelector("#form-tarea").addEventListener("submit", (e) => {
-          e.preventDefault();
-          absorberTexto();
-        });
-        root.querySelector("#btn-guardar-tareas").addEventListener("click", async () => {
-          absorberTexto();
-          try {
-            await guardarDia(fechaId, { tareas });
-            closeModal();
-          } catch (err) {
-            root.querySelector("#tarea-error").textContent = "No se pudo guardar. Revisa la conexión.";
-          }
-        });
-      },
-    }
-  );
 }
 
 // ---------- Las tres vistas ----------
