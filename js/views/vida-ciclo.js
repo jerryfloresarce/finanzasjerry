@@ -1,38 +1,75 @@
-// Ciclo menstrual.
-//
-// Dos listas: "ciclos" (cuándo empezó y acabó cada regla) y "ciclo_notas"
-// (qué pasó un día concreto: flujo, dolor, cómo te sentiste, si hubo
-// relaciones y una nota libre). Los datos van a TU base de datos, detrás de
-// tu contraseña: no salen a ningún sitio ni se comparten con nadie, ni
-// siquiera con quien te montó la app.
+// vida:inicio
+// Ciclo — el apartado de Gaby para su regla, como una app profesional:
+// calendario del ciclo por meses, la regla de cada mes con su sangrado y
+// su dolor, cómo se sintió cada día, la duración típica de sus ciclos, la
+// previsión de la siguiente y los días fértiles estimados (siempre con su
+// advertencia al lado). Viene del módulo "ciclo" del kit, adaptado a la
+// app: escucha sus propias colecciones (ciclos y ciclo_notas) sin pasar
+// por el store de finanzas.
 //
 // Tres decisiones que conviene entender:
 //
-// La previsión se calcula con la MEDIANA de tus últimos ciclos, no con la
-// media. Un mes raro —de esos que pasan— desplaza mucho una media y casi
-// nada una mediana, así que la previsión no se vuelve loca por un mes
-// suelto.
+// La previsión se calcula con la MEDIANA de los últimos ciclos, no con la
+// media: un mes raro desplaza mucho una media y casi nada una mediana.
 //
 // Hasta que no hay tres ciclos apuntados no se enseña ninguna previsión.
-// Con uno o dos, el número saldría de la nada y daría una falsa sensación
-// de exactitud. Mejor decir "todavía no tengo suficiente" que inventar.
+// Con uno o dos, el número saldría de la nada. Mejor decir "todavía no
+// tengo suficiente" que inventar.
 //
-// Y la ventana fértil se dibuja SIEMPRE con la advertencia al lado. Es una
-// estimación calculada hacia atrás desde la siguiente regla prevista, que a
-// su vez es otra estimación. No sirve como método anticonceptivo y la app
-// lo dice en su propia pantalla.
+// Y la ventana fértil se dibuja SIEMPRE con la advertencia al lado: es una
+// estimación calculada desde otra estimación. No sirve como método
+// anticonceptivo y la app lo dice en su propia pantalla.
 
 import {
-  addCiclos,
-  updateCiclos,
-  deleteCiclos,
-  addCicloNotas,
-  updateCicloNotas,
-  deleteCicloNotas,
-} from "../db.js?v=90";
-import { openModal, closeModal } from "../modal.js?v=90";
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+import { db } from "../firebase-init.js?v=90";
+import { openModal, closeModal, esc } from "../modal.js?v=90";
 import { icon } from "../icons.js?v=90";
 import { wrapSwipe, attachSwipe } from "../swipe.js?v=90";
+
+// ---- Datos: colecciones propias, escuchadas aquí mismo.
+const addCiclos = (data) => addDoc(collection(db, "ciclos"), data);
+const updateCiclos = (id, data) => updateDoc(doc(db, "ciclos", id), data);
+const deleteCiclos = (id) => deleteDoc(doc(db, "ciclos", id));
+const addCicloNotas = (data) => addDoc(collection(db, "ciclo_notas"), data);
+const updateCicloNotas = (id, data) => updateDoc(doc(db, "ciclo_notas", id), data);
+const deleteCicloNotas = (id) => deleteDoc(doc(db, "ciclo_notas", id));
+
+const datos = { ciclos: [], cicloNotas: [], listo: false, sinPermisos: false };
+let escuchando = false;
+
+function escuchar() {
+  if (escuchando) return;
+  escuchando = true;
+  const oye = (nombre, aplicar) =>
+    onSnapshot(
+      collection(db, nombre),
+      (snap) => {
+        aplicar(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+        datos.listo = true;
+        repintarSiSeVe();
+      },
+      () => {
+        // Las reglas de Firestore aún no permiten estas colecciones: se
+        // avisa en pantalla con el paso exacto, y el resto de la app sigue.
+        datos.sinPermisos = true;
+        datos.listo = true;
+        repintarSiSeVe();
+      }
+    );
+  oye("ciclos", (docs) => (datos.ciclos = docs));
+  oye("ciclo_notas", (docs) => (datos.cicloNotas = docs));
+}
+
+function repintarSiSeVe() {
+  if (window.location.hash.startsWith("#/ciclo")) renderVidaCiclo();
+}
 
 const SENSACIONES = [
   "Bien",
@@ -73,8 +110,8 @@ const PROTECCIONES = [
 
 const MINIMO_PARA_PREVER = 3;
 // La ovulación cae, de media, unos 14 días ANTES de la siguiente regla. Se
-// cuenta hacia atrás desde la previsión y no hacia adelante desde la última,
-// porque esa segunda mitad del ciclo es la que menos varía entre personas.
+// cuenta hacia atrás desde la previsión y no hacia adelante desde la
+// última, porque la segunda mitad del ciclo es la que menos varía.
 const DIAS_ANTES_DE_OVULAR = 14;
 
 const aFecha = (iso) => new Date(iso + "T12:00:00");
@@ -90,14 +127,13 @@ const sumarDias = (iso, n) => {
   d.setDate(d.getDate() + n);
   return aISO(d);
 };
-// "agosto de 2026" con la primera en mayúscula. Con text-transform:
-// capitalize salía "Agosto De 2026", y ese "De" con mayúscula canta.
+// "Agosto de 2026" con la primera en mayúscula (text-transform: capitalize
+// pondría "Agosto De 2026", y ese "De" canta).
 const mesEnLetra = (fecha) => {
   const t = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(fecha);
   return t.charAt(0).toUpperCase() + t.slice(1);
 };
 const bonito = (iso) => new Intl.DateTimeFormat("es-ES", { day: "2-digit", month: "long" }).format(aFecha(iso));
-const escapar = (t) => String(t ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
 
 function mediana(numeros) {
   if (!numeros.length) return null;
@@ -107,23 +143,37 @@ function mediana(numeros) {
 }
 
 // Qué mes se está mirando: 0 es el actual, -1 el anterior, 1 el siguiente.
-// Vive aquí fuera porque el render se vuelve a llamar cada vez que cambian
-// los datos, y si estuviera dentro se volvería al mes de hoy en cuanto
-// apuntara algo.
+// Vive fuera del render para no volver al mes de hoy con cada dato nuevo.
 let desplazamientoMes = 0;
-let ultimoEstado = null;
 
-export function mountCiclo() {
+export function mountVidaCiclo() {
   document.getElementById("btn-add-ciclo").addEventListener("click", () => abrirFormulario());
+  escuchar();
 }
 
-export function renderCiclo(state) {
-  ultimoEstado = state;
-  const ciclos = [...(state.ciclos || [])].sort((a, b) => (a.inicio < b.inicio ? 1 : -1));
-  const notas = state.cicloNotas || [];
-  const hoy = hoyISO();
-
+export function renderVidaCiclo() {
+  escuchar();
   const elResumen = document.getElementById("ciclo-resumen");
+  if (!elResumen) return;
+
+  if (datos.sinPermisos) {
+    elResumen.innerHTML = `
+      <h2 class="card__title">Falta un paso en Firebase</h2>
+      <p class="entity-card__meta">
+        Este apartado guarda en dos colecciones nuevas (<code>ciclos</code> y
+        <code>ciclo_notas</code>) y tus reglas de Firestore aún no las
+        permiten. Entra en <strong>Firebase Console → Firestore Database →
+        Reglas</strong>, pega el archivo <code>firestore.rules</code>
+        actualizado y pulsa <strong>Publicar</strong>. Al recargar, listo.
+      </p>`;
+    document.getElementById("ciclo-calendario").innerHTML = "";
+    document.getElementById("ciclo-historial").innerHTML = "";
+    return;
+  }
+
+  const ciclos = [...datos.ciclos].sort((a, b) => (a.inicio < b.inicio ? 1 : -1));
+  const notas = datos.cicloNotas;
+  const hoy = hoyISO();
 
   if (ciclos.length === 0) {
     elResumen.innerHTML = `
@@ -136,19 +186,19 @@ export function renderCiclo(state) {
       <p class="entity-card__meta" style="margin-top:14px">Todo lo que apuntes aquí es tuyo y está en tu base de datos privada.</p>`;
     elResumen.querySelector("#ciclo-empezar-hoy").addEventListener("click", async (e) => {
       e.currentTarget.disabled = true;
-      await addCiclos({ inicio: hoy, fin: null });
+      await addCiclos({ inicio: hoy, fin: null }).catch(() => {});
     });
     pintarCalendario(ciclos, notas, null, null, null);
     document.getElementById("ciclo-historial").innerHTML = "";
     return;
   }
 
-  // Duración de cada ciclo: del primer día de uno al primer día del siguiente.
+  // Duración de cada ciclo: del primer día de uno al primer día del
+  // siguiente. Menos de 15 o más de 60 días casi siempre es una fecha mal
+  // apuntada, y colarla estropearía la previsión de todo lo demás.
   const duraciones = [];
   for (let i = 0; i < ciclos.length - 1; i++) {
     const d = diasEntre(ciclos[i + 1].inicio, ciclos[i].inicio);
-    // Un ciclo de menos de 15 o más de 60 días casi siempre es una fecha mal
-    // apuntada, y colarlo estropearía la previsión de todo lo demás.
     if (d >= 15 && d <= 60) duraciones.push(d);
   }
   const duracionTipica = duraciones.length >= MINIMO_PARA_PREVER - 1 ? mediana(duraciones) : null;
@@ -163,16 +213,15 @@ export function renderCiclo(state) {
   const sangrados = ciclos.filter((c) => c.fin).map((c) => diasEntre(c.inicio, c.fin) + 1);
   const sangradoTipico = sangrados.length ? mediana(sangrados) : null;
 
-  // Ventana fértil: se cuenta hacia atrás desde la próxima regla prevista.
-  // Los espermatozoides aguantan unos días, así que la ventana empieza antes
+  // Ventana fértil: hacia atrás desde la próxima regla prevista. Los
+  // espermatozoides aguantan unos días, así que la ventana empieza antes
   // del día estimado de ovulación y acaba justo después.
   const ovulacion = proxima ? sumarDias(proxima, -DIAS_ANTES_DE_OVULAR) : null;
   const fertilDesde = ovulacion ? sumarDias(ovulacion, -5) : null;
   const fertilHasta = ovulacion ? sumarDias(ovulacion, 1) : null;
 
-  // Botón grande de arriba: cambia según dónde estés del ciclo. Es lo que se
-  // pulsa el 90 % de las veces que se entra aquí, así que va el primero y
-  // grande, para acertar con el pulgar sin mirar.
+  // El botón grande de arriba cambia según dónde esté del ciclo: es lo que
+  // se pulsa el 90 % de las veces, así que va primero y grande.
   let accion = null;
   if (enRegla && sinCerrar) accion = { id: "cerrar", texto: "Ya se me ha ido" };
   else if (!enRegla) accion = { id: "empezar", texto: "Me ha venido hoy" };
@@ -192,7 +241,7 @@ export function renderCiclo(state) {
         <p class="ciclo-dato__etiqueta">días de regla</p>
       </div>
       <div class="ciclo-dato">
-        <p class="ciclo-dato__valor">${faltan === null ? "—" : faltan >= 0 ? faltan : Math.abs(faltan)}</p>
+        <p class="ciclo-dato__valor">${faltan === null ? "—" : Math.abs(faltan)}</p>
         <p class="ciclo-dato__etiqueta">${faltan === null ? "sin previsión" : faltan >= 0 ? "días para la próxima" : "días de retraso"}</p>
       </div>
     </div>
@@ -223,9 +272,8 @@ export function renderCiclo(state) {
       e.currentTarget.disabled = true;
       try {
         if (botonAccion.dataset.accion === "cerrar") await updateCiclos(ultimo.id, { fin: hoy });
-        // Si el último ciclo se quedó sin cerrar y ya empieza otro, se cierra
-        // solo el día antes: si no, ese ciclo abierto se comería el nuevo y
-        // los dos saldrían mal en el calendario y en las medias.
+        // Si el último ciclo quedó sin cerrar y ya empieza otro, se cierra
+        // solo el día antes: si no, el ciclo abierto se comería el nuevo.
         else {
           if (sinCerrar && hoy > ultimo.inicio) await updateCiclos(ultimo.id, { fin: sumarDias(hoy, -1) });
           await addCiclos({ inicio: hoy, fin: null });
@@ -273,9 +321,7 @@ export function renderCiclo(state) {
   elHistorial
     .querySelectorAll("[data-edit]")
     .forEach((btn) => btn.addEventListener("click", () => abrirFormulario(ciclos.find((c) => c.id === btn.dataset.edit))));
-  // Se le pasa la lista, no la tarjeta entera: attachSwipe solo mira los
-  // HIJOS DIRECTOS del elemento que recibe, y las filas cuelgan de
-  // #ciclo-lista, no de la tarjeta.
+  // La lista, no la tarjeta: attachSwipe solo mira los HIJOS DIRECTOS.
   attachSwipe(document.getElementById("ciclo-lista"), (id) => deleteCiclos(id), {
     confirmar: "¿Borrar este ciclo del historial?",
   });
@@ -290,7 +336,6 @@ function pintarCalendario(ciclos, notas, proxima, sangradoTipico, fertil) {
   const anio = base.getFullYear();
   const mes = base.getMonth();
   const diasDelMes = new Date(anio, mes + 1, 0).getDate();
-  // getDay() devuelve 0 para el domingo; aquí la semana empieza en lunes.
   const huecoInicial = (new Date(anio, mes, 1).getDay() + 6) % 7;
   const notasPorFecha = new Map(notas.map((n) => [n.fecha, n]));
 
@@ -311,8 +356,7 @@ function pintarCalendario(ciclos, notas, proxima, sangradoTipico, fertil) {
     if (iso === hoy) clases.push("is-hoy");
     if (nota) clases.push("tiene-nota");
 
-    // Los puntitos de debajo del número: uno por cada cosa apuntada. Se ve de
-    // un vistazo qué días tienen algo sin tener que abrirlos uno a uno.
+    // Los puntitos de debajo del número: uno por cada cosa apuntada.
     const marcas = [];
     if (nota?.flujo) marcas.push(`<i class="ciclo-marca is-flujo is-${nota.flujo}"></i>`);
     if (nota?.dolor > 0) marcas.push(`<i class="ciclo-marca is-dolor"></i>`);
@@ -326,13 +370,11 @@ function pintarCalendario(ciclos, notas, proxima, sangradoTipico, fertil) {
     );
   }
 
-  const titulo = mesEnLetra(base);
-
   const el = document.getElementById("ciclo-calendario");
   el.innerHTML = `
     <div class="ciclo-mes__barra">
       <button type="button" class="ciclo-mes__flecha" data-mes="-1" aria-label="Mes anterior">‹</button>
-      <h2 class="card__title ciclo-mes__titulo">${titulo}</h2>
+      <h2 class="card__title ciclo-mes__titulo">${mesEnLetra(base)}</h2>
       <button type="button" class="ciclo-mes__flecha" data-mes="1" aria-label="Mes siguiente">›</button>
     </div>
     ${desplazamientoMes !== 0 ? `<button type="button" class="ciclo-mes__hoy" data-mes="0">Volver a este mes</button>` : ""}
@@ -353,7 +395,7 @@ function pintarCalendario(ciclos, notas, proxima, sangradoTipico, fertil) {
     btn.addEventListener("click", () => {
       const paso = Number(btn.dataset.mes);
       desplazamientoMes = paso === 0 ? 0 : desplazamientoMes + paso;
-      if (ultimoEstado) renderCiclo(ultimoEstado);
+      renderVidaCiclo();
     })
   );
   el.querySelectorAll("[data-dia]").forEach((btn) =>
@@ -388,16 +430,16 @@ function abrirFormulario(ciclo) {
           e.preventDefault();
           const f = e.target;
           const error = root.querySelector("#form-ciclo-error");
-          const datos = { inicio: f.inicio.value, fin: f.fin.value || null };
+          const datosCiclo = { inicio: f.inicio.value, fin: f.fin.value || null };
           // Un fin anterior al inicio pondría duraciones negativas en todos
-          // los cálculos, así que se para aquí y se dice por qué.
-          if (datos.fin && datos.fin < datos.inicio) {
+          // los cálculos: se para aquí y se dice por qué.
+          if (datosCiclo.fin && datosCiclo.fin < datosCiclo.inicio) {
             error.textContent = "El último día no puede ser anterior al primero.";
             return;
           }
           try {
-            if (editando) await updateCiclos(ciclo.id, datos);
-            else await addCiclos(datos);
+            if (editando) await updateCiclos(ciclo.id, datosCiclo);
+            else await addCiclos(datosCiclo);
             closeModal();
           } catch (err) {
             error.textContent = "No se pudo guardar. Inténtalo de nuevo.";
@@ -478,7 +520,7 @@ function abrirNota(fecha, nota) {
 
       <label class="field field--full">
         <span class="field__label">Nota (opcional)</span>
-        <input type="text" name="texto" value="${escapar(nota?.texto)}" placeholder="Lo que quieras recordar de este día" />
+        <input type="text" name="texto" value="${esc(nota?.texto ?? "")}" placeholder="Lo que quieras recordar de este día" />
       </label>
 
       <p class="field-error" id="form-nota-error"></p>
@@ -492,8 +534,7 @@ function abrirNota(fecha, nota) {
       onMount: (root) => {
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
 
-        // Lo de la protección solo aparece si marcó que hubo relaciones: si
-        // no, son cuatro opciones ahí puestas que no vienen a cuento.
+        // Lo de la protección solo aparece si marcó que hubo relaciones.
         const check = root.querySelector("#ciclo-relaciones");
         const proteccion = root.querySelector("#ciclo-proteccion");
         check.addEventListener("change", () => proteccion.classList.toggle("is-hidden", !check.checked));
@@ -515,7 +556,7 @@ function abrirNota(fecha, nota) {
           e.preventDefault();
           const f = e.target;
           const hubo = f.relaciones.checked;
-          const datos = {
+          const nuevo = {
             fecha,
             flujo: f.flujo.value || null,
             dolor: Number(f.dolor.value || 0),
@@ -525,8 +566,8 @@ function abrirNota(fecha, nota) {
             texto: f.texto.value.trim(),
           };
           try {
-            if (nota) await updateCicloNotas(nota.id, datos);
-            else await addCicloNotas(datos);
+            if (nota) await updateCicloNotas(nota.id, nuevo);
+            else await addCicloNotas(nuevo);
             closeModal();
           } catch (err) {
             root.querySelector("#form-nota-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
@@ -536,3 +577,4 @@ function abrirNota(fecha, nota) {
     }
   );
 }
+// vida:fin

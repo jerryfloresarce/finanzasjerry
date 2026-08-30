@@ -58,6 +58,14 @@ service cloud.firestore {
       allow read, write: if autenticado();
     }
 
+    // El Ciclo de Gaby: sus reglas apuntadas y las notas de cada día.
+    match /ciclos/{docId} {
+      allow read, write: if autenticado();
+    }
+    match /ciclo_notas/{docId} {
+      allow read, write: if autenticado();
+    }
+
     match /entrenos/{docId} {
       allow read, write: if autenticado();
     }

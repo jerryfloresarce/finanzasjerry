@@ -799,4 +799,270 @@ button.agenda-bloque { cursor: pointer; }
 .dia-bloque--tapado .dia-bloque__titulo { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--text-soft, inherit); }
 .agenda-bloque--tapado { opacity: 0.35; }
 .agenda-bloque--tapado .agenda-bloque__titulo { text-decoration: line-through; text-decoration-thickness: 1px; }
+
+/* ---------- Ciclo (el apartado de Gaby) ----------
+   Portado del módulo del kit; incluye .entity-row y .rutina-rejilla porque
+   la app no los trae de serie. */
+.entity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  /* El fondo NO es decorativo: estas filas van dentro de un "deslizar para
+     eliminar", que lleva el botón rojo escondido detrás. Sin fondo propio,
+     la fila es transparente y el botón se ve siempre, como si estuviera
+     medio abierta. Es el mismo color que la tarjeta que las contiene, así
+     que a la vista no cambia nada. */
+  background: var(--surface);
+}
+.entity-row:last-child { border-bottom: none; }
+.entity-row__body { flex: 1; min-width: 0; }
+.entity-row__name { margin: 0; font-size: 0.94rem; color: var(--text-primary); }
+.entity-row__meta { margin: 2px 0 0; font-size: 0.78rem; color: var(--text-muted); }
+
+.rutina-rejilla { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.rutina-celda {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.rutina-celda.is-titulo {
+  background: transparent;
+  border: none;
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.rutina-celda.is-vacia { background: transparent; border: none; }
+
+/* Los tres números de arriba. auto-fit y no repeat(3, 1fr): en un móvil
+   estrecho tres columnas dejan 90 px por caja contando huecos, y "días para
+   la próxima" no cabe sin partirse en cuatro líneas. Así, cuando no caben
+   tres, se ponen a dos y luego a una, solas. */
+.ciclo-datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.ciclo-dato {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 10px;
+  text-align: center;
+  min-width: 0;
+}
+.ciclo-dato__valor {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+.ciclo-dato__etiqueta {
+  margin: 4px 0 0;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+/* El botón grande de "me ha venido hoy". Ancho completo y alto de sobra
+   porque se pulsa con el pulgar, a veces con prisa: es lo que se hace el 90 %
+   de las veces que se entra aquí. */
+.ciclo-accion {
+  width: 100%;
+  margin-top: 14px;
+  min-height: 48px;
+}
+.ciclo-accion--suave { margin-top: 8px; }
+
+.ciclo-aviso {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ---- La barra de meses del calendario */
+.ciclo-mes__barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ciclo-mes__titulo {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.ciclo-mes__flecha {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: border-color 0.18s var(--ease-lux), color 0.18s var(--ease-lux);
+}
+.ciclo-mes__flecha:hover { border-color: var(--accent); color: var(--text-primary); }
+.ciclo-mes__hoy {
+  display: block;
+  margin: 8px auto 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+.ciclo-mes__hoy:hover { border-color: var(--accent); }
+
+/* ---- Las celdas del calendario */
+.ciclo-celda {
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.7rem;
+  position: relative;
+  padding: 0;
+  gap: 0;
+  align-content: center;
+}
+.ciclo-celda:hover { border-color: var(--border-strong); }
+.ciclo-celda__num { line-height: 1; }
+.ciclo-celda.is-regla {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+/* La previsión va rayada, no rellena: es una estimación, y tiene que
+   distinguirse a simple vista de los días que sí pasaron de verdad. */
+.ciclo-celda.is-prevista {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--accent-soft) 0 4px,
+    transparent 4px 8px
+  );
+}
+/* Los días fértiles, con un punteado más suave todavía: es una estimación
+   sacada de otra estimación, y el dibujo tiene que decirlo sin palabras. */
+.ciclo-celda.is-fertil {
+  border-style: dashed;
+  border-color: var(--border-strong);
+  color: var(--text-secondary);
+}
+.ciclo-celda.is-hoy { outline: 2px solid var(--text-secondary); outline-offset: 1px; }
+
+/* Los puntitos de debajo del número. Van en posición absoluta para no
+   empujar el número ni cambiar el alto de la celda: siete columnas en una
+   pantalla de 320 px no tienen ni un píxel de sobra. */
+.ciclo-marcas {
+  position: absolute;
+  bottom: 3px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+}
+.ciclo-marca {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  display: inline-block;
+  background: var(--text-secondary);
+}
+.ciclo-marca.is-flujo { background: var(--danger); }
+.ciclo-marca.is-flujo.is-manchado { opacity: 0.35; }
+.ciclo-marca.is-flujo.is-ligero { opacity: 0.55; }
+.ciclo-marca.is-flujo.is-medio { opacity: 0.8; }
+.ciclo-marca.is-flujo.is-abundante { opacity: 1; }
+.ciclo-marca.is-dolor { background: var(--warning); }
+.ciclo-marca.is-relaciones { background: var(--accent); border-radius: 1px; transform: rotate(45deg); }
+.ciclo-celda.is-regla .ciclo-marca { background: var(--on-accent); }
+
+.ciclo-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-top: 12px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+}
+.ciclo-leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+.ciclo-punto {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  display: inline-block;
+  flex-shrink: 0;
+}
+.ciclo-punto.is-regla { background: var(--accent); border-color: var(--accent); }
+.ciclo-punto.is-prevista {
+  border-color: var(--accent);
+  background: repeating-linear-gradient(-45deg, var(--accent-soft) 0 3px, transparent 3px 6px);
+}
+.ciclo-punto.is-fertil { border-style: dashed; border-color: var(--border-strong); }
+
+/* ---- Las opciones del día: sangrado, dolor, sensaciones, relaciones */
+.ciclo-sensaciones,
+.ciclo-opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.ciclo-sensacion,
+.ciclo-opcion { cursor: pointer; }
+.ciclo-sensacion--sola { display: inline-block; margin-bottom: 4px; }
+.ciclo-sensacion input,
+.ciclo-opcion input { position: absolute; opacity: 0; pointer-events: none; }
+.ciclo-sensacion span,
+.ciclo-opcion span {
+  display: inline-block;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.2;
+  transition: border-color 0.18s var(--ease-lux), background 0.18s var(--ease-lux), color 0.18s var(--ease-lux);
+}
+.ciclo-sensacion input:checked + span,
+.ciclo-opcion input:checked + span {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+.ciclo-sensacion input:focus-visible + span,
+.ciclo-opcion input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Esta ventana tiene tres botones abajo (borrar, cancelar, guardar) y en un
+   móvil estrecho no caben en una línea: si no envuelven, el de guardar se
+   sale por la derecha y no se puede pulsar. */
+#form-nota .modal__actions { flex-wrap: wrap; }
+#form-nota .modal__actions .btn { flex: 1 1 auto; min-height: 44px; }
 /* vida:fin */

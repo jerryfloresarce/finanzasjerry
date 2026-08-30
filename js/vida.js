@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=89";
-import { fechaISO } from "./db.js?v=89";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=89";
+import { db } from "./firebase-init.js?v=90";
+import { fechaISO } from "./db.js?v=90";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=90";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -1132,8 +1132,18 @@ export function avisoDeEntrenoSinHueco(fecha = new Date()) {
   if (!horarioPersonalizado(fecha)) return null;
   const toca = SEMANA_TIPO[fecha.getDay()];
   if (!toca || toca.tipo === "descanso" || toca.tipo === "libre") return null;
-  const MOVERSE = /entren|gim|fuerza|piscina|yoga|caminat|pase[oa]|calisten|estir/i;
-  const hayHueco = bloquesDelDia(fecha).some((b) => MOVERSE.test(`${b.titulo || ""} ${b.detalle || ""}`));
+  const MOVERSE = /entren|gym|gim|fuerza|piscina|yoga|caminat|pase[oa]|calisten|estir|glute|core|pierna|tiron|empuje/;
+  // Sin tildes y en minúsculas, que "Glúteos" y "gluteos" son lo mismo.
+  const llano = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  // Además de las palabras de moverse de siempre, cuenta como hueco
+  // cualquier bloque que nombre lo que toca hoy: si toca "Glúteos" y el
+  // horario dice "Gym - Glúteos", el hueco ESTÁ, se llame como se llame
+  // la rutina (las suyas propias incluidas).
+  const palabrasDeToca = llano(toca.nombre).split(/[^a-z0-9]+/).filter((p) => p.length >= 4);
+  const hayHueco = bloquesDelDia(fecha).some((b) => {
+    const texto = llano(`${b.titulo || ""} ${b.detalle || ""}`);
+    return MOVERSE.test(texto) || palabrasDeToca.some((p) => texto.includes(p));
+  });
   if (hayHueco) return null;
   return `Hoy tocaba ${toca.nombre} y el horario de hoy no le deja hueco. Si puedes, muévelo a otro rato — que un imprevisto no se lleve la meta por delante.`;
 }

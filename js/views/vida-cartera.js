@@ -16,12 +16,12 @@ import {
   updateInversion,
   deleteInversion,
   guardarSistema,
-} from "../vida.js?v=89";
-import { formatEUR } from "../db.js?v=89";
-import { openModal, closeModal } from "../modal.js?v=89";
-import { colorTema } from "../tema.js?v=89";
-import { efectoAlGuardar } from "../efectos.js?v=89";
-import { initials, avatarColor } from "../icons.js?v=89";
+} from "../vida.js?v=90";
+import { formatEUR } from "../db.js?v=90";
+import { openModal, closeModal } from "../modal.js?v=90";
+import { colorTema } from "../tema.js?v=90";
+import { efectoAlGuardar } from "../efectos.js?v=90";
+import { initials, avatarColor } from "../icons.js?v=90";
 
 // Un porcentaje y unas unidades a la española: coma decimal, no punto.
 const pctTxt = (n) => Math.abs(n).toFixed(1).replace(".", ",");
