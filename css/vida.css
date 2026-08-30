@@ -458,10 +458,13 @@ a.hoy-toca__fila:hover strong { color: var(--success); }
 @media (max-width: 560px) {
   .rutina-ejercicio { grid-template-columns: 1fr 1fr 1fr; }
   .rutina-ejercicio .rut-nombre { grid-column: 1 / -1; }
-  .horario-fila { grid-template-columns: auto 1fr 52px auto; }
+  /* En pantalla estrecha: hora | qué toca | min | ✕ en la primera línea
+     (con aire entre columnas), y el detalle en su propia línea debajo.
+     La hora a ancho fijo para que "Qué toca" respire. */
+  .horario-fila { grid-template-columns: 92px 1fr 50px 34px; gap: 8px; margin-bottom: 14px; }
+  .horario-fila .hor-quitar { grid-row: 1; grid-column: 4; justify-self: end; }
   .horario-fila .hor-detalle { grid-column: 1 / -1; }
-  /* En pantalla estrecha el detalle baja a su propia línea: su etiqueta
-     de cabecera sobra (el campo ya lleva su texto de ayuda). */
+  /* Su etiqueta de cabecera sobra (el campo ya lleva su texto de ayuda). */
   .horario-cabecera span:nth-child(4),
   .horario-cabecera span:nth-child(5) { display: none; }
 }
@@ -608,12 +611,17 @@ a.hoy-toca__fila:hover strong { color: var(--success); }
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 .compra-chip:hover { color: var(--text-primary); border-color: var(--accent); }
-/* La cabecera del editor de horario: dice qué es cada columna. */
+/* La cabecera del editor de horario: dice qué es cada columna, con su
+   aire respecto al texto de arriba y de las filas de abajo. */
+.horario-cabecera {
+  margin: 14px 0 2px;
+}
 .horario-cabecera span {
   color: var(--text-secondary);
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  padding-left: 4px;
 }
 
 /* ---------- Calendario personal ----------
