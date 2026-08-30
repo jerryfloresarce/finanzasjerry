@@ -1,5 +1,5 @@
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=87";
-import { efectoAlGuardar } from "./efectos.js?v=87";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=88";
+import { efectoAlGuardar } from "./efectos.js?v=88";
 
 const modalRoot = document.getElementById("modal-root");
 const modalScrim = document.getElementById("modal-scrim");
@@ -98,12 +98,21 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !modalRoot.classList.contains("is-hidden")) closeModal();
 });
 
+// Texto del usuario dentro de HTML generado: SIEMPRE por aquí. Sin esto,
+// unas comillas dobles en un nombre truncan el value="..." de un
+// formulario al reabrirlo (y al guardar se pierde el resto del texto), y
+// un "<" rompe el marcado. Vale igual para atributos (con comillas
+// dobles) y para contenido; dataset.* devuelve el texto ya descodificado.
+export function esc(v) {
+  return String(v ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 export function optionsFrom(items, { value = "id", label = "nombre", selected } = {}) {
   return items
     .map((item) => {
       const v = item[value];
       const isSel = selected && String(selected) === String(v);
-      return `<option value="${v}" ${isSel ? "selected" : ""}>${item[label]}</option>`;
+      return `<option value="${esc(v)}" ${isSel ? "selected" : ""}>${esc(item[label])}</option>`;
     })
     .join("");
 }

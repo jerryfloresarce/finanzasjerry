@@ -1,9 +1,9 @@
-import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js?v=87";
-import { openModal, closeModal } from "../modal.js?v=87";
-import { entityIcon, iconForCategoriaTipo, icon } from "../icons.js?v=87";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=87";
-import { emojiFieldHTML, attachEmojiPicker, CATEGORIA_EMOJIS } from "../emoji-picker.js?v=87";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=87";
+import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js?v=88";
+import { openModal, closeModal, esc } from "../modal.js?v=88";
+import { entityIcon, iconForCategoriaTipo, icon } from "../icons.js?v=88";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=88";
+import { emojiFieldHTML, attachEmojiPicker, CATEGORIA_EMOJIS } from "../emoji-picker.js?v=88";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=88";
 
 const TIPOS = ["Fijo", "Variable", "Ocio", "PrestamoDado"];
 
@@ -32,7 +32,7 @@ export function renderCategorias(state) {
           <div class="entity-card__top">
             <div class="entity-card__heading">
               <span class="icon-badge">${entityIcon(c, iconForCategoriaTipo(c.tipo))}</span>
-              <p class="entity-card__name">${c.nombre}</p>
+              <p class="entity-card__name">${esc(c.nombre)}</p>
             </div>
             <div class="entity-card__top-actions">
               <span class="entity-card__tag">${c.tipo}</span>
@@ -67,7 +67,7 @@ function openForm(categoria) {
     <form id="form-categoria" class="form-grid">
       <label class="field field--full">
         <span class="field__label">Nombre</span>
-        <input type="text" name="nombre" required value="${categoria?.nombre ?? ""}" placeholder="Comida a domicilio" />
+        <input type="text" name="nombre" required value="${esc(categoria?.nombre ?? "")}" placeholder="Comida a domicilio" />
       </label>
       <label class="field">
         <span class="field__label">Tipo</span>

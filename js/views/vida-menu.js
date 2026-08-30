@@ -18,9 +18,9 @@ import {
   generarMenuSemana,
   guardarMenu,
   lunesDe,
-} from "../vida.js?v=87";
-import { openModal, closeModal } from "../modal.js?v=87";
-import { efectoAlGuardar } from "../efectos.js?v=87";
+} from "../vida.js?v=88";
+import { openModal, closeModal, esc } from "../modal.js?v=88";
+import { efectoAlGuardar } from "../efectos.js?v=88";
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const MOMENTOS = [
@@ -45,7 +45,7 @@ export function abrirReceta(recetaId) {
       }${r.propio ? " · plato vuestro" : ""}`;
   openModal(
     `
-    <h2 class="modal__title">${r.nombre}</h2>
+    <h2 class="modal__title">${esc(r.nombre)}</h2>
     <p class="entity-card__meta" style="margin:-10px 0 12px;">
       ${cabecera}
       ${r.aire ? ' · <span class="chip-aire">AirFryer</span>' : ""}
@@ -72,7 +72,7 @@ function opcionesDe(momento, elegido) {
   const disponibles = new Set(recetasDisponibles(marcados()).map((r) => r.id));
   const propias = platosPropios().filter((r) => r.momento === momento);
   const recetas = RECETAS.filter((r) => r.momento === momento);
-  const opcion = (r) => `<option value="${r.id}" ${r.id === elegido ? "selected" : ""}>${r.nombre}${r.aire ? " (AirFryer)" : ""}</option>`;
+  const opcion = (r) => `<option value="${r.id}" ${r.id === elegido ? "selected" : ""}>${esc(r.nombre)}${r.aire ? " (AirFryer)" : ""}</option>`;
   return `
     <option value="" ${!elegido ? "selected" : ""}>— Nada apuntado</option>
     <optgroup label="Días sin cocinar">${PLATOS_ESPECIALES.map(opcion).join("")}</optgroup>
@@ -135,7 +135,7 @@ function abrirEditorPlato(plato) {
   const esNuevo = !plato;
   openModal(
     `
-    <h2 class="modal__title">${esNuevo ? "Un plato vuestro" : `Editar «${plato.nombre}»`}</h2>
+    <h2 class="modal__title">${esNuevo ? "Un plato vuestro" : `Editar «${esc(plato.nombre)}»`}</h2>
     <p class="entity-card__meta" style="margin:-8px 0 12px;">
       Lo que os gusta y no está en la lista: se guarda para los dos y entra
       en el menú como cualquier receta.
@@ -143,7 +143,7 @@ function abrirEditorPlato(plato) {
     <form id="form-plato" class="form-grid">
       <label class="field">
         <span class="field__label">¿Cómo se llama?</span>
-        <input type="text" name="nombre" required maxlength="60" value="${plato?.nombre || ""}" placeholder="Nuggets caseros" />
+        <input type="text" name="nombre" required maxlength="60" value="${esc(plato?.nombre || "")}" placeholder="Nuggets caseros" />
       </label>
       <label class="field">
         <span class="field__label">¿Cuándo?</span>
@@ -155,7 +155,7 @@ function abrirEditorPlato(plato) {
       </label>
       <label class="field field--full">
         <span class="field__label">¿Cómo se hace? (opcional, una línea por paso)</span>
-        <textarea name="pasos" rows="3" placeholder="Al AirFryer 12 min a 200 °C&#10;Salsa al gusto">${(plato?.pasos || []).join("\n")}</textarea>
+        <textarea name="pasos" rows="3" placeholder="Al AirFryer 12 min a 200 °C&#10;Salsa al gusto">${esc((plato?.pasos || []).join("\n"))}</textarea>
       </label>
       <label class="field-check field--full">
         <input type="checkbox" name="aire" ${plato?.aire ? "checked" : ""} />
@@ -282,7 +282,7 @@ export function renderVidaMenu(_state) {
             ${INGREDIENTES.filter((i) => i.grupo === grupo)
               .map(
                 (i) => `
-              <button type="button" class="chip ${lista.has(i.id) ? "chip--on" : ""}" data-ingrediente="${i.id}">${i.nombre}</button>`
+              <button type="button" class="chip ${lista.has(i.id) ? "chip--on" : ""}" data-ingrediente="${i.id}">${esc(i.nombre)}</button>`
               )
               .join("")}
           </div>`
@@ -290,7 +290,7 @@ export function renderVidaMenu(_state) {
         <p class="progreso-grupo">Platos vuestros</p>
         <div class="ingredientes-grid">
           ${propios
-            .map((p) => `<button type="button" class="chip chip--on" data-editar-plato="${p.id}">${p.nombre}${p.aire ? " ♨️" : ""}</button>`)
+            .map((p) => `<button type="button" class="chip chip--on" data-editar-plato="${p.id}">${esc(p.nombre)}${p.aire ? " ♨️" : ""}</button>`)
             .join("")}
           <button type="button" class="chip chip--nueva" id="btn-nuevo-plato">＋ Plato vuestro</button>
         </div>
@@ -314,7 +314,7 @@ export function renderVidaMenu(_state) {
               const esHoy = ((new Date().getDay() + 6) % 7) + 1 === d;
               const plato = (r, icono) =>
                 r
-                  ? `<button type="button" class="menu-dia__plato" data-receta="${r.id}"><i class="ph ${icono}" aria-hidden="true"></i> ${r.nombre}${
+                  ? `<button type="button" class="menu-dia__plato" data-receta="${r.id}"><i class="ph ${icono}" aria-hidden="true"></i> ${esc(r.nombre)}${
                       r.especial ? " 🏠" : r.aire ? " ♨️" : ""
                     }</button>`
                   : "";

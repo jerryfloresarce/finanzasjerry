@@ -4,12 +4,12 @@
 // Por eso una aportación NO toca el saldo de ninguna cuenta: no es un
 // gasto, es una etiqueta encima de dinero que sigue siendo tuyo.
 
-import { addMetaAhorro, updateMetaAhorro, deleteMetaAhorro, formatEUR, formatFecha, fechaISO } from "../db.js?v=87";
-import { openModal, closeModal, todayISO } from "../modal.js?v=87";
-import { icon } from "../icons.js?v=87";
-import { emojiFieldHTML, attachEmojiPicker } from "../emoji-picker.js?v=87";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=87";
-import { efectoDeCelebracion } from "../efectos.js?v=87";
+import { addMetaAhorro, updateMetaAhorro, deleteMetaAhorro, formatEUR, formatFecha, fechaISO } from "../db.js?v=88";
+import { openModal, closeModal, todayISO, esc } from "../modal.js?v=88";
+import { icon } from "../icons.js?v=88";
+import { emojiFieldHTML, attachEmojiPicker } from "../emoji-picker.js?v=88";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=88";
+import { efectoDeCelebracion } from "../efectos.js?v=88";
 
 const META_EMOJIS = ["✈️", "🏠", "🔧", "🚗", "🏍️", "💻", "🎁", "💍", "🎓", "🛋️", "📱", "🐷"];
 
@@ -61,7 +61,7 @@ export function renderMetas(state) {
           <div class="entity-card__top">
             <div class="entity-card__heading">
               <span class="icon-badge">${m.icono || "🐷"}</span>
-              <p class="entity-card__name">${m.nombre}</p>
+              <p class="entity-card__name">${esc(m.nombre)}</p>
             </div>
             <div class="entity-card__top-actions">
               ${completada ? `<span class="entity-card__tag entity-card__tag--activo">¡Conseguida!</span>` : ""}
@@ -103,7 +103,7 @@ function openForm(meta) {
     <form id="form-meta" class="form-grid">
       <label class="field field--full">
         <span class="field__label">¿Para qué ahorras?</span>
-        <input type="text" name="nombre" required value="${meta?.nombre ?? ""}" placeholder="Viaje a Bolivia, arreglar el baño…" />
+        <input type="text" name="nombre" required value="${esc(meta?.nombre ?? "")}" placeholder="Viaje a Bolivia, arreglar el baño…" />
       </label>
       <label class="field">
         <span class="field__label">¿Cuánto necesitas?</span>

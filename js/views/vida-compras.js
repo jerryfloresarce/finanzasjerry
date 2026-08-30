@@ -14,8 +14,9 @@
 // Y sin botones: un campo para escribir, tocar para marcar, tocar para
 // reponer, y mantener pulsado para borrar del todo. Nada más a la vista.
 
-import { vida, guardarCompras, categoriasDeCompras } from "../vida.js?v=87";
-import { efectoAlGuardar } from "../efectos.js?v=87";
+import { vida, guardarCompras, categoriasDeCompras } from "../vida.js?v=88";
+import { esc } from "../modal.js?v=88";
+import { efectoAlGuardar } from "../efectos.js?v=88";
 
 const normal = (t) => t.trim().toLowerCase();
 
@@ -146,7 +147,7 @@ export function renderVidaCompras(_state) {
   const filaCompra = (i) => `
     <button type="button" class="compra" data-compra="${i.id}">
       <span class="compra__circulo" aria-hidden="true"></span>
-      <span class="compra__nombre">${i.nombre}</span>
+      <span class="compra__nombre">${esc(i.nombre)}</span>
     </button>`;
 
   el.innerHTML = `
@@ -155,7 +156,7 @@ export function renderVidaCompras(_state) {
         <input type="text" id="compra-nueva" placeholder="¿Qué falta en casa?" autocomplete="off" enterkeyhint="done" maxlength="48" />
       </form>
       <div class="compras-cats">
-        ${categorias.map((c) => `<button type="button" class="cat-chip ${c.id === catActiva ? "cat-chip--on" : ""}" data-cat="${c.id}">${c.nombre}</button>`).join("")}
+        ${categorias.map((c) => `<button type="button" class="cat-chip ${c.id === catActiva ? "cat-chip--on" : ""}" data-cat="${c.id}">${esc(c.nombre)}</button>`).join("")}
         <button type="button" class="cat-chip cat-chip--nueva" id="btn-nueva-cat" title="Crear una categoría">＋</button>
       </div>
       <div class="compras-lista">
@@ -165,7 +166,7 @@ export function renderVidaCompras(_state) {
             : secciones
                 .map(
                   (s) => `
-          <p class="compras-cat">${s.cat.nombre}</p>
+          <p class="compras-cat">${esc(s.cat.nombre)}</p>
           ${s.items.map(filaCompra).join("")}`
                 )
                 .join("")
@@ -176,7 +177,7 @@ export function renderVidaCompras(_state) {
           ? `
       <p class="compras-titulo">En casa</p>
       <div class="compras-despensa">
-        ${enCasa.map((i) => `<button type="button" class="compra-chip" data-compra="${i.id}">${i.nombre}</button>`).join("")}
+        ${enCasa.map((i) => `<button type="button" class="compra-chip" data-compra="${i.id}">${esc(i.nombre)}</button>`).join("")}
       </div>`
           : ""
       }

@@ -21,10 +21,10 @@ import {
   tecnicaDe,
   urlVideoTecnica,
   TECNICA_CROL,
-} from "../vida.js?v=87";
-import { fechaISO, formatFecha } from "../db.js?v=87";
-import { efectoAlGuardar } from "../efectos.js?v=87";
-import { openModal, closeModal } from "../modal.js?v=87";
+} from "../vida.js?v=88";
+import { fechaISO, formatFecha } from "../db.js?v=88";
+import { efectoAlGuardar } from "../efectos.js?v=88";
+import { openModal, closeModal, esc } from "../modal.js?v=88";
 
 let tipoActivo = null;
 
@@ -146,7 +146,7 @@ export function mountVidaEntreno() {
 function abrirTecnica(t, nombre) {
   openModal(
     `
-    <h2 class="modal__title">${nombre}</h2>
+    <h2 class="modal__title">${esc(nombre)}</h2>
     <p class="tecnica-senal">💡 <strong>La señal:</strong> ${t.senal}</p>
     <ol class="receta-pasos">
       ${t.pasos.map((p) => `<li>${p}</li>`).join("")}
@@ -252,8 +252,8 @@ function filaEjercicio(ej = {}) {
   // etiqueta y nota no se editan en la fila, pero viajan con ella para que
   // retocar un plan no las pierda ("por mancuerna", los avisos de la ingle…).
   return `
-    <div class="rutina-ejercicio" data-etiqueta="${ej.etiqueta || ""}" data-nota="${(ej.nota || "").replace(/"/g, "&quot;")}">
-      <input type="text" class="rut-nombre" placeholder="Ejercicio (ej. Flexiones)" value="${ej.nombre || ""}" />
+    <div class="rutina-ejercicio" data-etiqueta="${esc(ej.etiqueta || "")}" data-nota="${esc(ej.nota || "")}">
+      <input type="text" class="rut-nombre" placeholder="Ejercicio (ej. Flexiones)" value="${esc(ej.nombre || "")}" />
       <input type="number" class="rut-series" placeholder="Series" min="1" value="${ej.series ?? ""}" title="Series" />
       <input type="number" class="rut-min" placeholder="Reps mín" min="1" value="${ej.repsMin ?? ""}" title="Repeticiones mínimas" />
       <input type="number" class="rut-max" placeholder="Reps máx" min="1" value="${ej.repsMax ?? ""}" title="Repeticiones máximas" />
@@ -287,7 +287,7 @@ function abrirEditorRutina(rutina) {
     <form id="form-rutina">
       <label class="field field--full">
         <span class="field__label">Nombre de la rutina</span>
-        <input type="text" id="rutina-nombre" required placeholder="Calistenia, Máquinas, Estiramientos…" value="${rutina?.nombre || ""}" />
+        <input type="text" id="rutina-nombre" required placeholder="Calistenia, Máquinas, Estiramientos…" value="${esc(rutina?.nombre || "")}" />
       </label>
       <label class="field-check" style="margin: 6px 0 10px;">
         <input type="checkbox" id="rutina-con-ejercicios" ${conEjercicios ? "checked" : ""} />
@@ -405,7 +405,7 @@ export function renderVidaEntreno(_state, forzar = false) {
 
   const chips =
     TIPOS_ENTRENO.map(
-      (t) => `<button type="button" class="chip ${t === tipoActivo ? "chip--on" : ""}" data-tipo-entreno="${t}">${NOMBRE_TIPO_ENTRENO[t] || t}</button>`
+      (t) => `<button type="button" class="chip ${t === tipoActivo ? "chip--on" : ""}" data-tipo-entreno="${t}">${esc(NOMBRE_TIPO_ENTRENO[t] || t)}</button>`
     ).join("") + `<button type="button" class="chip chip--nueva" id="btn-nueva-rutina" title="Crear una rutina propia">＋ Rutina</button>`;
 
   let cuerpo;
@@ -418,10 +418,10 @@ export function renderVidaEntreno(_state, forzar = false) {
         return `
         <div class="ejercicio">
           <div class="ejercicio__cabecera">
-            <span class="ejercicio__nombre">${plan.nombre}${tecnicaDe(plan.nombre) ? ` <button type="button" class="info-btn" data-tecnica="${idx}" title="Cómo se hace">?</button>` : ""}</span>
+            <span class="ejercicio__nombre">${esc(plan.nombre)}${tecnicaDe(plan.nombre) ? ` <button type="button" class="info-btn" data-tecnica="${idx}" title="Cómo se hace">?</button>` : ""}</span>
             <span class="ejercicio__objetivo">${plan.series} × ${plan.repsMin === plan.repsMax ? plan.repsMax : `${plan.repsMin}–${plan.repsMax}`}${plan.etiqueta ? ` ${plan.etiqueta}` : ""}</span>
           </div>
-          ${plan.nota ? `<p class="ejercicio__nota">${plan.nota}</p>` : ""}
+          ${plan.nota ? `<p class="ejercicio__nota">${esc(plan.nota)}</p>` : ""}
           ${sug?.texto ? `<p class="ejercicio__sube"><i class="ph-fill ph-trend-up" aria-hidden="true"></i> ${sug.texto}</p>` : ""}
           <div class="ejercicio__series">
             <label class="ejercicio__peso">
@@ -483,7 +483,7 @@ export function renderVidaEntreno(_state, forzar = false) {
       ${[1, 2, 3, 4, 5, 6, 0]
         .map(
           (d) =>
-            `<button type="button" class="chip chip--dia ${SEMANA_TIPO[d]?.tipo === tipoActivo ? "chip--on" : ""}" data-dia-rutina="${d}" title="Ahora: ${SEMANA_TIPO[d]?.nombre || "—"}">${["D", "L", "M", "X", "J", "V", "S"][d]}</button>`
+            `<button type="button" class="chip chip--dia ${SEMANA_TIPO[d]?.tipo === tipoActivo ? "chip--on" : ""}" data-dia-rutina="${d}" title="Ahora: ${esc(SEMANA_TIPO[d]?.nombre || "—")}">${["D", "L", "M", "X", "J", "V", "S"][d]}</button>`
         )
         .join("")}
     </div>
@@ -530,7 +530,7 @@ export function renderVidaEntreno(_state, forzar = false) {
               <div class="mini-row">
                 <div class="mini-row__main" style="flex:1; min-width:0;">
                   <span class="mini-row__title">${NOMBRE_TIPO_ENTRENO[e.tipo] || e.tipo} — ${formatFecha(new Date(e.fecha + "T12:00:00"))}${e.gym_lleno ? " · lleno" : ""}</span>
-                  <span class="mini-row__sub">${resumen || [(e.zonas || []).join(", "), e.nota, e.duracion_min ? e.duracion_min + " min" : ""].filter(Boolean).join(" · ")}</span>
+                  <span class="mini-row__sub">${esc(resumen || [(e.zonas || []).join(", "), e.nota, e.duracion_min ? e.duracion_min + " min" : ""].filter(Boolean).join(" · "))}</span>
                 </div>
                 <button type="button" class="row-edit-btn" data-borrar-entreno="${e.id}" title="Borrar"><i class="ph-thin ph-trash" aria-hidden="true"></i></button>
               </div>`;

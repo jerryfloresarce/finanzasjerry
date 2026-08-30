@@ -10,13 +10,14 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   nombreDeCuenta,
-} from "../db.js?v=87";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=87";
-import { seedInitialData } from "../seed.js?v=87";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=87";
-import { openHistorial } from "./cuentas.js?v=87";
-import { sentidoDeTransferencia } from "./movimientos.js?v=87";
-import { colorTema, paletaTema } from "../tema.js?v=87";
+} from "../db.js?v=88";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=88";
+import { seedInitialData } from "../seed.js?v=88";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=88";
+import { openHistorial } from "./cuentas.js?v=88";
+import { esc } from "../modal.js?v=88";
+import { sentidoDeTransferencia } from "./movimientos.js?v=88";
+import { colorTema, paletaTema } from "../tema.js?v=88";
 
 let chartInstance = null;
 
@@ -198,7 +199,7 @@ function renderTopLugares(movimientos) {
       ({ subcategoria, total }) => `
         <div class="mini-row">
           <div class="mini-row__main">
-            <span class="mini-row__title">${subcategoria}</span>
+            <span class="mini-row__title">${esc(subcategoria)}</span>
           </div>
           <span class="mini-row__amount">${formatEUR(total)}</span>
         </div>`
@@ -241,7 +242,7 @@ function renderRecientes(movimientos, categorias, cuentas) {
           <div class="mini-row__body">
             <span class="mini-row__icon">${icon("movimientos")}</span>
             <div class="mini-row__main">
-              <span class="mini-row__title">${nombreDeCuenta(cuentaMap, m.cuenta_id)} → ${destinoTransferencia(m, cuentaMap)}</span>
+              <span class="mini-row__title">${esc(nombreDeCuenta(cuentaMap, m.cuenta_id))} → ${esc(destinoTransferencia(m, cuentaMap))}</span>
               <span class="mini-row__sub">Transferencia · ${formatFecha(fromTimestamp(m.fecha))}</span>
             </div>
           </div>
@@ -256,7 +257,7 @@ function renderRecientes(movimientos, categorias, cuentas) {
           <div class="mini-row__body">
             <span class="mini-row__icon">${entityIcon(cat, iconForCategoriaTipo(cat?.tipo))}</span>
             <div class="mini-row__main">
-              <span class="mini-row__title">${m.subcategoria || m.nota || cat?.nombre || "Movimiento"}</span>
+              <span class="mini-row__title">${esc(m.subcategoria || m.nota || cat?.nombre || "Movimiento")}</span>
               <span class="mini-row__sub">${cat?.nombre || ""} · ${formatFecha(fromTimestamp(m.fecha))}</span>
             </div>
           </div>
@@ -298,7 +299,7 @@ function renderPrestamos(prestamos, pagosPrestamos) {
           <div class="mini-row__body">
             <span class="avatar" style="background:${avatarColor(p.persona)}">${initials(p.persona)}</span>
             <div class="mini-row__main">
-              <span class="mini-row__title">${p.persona}</span>
+              <span class="mini-row__title">${esc(p.persona)}</span>
               <span class="mini-row__sub">${sub}</span>
             </div>
           </div>
@@ -324,7 +325,7 @@ function renderSuscripciones(suscripciones, cuentas) {
           <div class="mini-row__body">
             <span class="mini-row__icon">${icon(iconForSuscripcion(s.nombre))}</span>
             <div class="mini-row__main">
-              <span class="mini-row__title">${s.nombre}</span>
+              <span class="mini-row__title">${esc(s.nombre)}</span>
               <span class="mini-row__sub">${s.frecuencia}${s.proximo_pago ? " · próximo " + formatFecha(new Date(s.proximo_pago)) : ""}</span>
             </div>
           </div>
@@ -352,7 +353,7 @@ function renderCuentasResumen(state) {
           <div class="mini-row__body">
             <span class="mini-row__icon">${entityIcon(c, iconForCuentaTipo(c.tipo))}</span>
             <div class="mini-row__main">
-              <span class="mini-row__title">${c.nombre}</span>
+              <span class="mini-row__title">${esc(c.nombre)}</span>
               <span class="mini-row__sub">${c.tipo}</span>
             </div>
           </div>

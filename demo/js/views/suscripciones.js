@@ -11,10 +11,10 @@ import {
   toTimestamp,
   fechaISO,
   textoPeriodo,
-} from "../db.js?v=87";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=87";
-import { icon, iconForSuscripcion } from "../icons.js?v=87";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=87";
+} from "../db.js?v=88";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=88";
+import { icon, iconForSuscripcion } from "../icons.js?v=88";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=88";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).
@@ -168,7 +168,7 @@ export function renderSuscripciones(state) {
             <span class="mini-row__body" style="min-width:0;">
               <span class="mini-row__icon">${icon(iconForSuscripcion(s.nombre))}</span>
               <span class="mini-row__main">
-                <span class="mini-row__title">${s.nombre}</span>
+                <span class="mini-row__title">${esc(s.nombre)}</span>
                 <span class="mini-row__sub">${sub}</span>
               </span>
             </span>
@@ -284,7 +284,7 @@ function openMarcarPagado(suscripcion, state, checkboxInput, { yaPagado = 0, per
       </label>
       <label class="field field--full">
         <span class="field__label">Nota (opcional)</span>
-        <input type="text" name="nota" value="${editando ? pago.nota ?? "" : ""}" placeholder="Factura de julio" />
+        <input type="text" name="nota" value="${esc(editando ? pago.nota ?? "" : "")}" placeholder="Factura de julio" />
       </label>
       <label class="field-check field--full">
         <input type="checkbox" name="no_afecta_saldo" ${editando && pago.afecta_saldo === false ? "checked" : ""} />
@@ -471,7 +471,7 @@ function openForm(suscripcion, state) {
     <form id="form-suscripcion" class="form-grid">
       <label class="field field--full">
         <span class="field__label">Nombre</span>
-        <input type="text" name="nombre" required value="${suscripcion?.nombre ?? ""}" placeholder="Glovo Prime, Préstamo Bankinter, Luz…" />
+        <input type="text" name="nombre" required value="${esc(suscripcion?.nombre ?? "")}" placeholder="Glovo Prime, Préstamo Bankinter, Luz…" />
       </label>
       <label class="field">
         <span class="field__label">Precio habitual</span>

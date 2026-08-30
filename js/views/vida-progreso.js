@@ -26,10 +26,11 @@ import {
   diaDeRutina,
   rachasCaraACara,
   INNEGOCIABLES,
-} from "../vida.js?v=87";
-import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=87";
-import { colorTema } from "../tema.js?v=87";
-import { efectoDeCelebracion } from "../efectos.js?v=87";
+} from "../vida.js?v=88";
+import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=88";
+import { esc } from "../modal.js?v=88";
+import { colorTema } from "../tema.js?v=88";
+import { efectoDeCelebracion } from "../efectos.js?v=88";
 
 let currentState = null;
 let chartPeso = null;
@@ -201,7 +202,7 @@ export function renderVidaProgreso(state) {
         ${
           siguiente
             ? `<div class="progress-track" style="margin:10px 0 4px;"><div class="progress-fill" style="width:${Math.min(100, Math.round((bote.disponible / siguiente.coste) * 100))}%"></div></div>
-               <p class="entity-card__meta">A ${formatEUR(Math.max(0, siguiente.coste - bote.disponible))} de: ${siguiente.nombre}</p>`
+               <p class="entity-card__meta">A ${formatEUR(Math.max(0, siguiente.coste - bote.disponible))} de: ${esc(siguiente.nombre)}</p>`
             : ""
         }
         <div class="mini-list" style="margin-top:10px;">
@@ -215,7 +216,7 @@ export function renderVidaProgreso(state) {
                     return `
               <div class="mini-row ${canjeada ? "susc-row--inactiva" : ""}">
                 <div class="mini-row__main" style="flex:1; min-width:0;">
-                  <span class="mini-row__title">${canjeada ? "✓ " : ""}${r.nombre}</span>
+                  <span class="mini-row__title">${canjeada ? "✓ " : ""}${esc(r.nombre)}</span>
                   <span class="mini-row__sub">${formatEUR(r.coste)}${canjeada ? ` · canjeada ${r.fecha_canje ?? ""}` : alcanzable ? " · ¡la tienes!" : ""}</span>
                 </div>
                 ${
@@ -230,7 +231,7 @@ export function renderVidaProgreso(state) {
           }
         </div>
         <div class="form-grid" style="margin-top:12px;">
-          <label class="field"><span class="field__label">Nueva recompensa</span><input type="text" id="rec-nombre" value="${draftRecompensa.nombre}" placeholder="Muñequeras" /></label>
+          <label class="field"><span class="field__label">Nueva recompensa</span><input type="text" id="rec-nombre" value="${esc(draftRecompensa.nombre)}" placeholder="Muñequeras" /></label>
           <label class="field"><span class="field__label">Cuesta (€)</span><input type="number" id="rec-coste" value="${draftRecompensa.coste}" placeholder="25" /></label>
           <button type="button" class="btn btn--ghost btn--sm field--full" id="btn-add-recompensa">+ Añadir a la lista</button>
         </div>

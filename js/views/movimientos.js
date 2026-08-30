@@ -10,11 +10,11 @@ import {
   destinoTransferencia,
   textoPeriodo,
   nombreDeCuenta,
-} from "../db.js?v=87";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=87";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=87";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=87";
-import { colorTema } from "../tema.js?v=87";
+} from "../db.js?v=88";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=88";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=88";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=88";
+import { colorTema } from "../tema.js?v=88";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -225,7 +225,7 @@ function openDiaDetalle(fecha, state) {
           <div class="mini-row__body" style="flex:1; min-width:0;">
             <span class="mini-row__icon">${iconHTML}</span>
             <span class="mini-row__main">
-              <span class="mini-row__title"><strong>${titulo}</strong></span>
+              <span class="mini-row__title"><strong>${esc(titulo)}</strong></span>
               <span class="mini-row__sub">${sub}</span>
             </span>
           </div>
@@ -355,11 +355,11 @@ function openForm(movimiento, state, fechaPrefill) {
       </label>
       <label class="field" id="campo-subcategoria">
         <span class="field__label">Subcategoría (opcional)</span>
-        <input type="text" name="subcategoria" value="${movimiento?.subcategoria ?? ""}" placeholder="Five Guys, Zara…" />
+        <input type="text" name="subcategoria" value="${esc(movimiento?.subcategoria ?? "")}" placeholder="Five Guys, Zara…" />
       </label>
       <label class="field field--full">
         <span class="field__label">Nota (opcional)</span>
-        <input type="text" name="nota" value="${movimiento?.nota ?? ""}" placeholder="Mercadona, Glovo, nómina…" />
+        <input type="text" name="nota" value="${esc(movimiento?.nota ?? "")}" placeholder="Mercadona, Glovo, nómina…" />
       </label>
       <p class="field-error" id="form-movimiento-error"></p>
       <div class="modal__actions field--full">

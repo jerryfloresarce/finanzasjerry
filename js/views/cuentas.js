@@ -8,12 +8,12 @@ import {
   formatFecha,
   fromTimestamp,
   nombreDeCuenta,
-} from "../db.js?v=87";
-import { openModal, closeModal, todayISO } from "../modal.js?v=87";
-import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=87";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=87";
-import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=87";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=87";
+} from "../db.js?v=88";
+import { openModal, closeModal, todayISO, esc } from "../modal.js?v=88";
+import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=88";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=88";
+import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=88";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=88";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 
@@ -39,7 +39,7 @@ export function renderCuentas(state) {
           <div class="entity-card__top">
             <div class="entity-card__heading">
               <span class="icon-badge">${entityIcon(c, iconForCuentaTipo(c.tipo))}</span>
-              <p class="entity-card__name">${c.nombre}</p>
+              <p class="entity-card__name">${esc(c.nombre)}</p>
             </div>
             <div class="entity-card__top-actions">
               <span class="entity-card__tag ${c.activa === false ? "entity-card__tag--pagado" : "entity-card__tag--activo"}">${c.activa === false ? "Inactiva" : c.tipo}</span>
@@ -97,7 +97,7 @@ export function openHistorial(cuenta, state) {
         signo = esOrigen ? -1 : 1;
       } else {
         const cat = catMap.get(m.categoria_id);
-        descripcion = `${entityIcon(cat, iconForCategoriaTipo(cat?.tipo), { size: 14 })} ${m.subcategoria ? m.subcategoria + " · " : ""}${cat?.nombre || "—"}`;
+        descripcion = `${entityIcon(cat, iconForCategoriaTipo(cat?.tipo), { size: 14 })} ${m.subcategoria ? esc(m.subcategoria) + " · " : ""}${esc(cat?.nombre || "—")}`;
         signo = m.tipo === "Ingreso" ? 1 : -1;
       }
       return `
@@ -134,7 +134,7 @@ function openForm(cuenta) {
     <form id="form-cuenta" class="form-grid">
       <label class="field field--full">
         <span class="field__label">Nombre</span>
-        <input type="text" name="nombre" required value="${cuenta?.nombre ?? ""}" placeholder="Imagin" />
+        <input type="text" name="nombre" required value="${esc(cuenta?.nombre ?? "")}" placeholder="Imagin" />
       </label>
       <label class="field">
         <span class="field__label">Tipo</span>

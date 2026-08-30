@@ -13,11 +13,11 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=87";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=87";
-import { initials, avatarColor, icon } from "../icons.js?v=87";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=87";
-import { efectoDeCelebracion } from "../efectos.js?v=87";
+} from "../db.js?v=88";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=88";
+import { initials, avatarColor, icon } from "../icons.js?v=88";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=88";
+import { efectoDeCelebracion } from "../efectos.js?v=88";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -188,7 +188,7 @@ export function renderPrestamos(state) {
           <div class="entity-card__top">
             <div class="entity-card__heading">
               <span class="avatar" style="background:${avatarColor(p.persona)}">${initials(p.persona)}</span>
-              <p class="entity-card__name">${p.persona}</p>
+              <p class="entity-card__name">${esc(p.persona)}</p>
             </div>
             <div class="entity-card__top-actions">
               <span class="entity-card__tag ${tagClass}">${p.estado || "Activo"}</span>
@@ -196,7 +196,7 @@ export function renderPrestamos(state) {
             </div>
           </div>
           <p class="entity-card__amount">${formatEUR(montoMostrado)} <span style="font-size:0.9rem;color:var(--text-muted);font-family:var(--font-body)">${planPagos ? "pendiente (capital + interés)" : "de capital"}</span></p>
-          ${p.notas ? `<p class="entity-card__meta">${p.notas}</p>` : ""}
+          ${p.notas ? `<p class="entity-card__meta">${esc(p.notas)}</p>` : ""}
 
           ${p.estado === "Pagado" ? `<p class="entity-card__meta">Préstamo cerrado.</p>` : planPagos ? renderPlanPagos(p, pagosPrestamos) : renderInteresMensual(p, pct, interesActual, etiquetaInteres)}
           ${renderHistorialPagos(p, movimientos)}
@@ -700,7 +700,7 @@ function openPrestamoForm(prestamo, state) {
     <form id="form-prestamo" class="form-grid">
       <label class="field field--full">
         <span class="field__label">Persona</span>
-        <input type="text" name="persona" required value="${prestamo?.persona ?? ""}" placeholder="Nombre de la persona" />
+        <input type="text" name="persona" required value="${esc(prestamo?.persona ?? "")}" placeholder="Nombre de la persona" />
       </label>
       <label class="field">
         <span class="field__label">Capital pendiente</span>
@@ -744,7 +744,7 @@ function openPrestamoForm(prestamo, state) {
       </label>
       <label class="field field--full">
         <span class="field__label">Notas del préstamo (opcional)</span>
-        <textarea name="notas" rows="3" placeholder="Los detalles para tenerlo controlado: qué acordasteis, cuándo prometió pagar, si dejó algo a cuenta…">${prestamo?.notas ?? ""}</textarea>
+        <textarea name="notas" rows="3" placeholder="Los detalles para tenerlo controlado: qué acordasteis, cuándo prometió pagar, si dejó algo a cuenta…">${esc(prestamo?.notas ?? "")}</textarea>
       </label>
       <p class="field-error" id="form-prestamo-error"></p>
       <div class="modal__actions field--full">

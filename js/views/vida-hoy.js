@@ -29,12 +29,12 @@ import {
   guardarSistema,
   guardarDia,
   avisoDeEntrenoSinHueco,
-} from "../vida.js?v=87";
-import { abrirReceta } from "./vida-menu.js?v=87";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=87";
-import { fechaISO, formatFecha } from "../db.js?v=87";
-import { efectoDeCelebracion } from "../efectos.js?v=87";
-import { openModal, closeModal } from "../modal.js?v=87";
+} from "../vida.js?v=88";
+import { abrirReceta } from "./vida-menu.js?v=88";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=88";
+import { fechaISO, formatFecha } from "../db.js?v=88";
+import { efectoDeCelebracion } from "../efectos.js?v=88";
+import { openModal, closeModal, esc } from "../modal.js?v=88";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -280,7 +280,7 @@ export function renderVidaHoy(state) {
             .map(
               (t, i) => `
             <button type="button" class="agenda-tarea ${t.hecho ? "agenda-tarea--hecha" : ""}" data-tarea-hoy="${i}">
-              <span class="agenda-tarea__circulo">${t.hecho ? "✓" : ""}</span>${t.texto}
+              <span class="agenda-tarea__circulo">${t.hecho ? "✓" : ""}</span>${esc(t.texto)}
             </button>`
             )
             .join("")}
@@ -297,8 +297,8 @@ export function renderVidaHoy(state) {
               <span class="dia-bloque__hora">${bl.h}</span>
               <span class="dia-bloque__punto" aria-hidden="true"></span>
               <span class="dia-bloque__cuerpo">
-                <span class="dia-bloque__titulo">${bl.cita ? "📌 " : ""}${bl.titulo}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
-                ${bl.detalle ? `<span class="dia-bloque__detalle">${bl.detalle}</span>` : ""}
+                <span class="dia-bloque__titulo">${bl.cita ? "📌 " : ""}${esc(bl.titulo)}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
+                ${bl.detalle ? `<span class="dia-bloque__detalle">${esc(bl.detalle)}</span>` : ""}
               </span>
             </div>`;
             })
@@ -450,9 +450,9 @@ function filaBloque(b = {}) {
   return `
     <div class="horario-fila">
       <input type="time" class="hor-hora" value="${b.h || ""}" />
-      <input type="text" class="hor-titulo" placeholder="Qué toca" value="${b.titulo || ""}" />
+      <input type="text" class="hor-titulo" placeholder="Qué toca" value="${esc(b.titulo || "")}" />
       <input type="number" class="hor-duracion" placeholder="min" min="1" inputmode="numeric" title="Cuánto dura, en minutos (opcional)" value="${b.duracion || ""}" />
-      <input type="text" class="hor-detalle" placeholder="Detalle (opcional)" value="${b.detalle || ""}" />
+      <input type="text" class="hor-detalle" placeholder="Detalle (opcional)" value="${esc(b.detalle || "")}" />
       <button type="button" class="row-edit-btn hor-quitar" title="Quitar">✕</button>
     </div>`;
 }
@@ -545,7 +545,7 @@ export function abrirTareasDia(fechaId) {
             (t, i) => `
         <div class="mini-row">
           <button type="button" class="agenda-tarea ${t.hecho ? "agenda-tarea--hecha" : ""}" data-t-toggle="${i}" style="flex:1;">
-            <span class="agenda-tarea__circulo">${t.hecho ? "✓" : ""}</span>${t.texto}
+            <span class="agenda-tarea__circulo">${t.hecho ? "✓" : ""}</span>${esc(t.texto)}
           </button>
           <button type="button" class="row-edit-btn" data-t-quitar="${i}" title="Quitar">✕</button>
         </div>`
@@ -627,7 +627,7 @@ export function abrirAgendaDia(fechaId) {
           .map(
             (a, i) => `
         <div class="mini-row">
-          <span class="mini-row__title">📌 ${a.h} · ${a.titulo}${a.duracion ? ` · ~${a.duracion} min` : ""}${a.duracion_real ? ` <span class="entity-card__meta">(${a.duracion_real} min reales)</span>` : ""}${a.detalle ? ` <span class="entity-card__meta">— ${a.detalle}</span>` : ""}</span>
+          <span class="mini-row__title">📌 ${a.h} · ${esc(a.titulo)}${a.duracion ? ` · ~${a.duracion} min` : ""}${a.duracion_real ? ` <span class="entity-card__meta">(${a.duracion_real} min reales)</span>` : ""}${a.detalle ? ` <span class="entity-card__meta">— ${esc(a.detalle)}</span>` : ""}</span>
           <button type="button" class="row-edit-btn" data-quitar-cita="${i}" title="Quitar">✕</button>
         </div>`
           )
