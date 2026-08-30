@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=86";
-import { fechaISO } from "./db.js?v=86";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=86";
+import { db } from "./firebase-init.js?v=87";
+import { fechaISO } from "./db.js?v=87";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=87";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -1076,11 +1076,16 @@ function minutosDeBloque(h, esPrimero) {
 //    día), intercalados donde les toca por hora y marcados como cita.
 export function bloquesDelDia(fecha = new Date()) {
   const propios = vida.sistema.horario?.[fecha.getDay()];
-  const base = Array.isArray(propios) && propios.length ? propios : bloquesDeSerie(fecha);
-  const agenda = diaPorFecha(fechaISO(fecha))?.agenda;
-  if (!Array.isArray(agenda) || !agenda.length) return base;
   const enHoras = (min) => (min >= 60 ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ""}` : `${min} min`);
   const horaDe = (min) => `${String(Math.floor((min % (24 * 60)) / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+  // Un bloque del horario con duración apuntada la enseña en su detalle.
+  // Solo aquí, al pintar: lo guardado no se toca, y el editor sigue viendo
+  // los campos limpios.
+  const conDuracion = (b) =>
+    b.duracion ? { ...b, detalle: [b.detalle, `~${enHoras(Number(b.duracion))}`].filter(Boolean).join(" · ") } : b;
+  const base = (Array.isArray(propios) && propios.length ? propios : bloquesDeSerie(fecha)).map(conDuracion);
+  const agenda = diaPorFecha(fechaISO(fecha))?.agenda;
+  if (!Array.isArray(agenda) || !agenda.length) return base;
   const citas = agenda.map((a) => {
     const min = minutosDeBloque(a.h, false);
     const fin = a.duracion ? min + Number(a.duracion) : null;

@@ -7,10 +7,10 @@
 // la semana, ＋ apunta citas con sus minutos aprox, ☑ abre la to-do list
 // del día, y tocar una cita apunta cuánto tardaste al final.
 
-import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=86";
-import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=86";
-import { openModal, closeModal } from "../modal.js?v=86";
-import { fechaISO } from "../db.js?v=86";
+import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=87";
+import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=87";
+import { openModal, closeModal } from "../modal.js?v=87";
+import { fechaISO } from "../db.js?v=87";
 
 // Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
 // que mandan las flechas: en mes salta de mes en mes, en semana de semana

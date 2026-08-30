@@ -21,10 +21,10 @@ import {
   tecnicaDe,
   urlVideoTecnica,
   TECNICA_CROL,
-} from "../vida.js?v=86";
-import { fechaISO, formatFecha } from "../db.js?v=86";
-import { efectoAlGuardar } from "../efectos.js?v=86";
-import { openModal, closeModal } from "../modal.js?v=86";
+} from "../vida.js?v=87";
+import { fechaISO, formatFecha } from "../db.js?v=87";
+import { efectoAlGuardar } from "../efectos.js?v=87";
+import { openModal, closeModal } from "../modal.js?v=87";
 
 let tipoActivo = null;
 

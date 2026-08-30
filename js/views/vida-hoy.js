@@ -29,12 +29,12 @@ import {
   guardarSistema,
   guardarDia,
   avisoDeEntrenoSinHueco,
-} from "../vida.js?v=86";
-import { abrirReceta } from "./vida-menu.js?v=86";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=86";
-import { fechaISO, formatFecha } from "../db.js?v=86";
-import { efectoDeCelebracion } from "../efectos.js?v=86";
-import { openModal, closeModal } from "../modal.js?v=86";
+} from "../vida.js?v=87";
+import { abrirReceta } from "./vida-menu.js?v=87";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=87";
+import { fechaISO, formatFecha } from "../db.js?v=87";
+import { efectoDeCelebracion } from "../efectos.js?v=87";
+import { openModal, closeModal } from "../modal.js?v=87";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -451,6 +451,7 @@ function filaBloque(b = {}) {
     <div class="horario-fila">
       <input type="time" class="hor-hora" value="${b.h || ""}" />
       <input type="text" class="hor-titulo" placeholder="Qué toca" value="${b.titulo || ""}" />
+      <input type="number" class="hor-duracion" placeholder="min" min="1" inputmode="numeric" title="Cuánto dura, en minutos (opcional)" value="${b.duracion || ""}" />
       <input type="text" class="hor-detalle" placeholder="Detalle (opcional)" value="${b.detalle || ""}" />
       <button type="button" class="row-edit-btn hor-quitar" title="Quitar">✕</button>
     </div>`;
@@ -465,7 +466,7 @@ export function abrirEditorHorario(fecha) {
     <h2 class="modal__title">El horario de los ${DIAS_SEMANA[dia]}s</h2>
     <p class="entity-card__meta">Esto cambia la plantilla de TODOS los ${DIAS_SEMANA[dia]}s. Para algo de un solo día, usa "Cita o imprevisto".</p>
     <form id="form-horario">
-      <div class="horario-fila horario-cabecera" aria-hidden="true"><span>Hora</span><span>Qué toca</span><span>Detalle</span><span></span></div>
+      <div class="horario-fila horario-cabecera" aria-hidden="true"><span>Hora</span><span>Qué toca</span><span>Min</span><span>Detalle</span><span></span></div>
       <div id="horario-bloques">${base.map(filaBloque).join("")}</div>
       <button type="button" class="btn btn--ghost btn--sm" id="btn-mas-bloque">+ Otro bloque</button>
       <p class="field-error" id="horario-error"></p>
@@ -492,12 +493,19 @@ export function abrirEditorHorario(fecha) {
         });
         root.querySelector("#form-horario").addEventListener("submit", async (e) => {
           e.preventDefault();
-          const bloques = [...root.querySelectorAll(".horario-fila")]
-            .map((fila) => ({
-              h: fila.querySelector(".hor-hora").value,
-              titulo: fila.querySelector(".hor-titulo").value.trim(),
-              detalle: fila.querySelector(".hor-detalle").value.trim(),
-            }))
+          // OJO: solo las filas de datos — la fila de etiquetas de arriba
+          // también lleva la clase horario-fila pero no tiene campos, y
+          // leerla reventaba el guardado entero sin decir nada.
+          const bloques = [...root.querySelectorAll("#horario-bloques .horario-fila")]
+            .map((fila) => {
+              const duracion = Number(fila.querySelector(".hor-duracion").value) || null;
+              return {
+                h: fila.querySelector(".hor-hora").value,
+                titulo: fila.querySelector(".hor-titulo").value.trim(),
+                detalle: fila.querySelector(".hor-detalle").value.trim(),
+                ...(duracion ? { duracion } : {}),
+              };
+            })
             .filter((b) => b.h && b.titulo)
             .sort((a, b) => minutosDeHora(a.h) - minutosDeHora(b.h));
           if (!bloques.length) {
