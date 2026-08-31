@@ -3,7 +3,7 @@
 // revela al arrastrar el contenido hacia la izquierda. Se usa en vez de
 // un botón "Eliminar" siempre visible, en todas las listas de la app.
 
-import { animarFilaAlEliminar } from "./efectos.js?v=97";
+import { animarFilaAlEliminar } from "./efectos.js?v=98";
 
 const REVEAL_PX = 88;
 const DRAG_LOCK_THRESHOLD = 8;

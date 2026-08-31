@@ -2,9 +2,11 @@
 // Hoy: la pantalla con la que abre la app. Los 4 innegociables, los 4
 // bonus, los puntos del día y el botón de cerrar. Debajo, qué toca hoy.
 //
-// El checklist se apunta en un borrador local y solo se escribe en
-// Firestore al pulsar "Cerrar el día": así marcar casillas es instantáneo
-// y no dispara un render por cada toque.
+// El checklist se apunta en un borrador local para que marcar sea
+// instantáneo, y CADA toque se guarda también en Firestore al momento:
+// si la app se recarga (salir y volver, una versión nueva), lo marcado
+// sigue ahí. "Cerrar el día" es lo único que pone los puntos, el
+// cumplido y el cerrado — las marcas ya estaban a salvo desde antes.
 
 import {
   vida,
@@ -37,13 +39,13 @@ import {
   alternarExtraDelDia,
   cenaEsSobras,
   marcarCenaSobras,
-} from "../vida.js?v=97";
-import { abrirReceta } from "./vida-menu.js?v=97";
-import { pedirVista } from "./vida-agenda.js?v=97";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=97";
-import { fechaISO, formatFecha } from "../db.js?v=97";
-import { efectoDeCelebracion } from "../efectos.js?v=97";
-import { openModal, closeModal, esc } from "../modal.js?v=97";
+} from "../vida.js?v=98";
+import { abrirReceta } from "./vida-menu.js?v=98";
+import { pedirVista } from "./vida-agenda.js?v=98";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=98";
+import { fechaISO, formatFecha } from "../db.js?v=98";
+import { efectoDeCelebracion } from "../efectos.js?v=98";
+import { openModal, closeModal, esc } from "../modal.js?v=98";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -62,7 +64,10 @@ function borradorDe(fechaId) {
     const guardado = diaPorFecha(fechaId);
     const entrenoHecho = vida.entrenos.some((e) => e.fecha === fechaId);
     borradores.set(fechaId, {
-      innegociables: { ...(guardado?.innegociables || {}), ...(guardado ? {} : entrenoHecho ? { entreno: true } : {}) },
+      // El entreno registrado se auto-marca solo si aún no hay marcas
+      // guardadas: el documento del día puede existir ya por los extras o
+      // las tareas sin que eso signifique nada sobre el checklist.
+      innegociables: { ...(guardado?.innegociables || {}), ...(guardado?.innegociables ? {} : entrenoHecho ? { entreno: true } : {}) },
       bonus: { ...(guardado?.bonus || {}) },
       peso_kg: guardado?.peso_kg ?? "",
       cadera: guardado?.cadera ?? "",
@@ -88,6 +93,15 @@ export function mountVidaHoy() {
     if (e.target.id === "hoy-peso") b.peso_kg = e.target.value;
     if (e.target.id === "hoy-cadera") b.cadera = e.target.value;
   });
+  // Y al salir del campo, el peso y la ingle también quedan guardados:
+  // que una recarga no se lleve nada de lo apuntado en el día.
+  root.addEventListener("change", (e) => {
+    if (e.target.id !== "hoy-peso" && e.target.id !== "hoy-cadera") return;
+    const fid = fechaEditando ?? fechaISO();
+    if (diaPorFecha(fid)?.cerrado) return;
+    const campo = e.target.id === "hoy-peso" ? "peso_kg" : "cadera";
+    guardarDia(fid, { [campo]: e.target.value !== "" ? Number(e.target.value) : null }).catch(() => {});
+  });
   root.addEventListener("click", async (e) => {
     const receta = e.target.closest("[data-receta]");
     if (receta) {
@@ -99,6 +113,13 @@ export function mountVidaHoy() {
       const [grupo, id] = toggle.dataset.check.split(":");
       const b = borradorDe(fechaEditando);
       b[grupo][id] = !b[grupo][id];
+      // La marca se guarda YA (sin cerrar el día): antes vivía solo en el
+      // borrador y una recarga la borraba — "al salir se desmarca", nunca
+      // más. En un día ya cerrado se respeta el flujo de Corregir +
+      // Guardar cambios, que reescribe también puntos y cumplido.
+      if (!diaPorFecha(fechaEditando)?.cerrado) {
+        guardarDia(fechaEditando, { innegociables: { ...b.innegociables }, bonus: { ...b.bonus } }).catch(() => {});
+      }
       renderVidaHoy(currentState);
       return;
     }
@@ -239,8 +260,35 @@ export function renderVidaHoy(state) {
   const editandoAyer = fechaEditando !== hoyId;
   const fecha = new Date(fechaEditando + "T12:00:00");
   const guardado = diaPorFecha(fechaEditando);
+  // El documento del día MANDA: como cada toque ya se guarda en Firestore,
+  // el borrador se reconstruye desde lo guardado en cada repintado. Sin
+  // esto, la primera pintada tras una recarga (antes de que lleguen los
+  // datos) memorizaba un borrador vacío y las marcas "se desmarcaban".
+  // Se conserva: el modo edición de un día cerrado (local hasta Guardar
+  // cambios) y lo tecleado en peso/ingle que aún no se ha guardado.
+  {
+    const previo = borradores.get(fechaEditando);
+    if (previo && !previo.editando) {
+      borradores.delete(fechaEditando);
+      const nuevo = borradorDe(fechaEditando);
+      if (previo.peso_kg !== "" && nuevo.peso_kg === "") nuevo.peso_kg = previo.peso_kg;
+      if (previo.cadera !== "" && nuevo.cadera === "") nuevo.cadera = previo.cadera;
+    }
+  }
   const b = borradorDe(fechaEditando);
   const cerradoSinEditar = Boolean(guardado?.cerrado) && !b.editando;
+  // El día como checklist (solo el perfil de Jerry): bloques tachables y
+  // los extras del día — las frutas una a una y el rasurado alterno.
+  const conChecks = conChecklistDeDia();
+  const extras = extrasDelDia(fechaEditando);
+  // La 4ª fruta del horario ES la del bonus: tacharla marca el bonus solo
+  // (y se guarda, para que la recarga no se lo lleve). Va ANTES de contar
+  // los puntos, que el +5 se vea al momento. En un día cerrado no se toca
+  // nada: se enseña exactamente lo que quedó guardado.
+  if (conChecks && !guardado?.cerrado && extras.find((x) => x.id === "fruta4")?.hecho && !b.bonus.fruta_4) {
+    b.bonus.fruta_4 = true;
+    guardarDia(fechaEditando, { bonus: { ...b.bonus } }).catch(() => {});
+  }
   const puntos = puntosDeDia(b.innegociables, b.bonus);
   const { actual: racha } = calcularRacha();
   const entrenoDelDia = SEMANA_TIPO[fecha.getDay()];
@@ -256,13 +304,6 @@ export function renderVidaHoy(state) {
   const indiceAhora = bloqueActual(ahora);
   const horaTxt = `${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}`;
   const menuHoy = editandoAyer ? null : menuDeHoy(fecha);
-  // El día como checklist (solo el perfil de Jerry): bloques tachables y
-  // los extras del día — las frutas una a una y el rasurado alterno.
-  const conChecks = conChecklistDeDia();
-  const extras = extrasDelDia(fechaEditando);
-  // La 4ª fruta del horario ES la del bonus: tacharla marca el bonus sola
-  // (solo en un sentido, desmarcar el bonus a mano sigue siendo posible).
-  if (conChecks && extras.find((x) => x.id === "fruta4")?.hecho && !b.bonus.fruta_4) b.bonus.fruta_4 = true;
 
   // Lo que quedó a medias: no cuenta como hecho (no hay medias tintas),
   // pero SÍ se apunta qué pasó y cuánto tiempo fue de verdad — "estudié
