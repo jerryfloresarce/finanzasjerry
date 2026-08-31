@@ -14,9 +14,9 @@
 // Y sin botones: un campo para escribir, tocar para marcar, tocar para
 // reponer, y mantener pulsado para borrar del todo. Nada más a la vista.
 
-import { vida, guardarCompras, categoriasDeCompras } from "../vida.js?v=90";
-import { esc } from "../modal.js?v=90";
-import { efectoAlGuardar } from "../efectos.js?v=90";
+import { vida, guardarCompras, categoriasDeCompras } from "../vida.js?v=91";
+import { esc } from "../modal.js?v=91";
+import { efectoAlGuardar } from "../efectos.js?v=91";
 
 const normal = (t) => t.trim().toLowerCase();
 

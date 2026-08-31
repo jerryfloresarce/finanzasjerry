@@ -18,9 +18,9 @@ import {
   generarMenuSemana,
   guardarMenu,
   lunesDe,
-} from "../vida.js?v=90";
-import { openModal, closeModal, esc } from "../modal.js?v=90";
-import { efectoAlGuardar } from "../efectos.js?v=90";
+} from "../vida.js?v=91";
+import { openModal, closeModal, esc } from "../modal.js?v=91";
+import { efectoAlGuardar } from "../efectos.js?v=91";
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const MOMENTOS = [
@@ -82,7 +82,10 @@ function opcionesDe(momento, elegido) {
 }
 
 function abrirEditorDia(d) {
-  const menu = vida.menu?.lunes === lunesDe(new Date()) ? vida.menu : { desayunos: {}, comidas: {}, cenas: {} };
+  // El menú guardado, sea de la semana que sea: partir de mapas vacíos
+  // cuando cambiaba la semana hacía que guardar un día machacara el menú
+  // entero con la nada. El menú vive hasta que se rehace a propósito.
+  const menu = vida.menu?.lunes ? vida.menu : { desayunos: {}, comidas: {}, cenas: {} };
   openModal(
     `
     <h2 class="modal__title">${DIAS[d - 1]}: ¿qué coméis?</h2>
@@ -112,7 +115,7 @@ function abrirEditorDia(d) {
           const f = new FormData(e.target);
           // Se guardan los tres mapas ENTEROS (no solo el día tocado):
           // así funciona igual se mire como se mire el merge de Firestore.
-          const datos = { lunes: lunesDe(new Date()) };
+          const datos = { lunes: menu.lunes || lunesDe(new Date()) };
           for (const m of MOMENTOS) {
             const mapa = { ...(menu[m.campo] || {}) };
             const valor = f.get(m.campo);
@@ -231,6 +234,9 @@ export function mountVidaMenu() {
       return;
     }
     if (e.target.closest("#btn-generar-menu")) {
+      // Con un menú en pie no se pisa sin preguntar: la compra de la
+      // semana está hecha para ese menú.
+      if (vida.menu?.lunes && !confirm("Ya hay un menú hecho (y la compra suele ir con él). ¿Lo sustituyo por uno nuevo?")) return;
       const lunes = lunesDe(new Date());
       const menu = generarMenuSemana(lunes, marcados());
       const aviso = document.getElementById("menu-aviso");
@@ -262,7 +268,10 @@ export function renderVidaMenu(_state) {
   const nComidas = disponibles.filter((r) => r.momento === "comida").length;
   const nCenas = disponibles.filter((r) => r.momento === "cena").length;
   const lunesActual = lunesDe(new Date());
-  const menuVigente = vida.menu?.lunes === lunesActual ? vida.menu : null;
+  // El menú guardado se enseña SIEMPRE — jamás desaparece al cambiar de
+  // semana. Si es de una semana anterior, se dice con una nota, sin más.
+  const menuVigente = vida.menu?.lunes ? vida.menu : null;
+  const menuDeOtraSemana = menuVigente && menuVigente.lunes !== lunesActual;
   const propios = platosPropios();
 
   el.innerHTML = `
@@ -302,6 +311,11 @@ export function renderVidaMenu(_state) {
 
       <article class="card">
         <h2 class="card__title">El menú de la semana</h2>
+        ${
+          menuDeOtraSemana
+            ? `<p class="entity-card__meta" style="margin-top:-6px;">Este menú lo hicisteis la semana del ${new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "long" }).format(new Date(menuVigente.lunes + "T12:00:00"))} y <strong>sigue en pie</strong> — no se borra solo. Cuando queráis otro, botón de rehacer.</p>`
+            : ""
+        }
         ${
           !menuVigente
             ? `<p class="empty-state">Todavía no hay menú para esta semana. Marcad los ingredientes y dadle al botón: saldrá priorizando lo rápido (AirFryer, horno o pocos pasos), y luego cada día se puede retocar con el lápiz.</p>`

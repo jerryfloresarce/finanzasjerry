@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=90";
-import { fechaISO } from "./db.js?v=90";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=90";
+import { db } from "./firebase-init.js?v=91";
+import { fechaISO } from "./db.js?v=91";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=91";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -1471,10 +1471,14 @@ export function generarMenuSemana(lunesISO, marcados) {
   return menu;
 }
 
-// La comida y la cena de HOY según el menú guardado, si es de esta semana.
+// La comida y la cena de HOY según el menú guardado. El menú NO caduca al
+// cambiar de semana: se planifica y se compra para él, así que sigue
+// valiendo (por día de la semana) hasta que se haga otro a propósito.
+// Antes se escondía en cuanto llegaba el lunes y parecía que se había
+// borrado todo — nunca más.
 export function menuDeHoy(fecha = new Date()) {
   const menu = vida.menu;
-  if (!menu?.lunes || menu.lunes !== lunesDe(fecha)) return null;
+  if (!menu?.lunes) return null;
   const dia = ((fecha.getDay() + 6) % 7) + 1; // lunes = 1 … domingo = 7
   return {
     desayuno: recetaPorId(menu.desayunos?.[dia]),
