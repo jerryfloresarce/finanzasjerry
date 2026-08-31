@@ -37,13 +37,13 @@ import {
   alternarExtraDelDia,
   cenaEsSobras,
   marcarCenaSobras,
-} from "../vida.js?v=94";
-import { abrirReceta } from "./vida-menu.js?v=94";
-import { pedirVista } from "./vida-agenda.js?v=94";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=94";
-import { fechaISO, formatFecha } from "../db.js?v=94";
-import { efectoDeCelebracion } from "../efectos.js?v=94";
-import { openModal, closeModal, esc } from "../modal.js?v=94";
+} from "../vida.js?v=95";
+import { abrirReceta } from "./vida-menu.js?v=95";
+import { pedirVista } from "./vida-agenda.js?v=95";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=95";
+import { fechaISO, formatFecha } from "../db.js?v=95";
+import { efectoDeCelebracion } from "../efectos.js?v=95";
+import { openModal, closeModal, esc } from "../modal.js?v=95";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -171,6 +171,10 @@ export function mountVidaHoy() {
       guardarDia(fid, { tareas }).catch(() => {});
       return;
     }
+    if (e.target.closest("#btn-a-medias")) {
+      abrirParcial(fechaEditando ?? fechaISO());
+      return;
+    }
     if (e.target.closest("#btn-cita-dia")) {
       abrirAgendaDia(fechaEditando ?? fechaISO());
       return;
@@ -259,6 +263,18 @@ export function renderVidaHoy(state) {
   // La 4ª fruta del horario ES la del bonus: tacharla marca el bonus sola
   // (solo en un sentido, desmarcar el bonus a mano sigue siendo posible).
   if (conChecks && extras.find((x) => x.id === "fruta4")?.hecho && !b.bonus.fruta_4) b.bonus.fruta_4 = true;
+
+  // Lo que quedó a medias: no cuenta como hecho (no hay medias tintas),
+  // pero SÍ se apunta qué pasó y cuánto tiempo fue de verdad — "estudié
+  // 20 min, no tenía el iPad para apuntes" — para que el día cuente la
+  // historia real y no un simple sin-marcar.
+  const parciales = Object.fromEntries(Object.entries(guardado?.parciales || {}).filter(([, p]) => p && (p.minutos || p.motivo)));
+  const textoParcial = (id) => {
+    const p = parciales[id];
+    if (!p) return "";
+    const partes = [p.minutos ? `${p.minutos} min` : "", p.motivo || ""].filter(Boolean).join(" — ");
+    return `<br /><span class="hoy-check__parcial">⏳ ${esc(partes)}</span>`;
+  };
 
   const filaCheck = (grupo, item, marcado, extra = "") => `
     <button type="button" class="hoy-check ${marcado ? "hoy-check--on" : ""} ${grupo === "bonus" ? "hoy-check--bonus" : ""}" data-check="${grupo}:${item.id}" ${cerradoSinEditar ? "disabled" : ""}>
@@ -467,13 +483,14 @@ export function renderVidaHoy(state) {
             if (i.id === "sueno") item = { ...i, nombre: etiquetaSueno(fecha) };
             if (i.id === "estudio") extra = ` <span class="hoy-check__detalle">· ${FASES_ESTUDIO[fase]} min (fase ${fase})</span>`;
             if (i.id === "entreno" && entrenoRegistrado) extra = ` <span class="hoy-check__detalle">· registrado ✓</span>`;
-            return filaCheck("innegociables", item, Boolean(b.innegociables[i.id]), extra);
+            return filaCheck("innegociables", item, Boolean(b.innegociables[i.id]), extra + textoParcial(i.id));
           }).join("")}
         </div>
         <h2 class="card__title" style="margin-top:18px;">Bonus</h2>
         <div class="hoy-lista">
-          ${BONUS.map((i) => filaCheck("bonus", i, Boolean(b.bonus[i.id]))).join("")}
+          ${BONUS.map((i) => filaCheck("bonus", i, Boolean(b.bonus[i.id]), textoParcial(i.id))).join("")}
         </div>
+        ${cerradoSinEditar ? "" : `<button type="button" class="btn btn--ghost btn--sm" id="btn-a-medias" style="margin-top:10px;">⏳ Algo quedó a medias</button>`}
 
         <details class="hoy-extra" ${b.peso_kg !== "" || b.cadera !== "" ? "open" : ""}>
           <summary>Apuntes del día (opcional)</summary>
@@ -493,7 +510,17 @@ export function renderVidaHoy(state) {
         ${
           cerradoSinEditar
             ? `<div class="hoy-cerrado">
-                <p>${guardado.cumplido ? "✓ Día cumplido · " : "Día cerrado · "}${guardado.puntos} puntos</p>
+                <p>${guardado.cumplido ? "✓ Día cumplido · " : "Día cerrado · "}${guardado.puntos} puntos${
+                  Object.keys(parciales).length
+                    ? `<br /><span class="hoy-check__parcial">${Object.entries(parciales)
+                        .map(([id, p]) => {
+                          const item = [...INNEGOCIABLES, ...BONUS].find((x) => x.id === id);
+                          const partes = [p.minutos ? `${p.minutos} min` : "", p.motivo || ""].filter(Boolean).join(" — ");
+                          return `⏳ ${esc(item?.nombre || id)}: ${esc(partes)}`;
+                        })
+                        .join("<br />")}</span>`
+                    : ""
+                }</p>
                 <button type="button" class="btn btn--ghost btn--sm" id="btn-corregir-dia">Corregir</button>
               </div>`
             : `<button type="button" class="btn btn--primary btn--block hoy-cerrar" id="btn-cerrar-dia">
@@ -608,6 +635,73 @@ export function abrirEditorHorario(fecha) {
 // La to-do list de UN día: lo que hay que hacer ese día además del horario
 // (recados, llamadas, papeleos). Vive en el documento del día (tareas).
 // Se abre desde "Hoy" (botón ☑) y desde el Calendario personal.
+// ---------- Algo quedó a medias ----------
+//
+// Un innegociable (o un bonus) que no salió del todo no se marca — no hay
+// medias tintas — pero tampoco se queda mudo: se apunta cuánto tiempo fue
+// de verdad y el porqué, y eso se ve en su fila y en el cierre del día.
+// Vive en dias/{fecha}.parciales, por id del check.
+function abrirParcial(fechaId) {
+  const todos = [...INNEGOCIABLES, ...BONUS];
+  const parciales = { ...(diaPorFecha(fechaId)?.parciales || {}) };
+  const b = borradorDe(fechaId);
+  const preseleccion = todos.find((i) => !b.innegociables[i.id] && !b.bonus[i.id])?.id || todos[0].id;
+
+  openModal(`
+    <h2 class="modal__title">Algo quedó a medias</h2>
+    <p class="entity-card__meta" style="margin-top:-6px;">Sin dramas: se apunta qué pasó y cuánto hiciste de verdad, y mañana más.</p>
+    <form id="form-parcial" class="form-grid">
+      <label class="field">
+        <span class="field__label">¿Qué fue?</span>
+        <select id="parcial-que">${todos.map((i) => `<option value="${i.id}" ${i.id === preseleccion ? "selected" : ""}>${i.nombre}</option>`).join("")}</select>
+      </label>
+      <label class="field">
+        <span class="field__label">¿Cuánto tiempo estuviste? (min)</span>
+        <input type="number" id="parcial-min" min="1" inputmode="numeric" placeholder="20" />
+      </label>
+      <label class="field">
+        <span class="field__label">¿Por qué no salió del todo?</span>
+        <input type="text" id="parcial-motivo" placeholder="No tenía el iPad para apuntes" maxlength="120" autocomplete="off" />
+      </label>
+      <p class="field-error" id="parcial-error"></p>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--ghost" id="parcial-quitar">Quitar</button>
+        <button type="button" class="btn btn--ghost" id="btn-cancel-parcial">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>
+  `);
+
+  const sel = document.getElementById("parcial-que");
+  const inMin = document.getElementById("parcial-min");
+  const inMotivo = document.getElementById("parcial-motivo");
+  // Al elegir un check que ya tiene apunte, se precarga para corregirlo.
+  const precargar = () => {
+    const p = parciales[sel.value];
+    inMin.value = p?.minutos || "";
+    inMotivo.value = p?.motivo || "";
+  };
+  sel.addEventListener("change", precargar);
+  precargar();
+
+  document.getElementById("btn-cancel-parcial").addEventListener("click", closeModal);
+  document.getElementById("parcial-quitar").addEventListener("click", async () => {
+    await guardarDia(fechaId, { parciales: { ...parciales, [sel.value]: null } }).catch(() => {});
+    closeModal();
+  });
+  document.getElementById("form-parcial").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const minutos = Number(inMin.value) > 0 ? Number(inMin.value) : null;
+    const motivo = inMotivo.value.trim();
+    if (!minutos && !motivo) {
+      document.getElementById("parcial-error").textContent = "Pon al menos los minutos o el porqué.";
+      return;
+    }
+    await guardarDia(fechaId, { parciales: { ...parciales, [sel.value]: { minutos, motivo } } }).catch(() => {});
+    closeModal();
+  });
+}
+
 export function abrirTareasDia(fechaId) {
   let tareas = [...(diaPorFecha(fechaId)?.tareas || [])];
   const fecha = new Date(fechaId + "T12:00:00");
