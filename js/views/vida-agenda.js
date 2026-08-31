@@ -21,10 +21,10 @@ import {
   alternarBloqueHecho,
   extrasDelDia,
   alternarExtraDelDia,
-} from "../vida.js?v=95";
-import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=95";
-import { openModal, closeModal, esc } from "../modal.js?v=95";
-import { fechaISO } from "../db.js?v=95";
+} from "../vida.js?v=96";
+import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=96";
+import { openModal, closeModal, esc } from "../modal.js?v=96";
+import { fechaISO } from "../db.js?v=96";
 
 // Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
 // que mandan las flechas: en mes salta de mes en mes, en semana de semana
