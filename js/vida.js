@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=96";
-import { fechaISO } from "./db.js?v=96";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=96";
+import { db } from "./firebase-init.js?v=97";
+import { fechaISO } from "./db.js?v=97";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=97";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -147,17 +147,18 @@ const PLANES_JERRY = {
   ],
   // El plan B para NO perder la racha: el día que no se pueda ir al
   // gimnasio (sin camisetas, cerrado, lo que sea), esto en casa cuenta
-  // IGUAL como "el entreno que toque". Sin material: la carga es una
-  // mochila con libros o garrafas — en "peso" se apuntan los kilos que
-  // lleve la mochila (0 = sin nada) y la doble progresión sube repes como
-  // siempre. Cuerpo entero en ~35 min, porque sustituye a cualquier día.
+  // IGUAL como "el entreno que toque". La carga es su chaleco lastrado de
+  // 10 kg — en "peso" van los kilos que lleve puestos (0 = sin chaleco) y
+  // la doble progresión sube repes como siempre. Cuerpo entero en ~35 min
+  // porque sustituye a cualquier día, y TODO en silencio: es un piso, sin
+  // saltos ni impactos ni nada que retumbe abajo.
   casa: [
-    { nombre: "Sentadillas con mochila", series: 4, repsMin: 12, repsMax: 15, pesoInicial: 0, nota: "La mochila abrazada al pecho o puesta a la espalda; si 15 salen fáciles, más libros dentro" },
-    { nombre: "Flexiones", series: 4, repsMin: 8, repsMax: 15, pesoInicial: 0, nota: "Con rodillas o manos en el sofá si hace falta; con la mochila puesta si va fácil" },
-    { nombre: "Zancadas alternas", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 0, etiqueta: "por pierna", nota: "Si la ingle avisa, paso más corto y sin mochila" },
-    { nombre: "Remo con mochila (o invertido bajo la mesa)", series: 4, repsMin: 10, repsMax: 12, pesoInicial: 0, nota: "La mochila bien cargada: es el ejercicio donde más peso aguantas" },
-    { nombre: "Fondos de tríceps en una silla", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 0, nota: "Los pies más lejos = más difícil" },
-    { nombre: "Plancha", series: 3, repsMin: 30, repsMax: 45, pesoInicial: 0, etiqueta: "segundos" },
+    { nombre: "Sentadillas con el chaleco", series: 4, repsMin: 12, repsMax: 15, pesoInicial: 10, nota: "El chaleco puesto y bien ajustado; subir y bajar controlado, sin rebotes — cero ruido" },
+    { nombre: "Flexiones", series: 4, repsMin: 8, repsMax: 15, pesoInicial: 0, nota: "Con rodillas o manos en el sofá si hace falta; con el chaleco puesto si va fácil" },
+    { nombre: "Zancadas alternas", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 10, etiqueta: "por pierna", nota: "Paso apoyado suave, sin saltar. Si la ingle avisa: paso más corto y sin chaleco" },
+    { nombre: "Remo invertido bajo la mesa", series: 4, repsMin: 8, repsMax: 12, pesoInicial: 0, nota: "Agarrado al borde de una mesa robusta; con el chaleco puesto cuando 12 salgan fáciles. Sin mesa: remo con una mochila bien cargada" },
+    { nombre: "Fondos de tríceps en una silla", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 0, nota: "Los pies más lejos = más difícil; el chaleco, el siguiente escalón" },
+    { nombre: "Plancha", series: 3, repsMin: 30, repsMax: 45, pesoInicial: 0, etiqueta: "segundos", nota: "Con el chaleco puesto cuando 45 s se queden cortos" },
   ],
 };
 
@@ -200,25 +201,25 @@ const TECNICAS = [
   // Los del plan de CASA van antes que los genéricos: "remo con mochila"
   // debe encontrar SU guía y no la del remo en máquina, y los fondos la
   // suya y no la del tríceps en polea.
-  { clave: /sentadilla/i, video: "tecnica sentadilla con mochila goblet squat casa",
+  { clave: /sentadilla/i, video: "tecnica sentadilla chaleco lastrado casa",
     senal: "El culo atrás y abajo como sentándote en una silla que no está.",
-    pasos: ["Pies a la anchura de los hombros, puntas un poco hacia fuera, la mochila abrazada al pecho.", "Baja en 2 segundos hasta que los muslos pasen de paralelo, rodillas hacia fuera y talones clavados.", "Sube empujando el suelo con todo el pie, sin que el pecho se caiga hacia delante."],
-    errores: ["Despegar los talones o irse de puntas.", "Media sentadilla: si no bajas, no cuenta.", "Redondear la espalda por abrazar mal la mochila."] },
+    pasos: ["El chaleco puesto y bien ajustado (que no baile), pies a la anchura de los hombros y puntas un poco hacia fuera.", "Baja en 2 segundos hasta que los muslos pasen de paralelo, rodillas hacia fuera y talones clavados.", "Sube empujando el suelo con todo el pie, sin rebotar abajo — controlado y en silencio, que vives en un piso."],
+    errores: ["Despegar los talones o irse de puntas.", "Media sentadilla: si no bajas, no cuenta.", "Rebotar abajo para sacar la repetición."] },
   { clave: /flexion|flexión/i, video: "tecnica flexiones correctas progresion",
     senal: "Cuerpo de tabla: aprieta el culo y el abdomen ANTES de doblar los brazos.",
-    pasos: ["Manos algo más abiertas que los hombros, cuerpo recto de la cabeza a los talones.", "Baja en 2 segundos con los codos a unos 45° del cuerpo, el pecho casi al suelo.", "Empuja el suelo hasta estirar los brazos. ¿Muy difícil? Manos en el sofá. ¿Muy fácil? Mochila a la espalda."],
+    pasos: ["Manos algo más abiertas que los hombros, cuerpo recto de la cabeza a los talones.", "Baja en 2 segundos con los codos a unos 45° del cuerpo, el pecho casi al suelo.", "Empuja el suelo hasta estirar los brazos. ¿Muy difícil? Manos en el sofá. ¿Muy fácil? El chaleco puesto."],
     errores: ["La cadera caída o en pico: eso es la plancha fallando, no los brazos.", "Media repetición sin bajar el pecho.", "Codos abiertos en cruz (los hombros lo pagan)."] },
   { clave: /zancada/i, video: "tecnica zancadas alternas casa",
     senal: "La rodilla de atrás busca el suelo, el tronco se queda vertical.",
-    pasos: ["Paso largo al frente y baja la rodilla trasera casi a tocar el suelo.", "El tronco vertical y la rodilla delantera sobre el pie, sin pasarse de la punta.", "Empuja con el talón delantero para volver y cambia de pierna."],
-    errores: ["Paso corto: la rodilla se va por delante de la punta del pie.", "Inclinarse hacia delante o perder el equilibrio por ir rápido.", "Con la ingle delicada: paso más corto y sin peso."] },
-  { clave: /remo con mochila|invertido/i, video: "tecnica remo con mochila remo invertido mesa casa",
+    pasos: ["Paso largo al frente APOYANDO suave (nada de dejarse caer: cero golpes al suelo).", "Baja la rodilla trasera casi a tocar el suelo, tronco vertical y la rodilla delantera sobre el pie.", "Empuja con el talón delantero para volver y cambia de pierna."],
+    errores: ["Paso corto: la rodilla se va por delante de la punta del pie.", "Pisar fuerte por ir rápido — despacio suena a nada y trabaja más.", "Con la ingle delicada: paso más corto y sin chaleco."] },
+  { clave: /remo con mochila|invertido/i, video: "tecnica remo invertido mesa casa",
     senal: "Tira con los CODOS hacia atrás y junta las escápulas, como siempre en el remo.",
-    pasos: ["Con mochila: tronco a 45° con la espalda recta, brazos colgando con la mochila agarrada por las asas.", "Tira de los codos hacia atrás llevando la mochila al ombligo, junta las escápulas y aguanta medio segundo.", "Baja frenando. La versión mesa: túmbate debajo, agárrate al borde y tira del pecho hacia la mesa con el cuerpo recto."],
-    errores: ["Redondear la espalda con el tronco inclinado.", "Dar tirones con el tronco para subir más peso.", "En la mesa: dejar caer la cadera."] },
+    pasos: ["Túmbate bajo una mesa robusta y agárrate al borde, cuerpo recto de la cabeza a los talones.", "Tira de los codos hacia atrás llevando el pecho a la mesa, junta las escápulas y aguanta medio segundo.", "Baja frenando, sin dejarte caer. ¿Fácil con 12? El chaleco puesto. Sin mesa: tronco a 45° y rema con una mochila bien cargada."],
+    errores: ["Dejar caer la cadera: la plancha se mantiene todo el rato.", "Dar tirones en vez de subir controlado.", "Una mesa poco estable: primero comprueba que aguanta."] },
   { clave: /fondos/i, video: "tecnica fondos triceps silla banco",
     senal: "Los codos van hacia ATRÁS, pegados al cuerpo, nunca abiertos.",
-    pasos: ["Manos en el borde de la silla a la anchura de los hombros, piernas estiradas por delante.", "Baja doblando los codos hacia atrás hasta unos 90°, la espalda rozando la silla.", "Empuja hasta estirar los brazos sin bloquear de golpe. Pies más lejos = más difícil."],
+    pasos: ["Manos en el borde de la silla a la anchura de los hombros, piernas estiradas por delante (la silla contra la pared, que no deslice).", "Baja doblando los codos hacia atrás hasta unos 90°, la espalda rozando la silla.", "Empuja hasta estirar los brazos sin bloquear de golpe. Pies más lejos = más difícil; el chaleco, el siguiente escalón."],
     errores: ["Codos abiertos hacia los lados.", "Bajar de más y notar el hombro por delante: hasta 90° y listo.", "Alejarse de la silla y cargar los hombros."] },
 
   { clave: /jal[oó]n/i, video: "tecnica jalon al pecho polea",

@@ -27,11 +27,11 @@ import {
   rachasCaraACara,
   dueloSemanal,
   INNEGOCIABLES,
-} from "../vida.js?v=96";
-import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=96";
-import { esc } from "../modal.js?v=96";
-import { colorTema } from "../tema.js?v=96";
-import { efectoDeCelebracion } from "../efectos.js?v=96";
+} from "../vida.js?v=97";
+import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=97";
+import { esc } from "../modal.js?v=97";
+import { colorTema } from "../tema.js?v=97";
+import { efectoDeCelebracion } from "../efectos.js?v=97";
 
 let currentState = null;
 let chartPeso = null;
