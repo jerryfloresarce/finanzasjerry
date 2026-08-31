@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=93";
-import { fechaISO } from "./db.js?v=93";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=93";
+import { db } from "./firebase-init.js?v=94";
+import { fechaISO } from "./db.js?v=94";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=94";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -448,6 +448,11 @@ export const vida = {
   comprasCategorias: null, // sus categorías propias (null = las de serie)
   sinPermisos: false, // true si las reglas nuevas aún no están publicadas
   listo: false,
+  // true cuando la configuración del perfil visto YA llegó de Firebase.
+  // Hasta entonces la pantalla Hoy no puede decidir si la rutina está
+  // empezada o no: sin este flag, cada apertura enseñaba un momento la
+  // tarjeta de START aunque la rutina llevara días andando. Nunca más.
+  sistemaListo: false,
 };
 
 const col = (n) => collection(db, n);
@@ -571,9 +576,12 @@ export function initVida(cb) {
       doc(db, "configuracion", docId),
       (snap) => {
         sistemas[perfil] = snap.exists() ? snap.data() : {};
+        if (perfil === perfilVisto()) vida.sistemaListo = true;
         aplicarFiltros();
         onChange?.();
       },
+      // Si el listener falla NO se marca listo: mejor "cargando" con el
+      // aviso de conexión que un START falso encima de datos que existen.
       () => onChange?.()
     );
   escuchaSistema("jerry", "sistema");

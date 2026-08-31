@@ -1,6 +1,6 @@
 // Botón pequeño para copiar el ID de Firestore de una cuenta/categoría —
 // lo necesitas para configurar el Shortcut de iPhone (ver SETUP.md).
-import { icon } from "./icons.js?v=93";
+import { icon } from "./icons.js?v=94";
 
 export function copyIdButton(id) {
   return `<button type="button" class="btn btn--ghost btn--sm" data-copy-id="${id}" title="Copiar ID de Firestore">${icon("copy", { size: 14 })}</button>`;

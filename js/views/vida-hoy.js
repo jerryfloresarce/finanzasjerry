@@ -37,13 +37,13 @@ import {
   alternarExtraDelDia,
   cenaEsSobras,
   marcarCenaSobras,
-} from "../vida.js?v=93";
-import { abrirReceta } from "./vida-menu.js?v=93";
-import { pedirVista } from "./vida-agenda.js?v=93";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=93";
-import { fechaISO, formatFecha } from "../db.js?v=93";
-import { efectoDeCelebracion } from "../efectos.js?v=93";
-import { openModal, closeModal, esc } from "../modal.js?v=93";
+} from "../vida.js?v=94";
+import { abrirReceta } from "./vida-menu.js?v=94";
+import { pedirVista } from "./vida-agenda.js?v=94";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=94";
+import { fechaISO, formatFecha } from "../db.js?v=94";
+import { efectoDeCelebracion } from "../efectos.js?v=94";
+import { openModal, closeModal, esc } from "../modal.js?v=94";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -182,7 +182,12 @@ export function mountVidaHoy() {
     if (e.target.closest("#btn-start")) {
       // El momento importante. Se pregunta una vez, en serio, y desde ese
       // día cuenta todo: la racha, los puntos, el bote y el Día 1.
-      if (!confirm("¿Empezamos? Hoy será el Día 1 y a partir de aquí cuenta todo: racha, puntos y bote. 💪")) return;
+      // Con días ya cerrados, el aviso es otro: aquí hay historia y volver
+      // a empezar la reinicia — que no pase por un toque sin querer.
+      const pregunta = vida.dias.length
+        ? "Ojo: ya hay días cerrados de antes. Empezar ahora pone el Día 1 en HOY y la racha vuelve a contar desde aquí. ¿Seguro que quieres reiniciar?"
+        : "¿Empezamos? Hoy será el Día 1 y a partir de aquí cuenta todo: racha, puntos y bote. 💪";
+      if (!confirm(pregunta)) return;
       try {
         await guardarSistema({ fecha_inicio: fechaISO() });
         efectoDeCelebracion();
@@ -377,6 +382,23 @@ export function renderVidaHoy(state) {
       </p><button type="button" class="btn btn--primary btn--block" id="btn-arranque-gaby">Crear los datos de Gaby 💗</button>
       <p class="field-error" id="hoy-error-arranque" style="margin-bottom:0;"></p></div>`
     : "";
+
+  // Hasta que la configuración no llega de Firebase no se puede saber si
+  // la rutina está empezada: antes, ese hueco pintaba la tarjeta de START
+  // un momento en cada apertura y parecía que todo se había borrado. Ahora
+  // se espera con una tarjeta tranquila — el START solo sale cuando los
+  // datos YA llegaron y de verdad no hay fecha de inicio.
+  if (!rutinaEmpezada() && !vida.sistemaListo) {
+    el.innerHTML = `
+    <article class="card">
+      <h2 class="card__title">Cargando tus datos…</h2>
+      <p class="entity-card__meta" style="margin-bottom:0;">
+        Un momento, están llegando de Firebase. Tu racha y tus días están
+        guardados. Si esto no avanza, revisa la conexión.
+      </p>
+    </article>`;
+    return;
+  }
 
   if (!rutinaEmpezada()) {
     el.innerHTML = `

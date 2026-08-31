@@ -21,10 +21,10 @@ import {
   alternarBloqueHecho,
   extrasDelDia,
   alternarExtraDelDia,
-} from "../vida.js?v=93";
-import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=93";
-import { openModal, closeModal, esc } from "../modal.js?v=93";
-import { fechaISO } from "../db.js?v=93";
+} from "../vida.js?v=94";
+import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=94";
+import { openModal, closeModal, esc } from "../modal.js?v=94";
+import { fechaISO } from "../db.js?v=94";
 
 // Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
 // que mandan las flechas: en mes salta de mes en mes, en semana de semana
@@ -69,11 +69,6 @@ export function mountVidaAgenda() {
   root.addEventListener("click", async (e) => {
     const cambioVista = e.target.closest("[data-vista]");
     if (cambioVista) {
-      // "Día" con el foco en hoy ES la pantalla Hoy: una sola cosa, no dos.
-      if (cambioVista.dataset.vista === "dia" && fechaISO(fechaFoco) === fechaISO()) {
-        location.hash = "#/hoy";
-        return;
-      }
       vista = cambioVista.dataset.vista;
       renderVidaAgenda(null);
       return;
@@ -82,12 +77,23 @@ export function mountVidaAgenda() {
       const dir = e.target.closest("#agenda-next") ? 1 : -1;
       if (vista === "mes") fechaFoco = new Date(fechaFoco.getFullYear(), fechaFoco.getMonth() + dir, 1, 12);
       else if (vista === "semana") fechaFoco = sumarDias(fechaFoco, dir * 7);
-      else fechaFoco = sumarDias(fechaFoco, dir);
+      else {
+        fechaFoco = sumarDias(fechaFoco, dir);
+        // El día de hoy no se mira en el calendario: ES la pantalla Hoy.
+        if (fechaISO(fechaFoco) === fechaISO()) {
+          location.hash = "#/hoy";
+          return;
+        }
+      }
       renderVidaAgenda(null);
       return;
     }
     if (e.target.closest("#agenda-hoy")) {
       fechaFoco = alMediodia(new Date());
+      if (vista === "dia") {
+        location.hash = "#/hoy";
+        return;
+      }
       renderVidaAgenda(null);
       return;
     }
@@ -378,7 +384,7 @@ export function renderVidaAgenda(_state) {
     <div class="chips agenda-vistas">
       <button type="button" class="chip ${vista === "mes" ? "chip--on" : ""}" data-vista="mes">Mes</button>
       <button type="button" class="chip ${vista === "semana" ? "chip--on" : ""}" data-vista="semana">Semana</button>
-      <button type="button" class="chip ${vista === "dia" ? "chip--on" : ""}" data-vista="dia">Día</button>
+      ${vista === "dia" ? `<span class="chip chip--on">Día</span>` : ""}
     </div>
     ${vista === "mes" ? vistaMes() : vista === "semana" ? vistaSemana() : vistaDia()}
   `;
