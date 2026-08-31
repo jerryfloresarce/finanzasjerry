@@ -39,13 +39,13 @@ import {
   alternarExtraDelDia,
   cenaEsSobras,
   marcarCenaSobras,
-} from "../vida.js?v=98";
-import { abrirReceta } from "./vida-menu.js?v=98";
-import { pedirVista } from "./vida-agenda.js?v=98";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=98";
-import { fechaISO, formatFecha } from "../db.js?v=98";
-import { efectoDeCelebracion } from "../efectos.js?v=98";
-import { openModal, closeModal, esc } from "../modal.js?v=98";
+} from "../vida.js?v=99";
+import { abrirReceta } from "./vida-menu.js?v=99";
+import { pedirVista } from "./vida-agenda.js?v=99";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=99";
+import { fechaISO, formatFecha } from "../db.js?v=99";
+import { efectoDeCelebracion } from "../efectos.js?v=99";
+import { openModal, closeModal, esc } from "../modal.js?v=99";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.

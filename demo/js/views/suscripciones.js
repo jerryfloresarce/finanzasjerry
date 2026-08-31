@@ -11,10 +11,10 @@ import {
   toTimestamp,
   fechaISO,
   textoPeriodo,
-} from "../db.js?v=98";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=98";
-import { icon, iconForSuscripcion } from "../icons.js?v=98";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=98";
+} from "../db.js?v=99";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=99";
+import { icon, iconForSuscripcion } from "../icons.js?v=99";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=99";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).

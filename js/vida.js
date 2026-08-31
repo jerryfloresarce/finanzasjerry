@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=98";
-import { fechaISO } from "./db.js?v=98";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=98";
+import { db } from "./firebase-init.js?v=99";
+import { fechaISO } from "./db.js?v=99";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=99";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -755,6 +755,86 @@ export function esCumplido(innegociables) {
 
 export function diaPorFecha(fechaId) {
   return vida.dias.find((d) => d.id === fechaId) || null;
+}
+
+// ---------- Retos de fuerza ----------
+//
+// La escalera de retos: cada ejercicio clave tiene 5 niveles. Superas uno
+// → medalla, valoración de dónde estás y el siguiente encima de la mesa.
+// Los niveles con peso van EN PROPORCIÓN al peso corporal (así lo miden
+// los estándares de fuerza publicados): si Jerry baja de peso, sus retos
+// bajan con él — la fuerza relativa es la que vale. Los de casa van por
+// repeticiones (o segundos). La mejor marca sale sola del historial de
+// entrenos: no hay nada que apuntar aparte.
+const RETOS_FUERZA = [
+  { id: "banca", nombre: "Press banca", clave: /banca/i, modo: "peso", ratios: [0.5, 0.75, 1, 1.25, 1.5] },
+  { id: "hacka", nombre: "Hacka / prensa", clave: /hacka|hack|prensa/i, modo: "peso", ratios: [1, 1.5, 2, 2.5, 3], nota: "Cada máquina pesa distinto: tómalo como referencia en LA TUYA" },
+  { id: "jalon", nombre: "Jalón al pecho", clave: /jal[oó]n al pecho/i, modo: "peso", ratios: [0.5, 0.7, 0.9, 1.1, 1.3] },
+  { id: "remo_maquina", nombre: "Remo en máquina", clave: /remo en m/i, modo: "peso", ratios: [0.5, 0.7, 0.9, 1.1, 1.3] },
+  { id: "hombro", nombre: "Press de hombro", clave: /press de hombro/i, modo: "peso", ratios: [0.3, 0.45, 0.6, 0.75, 0.9] },
+  { id: "flexiones", nombre: "Flexiones seguidas", clave: /flexion|flexión/i, modo: "reps", metas: [10, 20, 30, 40, 50], unidad: "reps" },
+  { id: "plancha", nombre: "Plancha", clave: /plancha/i, modo: "reps", metas: [30, 60, 90, 120, 180], unidad: "s" },
+];
+const NOMBRES_NIVEL = ["Primer escalón", "En forma", "Fuerte", "Muy fuerte", "Élite"];
+// Valoración honesta por nivel conseguido: estimaciones con estándares de
+// fuerza internacionales, ENTRE GENTE QUE ENTRENA. Frente a la población
+// general (la mayoría no entrena nada) cualquier nivel está mucho más
+// arriba — eso lo dice la nota de la tarjeta, no cada línea.
+const VALORACION_NIVEL = [
+  "Ya en marcha: por delante de todo el que aún no ha empezado",
+  "≈ por encima de la mitad de los que entrenan fuerza",
+  "≈ entre el 25 % que más mueve de los que entrenan",
+  "≈ entre el 10 % que más mueve — aquí llegan pocos",
+  "≈ el 3 % de los que entrenan: élite de verdad",
+];
+
+const redondear2_5 = (n) => Math.round(n / 2.5) * 2.5;
+
+function mejorMarcaDe(reto) {
+  let mejor = 0;
+  for (const e of vida.entrenos) {
+    for (const ej of e.ejercicios || []) {
+      if (!reto.clave.test(ej.nombre || "")) continue;
+      for (const s of ej.series || []) {
+        const valor = reto.modo === "peso" ? Number(s.peso || 0) : Number(s.reps || 0);
+        if (valor > mejor) mejor = valor;
+      }
+    }
+  }
+  return mejor;
+}
+
+export function pesoCorporalActual() {
+  for (let i = vida.dias.length - 1; i >= 0; i--) {
+    const p = Number(vida.dias[i].peso_kg);
+    if (p > 0) return p;
+  }
+  return null;
+}
+
+export function retosDeFuerza() {
+  if (esGaby()) return []; // sus entrenos (yoga, paseos) no van de kilos
+  const pesoCorp = pesoCorporalActual();
+  return RETOS_FUERZA.map((r) => {
+    const mejor = mejorMarcaDe(r);
+    // Sin peso corporal apuntado aún, los retos de peso esperan (mejor
+    // esperar que inventarse objetivos que no significan nada).
+    const metas = r.modo === "peso" ? (pesoCorp ? r.ratios.map((x) => redondear2_5(x * pesoCorp)) : null) : r.metas;
+    if (!metas) return { ...r, mejor, metas: [], nivel: 0, siguiente: null, progreso: 0, valoracion: null, sinPesoCorporal: true };
+    let nivel = 0;
+    while (nivel < metas.length && mejor >= metas[nivel]) nivel++;
+    const siguiente = nivel < metas.length ? metas[nivel] : null;
+    return {
+      ...r,
+      mejor,
+      metas,
+      nivel,
+      nombreNivel: nivel > 0 ? NOMBRES_NIVEL[nivel - 1] : null,
+      valoracion: nivel > 0 ? VALORACION_NIVEL[nivel - 1] : null,
+      siguiente,
+      progreso: siguiente ? Math.min(100, Math.round((mejor / siguiente) * 100)) : 100,
+    };
+  });
 }
 
 // El sábado el innegociable de dormir se relaja oficialmente.

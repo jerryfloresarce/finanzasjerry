@@ -26,12 +26,14 @@ import {
   diaDeRutina,
   rachasCaraACara,
   dueloSemanal,
+  retosDeFuerza,
+  pesoCorporalActual,
   INNEGOCIABLES,
-} from "../vida.js?v=98";
-import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=98";
-import { esc } from "../modal.js?v=98";
-import { colorTema } from "../tema.js?v=98";
-import { efectoDeCelebracion } from "../efectos.js?v=98";
+} from "../vida.js?v=99";
+import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=99";
+import { esc } from "../modal.js?v=99";
+import { colorTema } from "../tema.js?v=99";
+import { efectoDeCelebracion } from "../efectos.js?v=99";
 
 let currentState = null;
 let chartPeso = null;
@@ -53,6 +55,15 @@ export function mountVidaProgreso() {
     }
   });
   root.addEventListener("click", async (e) => {
+    // El banner de "reto superado" se celebra una vez: se apunta hasta qué
+    // nivel se ha visto de cada reto y no vuelve a salir hasta el próximo.
+    if (e.target.closest("#btn-retos-celebrar")) {
+      const vistos = { ...(vida.sistema.retos_niveles || {}) };
+      for (const r of retosDeFuerza()) vistos[r.id] = r.nivel;
+      await guardarSistema({ retos_niveles: vistos });
+      efectoDeCelebracion();
+      return;
+    }
     const meta = e.target.closest("[data-meta]");
     if (meta) {
       const id = meta.dataset.meta;
@@ -162,6 +173,11 @@ export function renderVidaProgreso(state) {
   const hayEstudio = INNEGOCIABLES.some((i) => i.id === "estudio");
   const caraACara = rachasCaraACara();
   const duelo = dueloSemanal();
+  // Los retos de fuerza: la mejor marca de cada ejercicio clave sale sola
+  // del historial; superar un nivel enseña el banner de recompensa UNA vez.
+  const retos = retosDeFuerza();
+  const nuevosRetos = retos.filter((r) => r.nivel > (vida.sistema.retos_niveles?.[r.id] ?? 0));
+  const fmtReto = (n, unidad) => (unidad === "s" ? `${n} s` : unidad === "reps" ? `${n}` : `${String(n).replace(".", ",")} kg`);
 
   el.innerHTML = `
     ${
@@ -204,6 +220,55 @@ export function renderVidaProgreso(state) {
           <div class="duelo-fila"><span>Entrenos</span><span>${duelo.jerry.entrenos}</span><span>${duelo.gaby.entrenos}</span></div>
           <div class="duelo-fila"><span>Racha</span><span>🔥 ${duelo.jerry.racha}</span><span>🔥 ${duelo.gaby.racha}</span></div>
         </div>
+      </article>`
+        : ""
+    }
+
+    ${
+      retos.length
+        ? `<article class="card" style="margin-bottom:14px;">
+        <div class="card__header">
+          <h2 class="card__title">Retos de fuerza</h2>
+          <span class="entity-card__tag">🏅 ${retos.reduce((a, r) => a + r.nivel, 0)} ${retos.reduce((a, r) => a + r.nivel, 0) === 1 ? "medalla" : "medallas"}</span>
+        </div>
+        ${
+          nuevosRetos.length
+            ? `<div class="reto-banner">🏅 <strong>¡Reto superado!</strong> ${nuevosRetos
+                .map((r) => `${r.nombre} → nivel <strong>${r.nombreNivel}</strong> (${fmtReto(r.metas[r.nivel - 1], r.unidad)})`)
+                .join(" · ")}. Date un capricho de tu lista de recompensas: te lo has ganado.
+              <button type="button" class="btn btn--ghost btn--sm" id="btn-retos-celebrar">Celebrado ✓</button></div>`
+            : ""
+        }
+        <div class="retos-lista">
+        ${retos
+          .map(
+            (r) => `
+          <div class="reto-fila">
+            <div class="reto-fila__cab"><strong>${r.nombre}</strong><span class="reto-medallas">${r.nivel ? "🏅".repeat(r.nivel) : "—"}</span></div>
+            ${
+              r.sinPesoCorporal
+                ? `<p class="entity-card__meta reto-fila__datos">Apunta tu peso en Hoy y salen sus niveles (van en proporción a tu peso).</p>`
+                : r.mejor <= 0
+                  ? `<p class="entity-card__meta reto-fila__datos">Aún sin marca: registra un entreno con este ejercicio. Primer reto: <strong>${fmtReto(r.metas[0], r.unidad)}</strong>.</p>`
+                  : `
+            <p class="entity-card__meta reto-fila__datos">Tu mejor: <strong>${fmtReto(r.mejor, r.unidad)}</strong>${r.nombreNivel ? ` · nivel ${r.nombreNivel}` : ""}${
+              r.siguiente ? ` · siguiente reto: <strong>${fmtReto(r.siguiente, r.unidad)}</strong>` : " · escalera COMPLETA 👑"
+            }</p>
+            <div class="reto-barra"><span style="width:${r.progreso}%"></span></div>
+            ${r.valoracion ? `<p class="entity-card__meta reto-valoracion">${r.valoracion}</p>` : ""}
+            ${r.nota ? `<p class="entity-card__meta reto-valoracion">${r.nota}</p>` : ""}`
+            }
+          </div>`
+          )
+          .join("")}
+        </div>
+        <p class="entity-card__meta" style="margin-bottom:0;">
+          Valoraciones estimadas con estándares de fuerza internacionales, entre
+          gente que entrena — comparado con la población general estás bastante
+          más arriba. Los retos con kilos van en proporción a tu peso corporal${
+            pesoCorporalActual() ? ` (ahora ${String(pesoCorporalActual()).replace(".", ",")} kg)` : ""
+          }: si tú bajas, ellos bajan contigo.
+        </p>
       </article>`
         : ""
     }
