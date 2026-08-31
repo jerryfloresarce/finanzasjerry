@@ -29,11 +29,11 @@ import {
   retosDeFuerza,
   pesoCorporalActual,
   INNEGOCIABLES,
-} from "../vida.js?v=103";
-import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=103";
-import { esc } from "../modal.js?v=103";
-import { colorTema } from "../tema.js?v=103";
-import { efectoDeCelebracion } from "../efectos.js?v=103";
+} from "../vida.js?v=104";
+import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=104";
+import { esc } from "../modal.js?v=104";
+import { colorTema } from "../tema.js?v=104";
+import { efectoDeCelebracion } from "../efectos.js?v=104";
 
 let currentState = null;
 let chartPeso = null;

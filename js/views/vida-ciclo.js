@@ -28,10 +28,11 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "../firebase-init.js?v=103";
-import { openModal, closeModal, esc } from "../modal.js?v=103";
-import { icon } from "../icons.js?v=103";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=103";
+import { db } from "../firebase-init.js?v=104";
+import { vida, guardarSistema } from "../vida.js?v=104";
+import { openModal, closeModal, esc } from "../modal.js?v=104";
+import { icon } from "../icons.js?v=104";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=104";
 
 // ---- Datos: colecciones propias, escuchadas aquí mismo.
 const addCiclos = (data) => addDoc(collection(db, "ciclos"), data);
@@ -71,21 +72,39 @@ function repintarSiSeVe() {
   if (window.location.hash.startsWith("#/ciclo")) renderVidaCiclo();
 }
 
-const SENSACIONES = [
-  "Bien",
+// Que no quede nada sin poder apuntar: el ánimo y los síntomas van en
+// listas separadas (como las apps profesionales) y el flujo del día tiene
+// sus tipos — útil para conocerse: el "clara de huevo" suele acompañar a
+// los días fértiles.
+const ANIMOS = ["En calma", "Feliz", "Con energía", "Cambios de humor", "Triste", "Irritable", "Ansiosa", "Sensible", "Sin ganas de nada"];
+
+const SINTOMAS = [
+  "Me encuentro bien",
+  "Cólicos",
+  "Pecho sensible",
   "Cansada",
-  "Dolor de tripa",
   "Dolor de espalda",
   "Dolor de cabeza",
   "Hinchazón",
-  "Pecho sensible",
-  "Cambios de humor",
-  "Ansiedad",
   "Antojos",
+  "Náuseas",
   "Acné",
-  "Sin energía",
-  "Con mucha energía",
+  "Mareo",
+  "Estreñimiento",
+  "Diarrea",
   "He dormido mal",
+  "Insomnio",
+  "Más apetito sexual",
+];
+
+const FLUJO_TIPOS = [
+  { id: "nada", texto: "Nada de flujo" },
+  { id: "pegajoso", texto: "Pegajoso" },
+  { id: "cremoso", texto: "Cremoso" },
+  { id: "acuoso", texto: "Acuoso" },
+  { id: "clara", texto: "Clara de huevo" },
+  { id: "manchado_inter", texto: "Manchado entre reglas" },
+  { id: "inusual", texto: "Inusual (color u olor)" },
 ];
 
 const FLUJOS = [
@@ -107,6 +126,45 @@ const PROTECCIONES = [
   { id: "sin", texto: "Sin protección" },
   { id: "nolodigo", texto: "Prefiero no ponerlo" },
 ];
+
+// El anticonceptivo que usa (se guarda en su configuración): con uno
+// hormonal el ciclo no ovula igual y la "ventana fértil" deja de aplicar,
+// así que la pantalla cambia lo que enseña según lo que ella apunte aquí.
+const ANTICONCEPTIVOS = [
+  { id: "ninguno", texto: "Ninguno" },
+  { id: "preservativo", texto: "Preservativo" },
+  { id: "pildora", texto: "Píldora" },
+  { id: "diu_hormonal", texto: "DIU hormonal" },
+  { id: "diu_cobre", texto: "DIU de cobre" },
+  { id: "implante", texto: "Implante" },
+  { id: "inyeccion", texto: "Inyección" },
+  { id: "anillo", texto: "Anillo vaginal" },
+  { id: "parche", texto: "Parche" },
+];
+const HORMONALES = ["pildora", "diu_hormonal", "implante", "inyeccion", "anillo", "parche"];
+const anticonceptivoActual = () => vida.sistema?.ciclo_anticonceptivo || null;
+const nombreAnticonceptivo = (id) => ANTICONCEPTIVOS.find((a) => a.id === id)?.texto || null;
+
+// Probabilidad de embarazo por tener relaciones ESE día. Con anticonceptivo
+// eficaz, muy baja siempre. Sin él, la ventana fértil de los estudios
+// clásicos (Wilcox): el pico son los 2 días ANTES de ovular. Orientativa de
+// verdad — sale de una estimación sobre otra estimación y JAMÁS sirve como
+// método anticonceptivo; la pantalla lo repite donde haga falta.
+function probabilidadEmbarazo(iso, ovulacion, anticonceptivo) {
+  if (HORMONALES.includes(anticonceptivo) || anticonceptivo === "diu_cobre") {
+    return { texto: "muy baja — menos del 1 % con el método bien usado", hormonal: HORMONALES.includes(anticonceptivo) };
+  }
+  if (!ovulacion) return null;
+  const d = diasEntre(iso, ovulacion); // días que faltan para la ovulación estimada
+  const tabla = { 5: "baja (≈ 4 %)", 4: "media (≈ 10 %)", 3: "media (≈ 14 %)", 2: "ALTA (≈ 27 %)", 1: "ALTA (≈ 31 %)", 0: "ALTA (≈ 33 %)", "-1": "baja (≈ 5 %)" };
+  let texto = tabla[d] || "muy baja (≈ 1–3 %)";
+  if (anticonceptivo === "preservativo") texto += " — y con preservativo bien usado, mínima";
+  return { texto, hormonal: false };
+}
+
+// Los últimos cálculos del render, para que la ficha de un día concreto
+// pueda enseñar su fase y su probabilidad sin recalcular nada.
+let calculosCiclo = null;
 
 const MINIMO_PARA_PREVER = 3;
 // La ovulación cae, de media, unos 14 días ANTES de la siguiente regla. Se
@@ -220,6 +278,23 @@ export function renderVidaCiclo() {
   const fertilDesde = ovulacion ? sumarDias(ovulacion, -5) : null;
   const fertilHasta = ovulacion ? sumarDias(ovulacion, 1) : null;
 
+  // Los cálculos del día: anticonceptivo, fase y probabilidad de embarazo.
+  const anticonceptivo = anticonceptivoActual();
+  const hormonal = HORMONALES.includes(anticonceptivo);
+  const probHoy = probabilidadEmbarazo(hoy, ovulacion, anticonceptivo);
+  const faseHoy = enRegla
+    ? "regla"
+    : hormonal
+      ? null // con hormonal no hay fases naturales que valgan
+      : fertilDesde && hoy >= fertilDesde && hoy <= fertilHasta
+        ? "ventana fértil"
+        : fertilHasta && hoy > fertilHasta
+          ? "fase lútea (premenstrual)"
+          : duracionTipica
+            ? "fase folicular"
+            : null;
+  calculosCiclo = { ovulacion, fertilDesde, fertilHasta, anticonceptivo, ultimoInicio: ultimo.inicio };
+
   // El botón grande de arriba cambia según dónde esté del ciclo: es lo que
   // se pulsa el 90 % de las veces, así que va primero y grande.
   let accion = null;
@@ -245,6 +320,13 @@ export function renderVidaCiclo() {
         <p class="ciclo-dato__etiqueta">${faltan === null ? "sin previsión" : faltan >= 0 ? "días para la próxima" : "días de retraso"}</p>
       </div>
     </div>
+    ${
+      faseHoy || probHoy
+        ? `<p class="entity-card__meta ciclo-fase" style="margin-top:-4px">
+            ${faseHoy ? `Hoy: <strong>${faseHoy}</strong>` : "Hoy"}${probHoy ? ` · probabilidad de embarazo <strong>${probHoy.texto}</strong>` : ""}
+          </p>`
+        : ""
+    }
     ${accion ? `<button type="button" class="btn btn--primary ciclo-accion" data-accion="${accion.id}">${accion.texto}</button>` : ""}
     <button type="button" class="btn btn--ghost ciclo-accion ciclo-accion--suave" data-apuntar-hoy="1">Apuntar cómo estoy hoy</button>
     <p class="entity-card__meta" style="margin-top:14px">
@@ -253,14 +335,23 @@ export function renderVidaCiclo() {
           ? `Según tus últimos ciclos, la próxima le tocaría alrededor del <strong>${bonito(proxima)}</strong>. Es una estimación a partir de lo que has apuntado, no una certeza: los ciclos cambian, y eso es normal.`
           : `Con ${ciclos.length} ${ciclos.length === 1 ? "ciclo apuntado" : "ciclos apuntados"} todavía no hay suficiente para una previsión honesta. A partir de ${MINIMO_PARA_PREVER} empieza a salir.`
       }
+      ${proxima && faltan !== null && faltan < -7 ? ` Con <strong>${-faltan} días de retraso</strong> sobre la estimación, un test lo aclara antes que cualquier app.` : ""}
     </p>
     ${
-      ovulacion
+      hormonal
         ? `<p class="entity-card__meta" style="margin-top:8px">
+             Con ${nombreAnticonceptivo(anticonceptivo).toLowerCase()} el ciclo no ovula como un ciclo natural: por eso aquí no se pintan "días fértiles" — no aplicarían y serían mentira bonita.
+           </p>`
+        : ovulacion
+          ? `<p class="entity-card__meta" style="margin-top:8px">
              Los días con más probabilidad de embarazo estarían entre el <strong>${bonito(fertilDesde)}</strong> y el <strong>${bonito(fertilHasta)}</strong>, con la ovulación alrededor del ${bonito(ovulacion)}.
            </p>`
-        : ""
+          : ""
     }
+    <p class="entity-card__meta" style="margin-top:8px">
+      Anticonceptivo: <strong>${nombreAnticonceptivo(anticonceptivo) || "sin apuntar"}</strong>
+      · <button type="button" class="btn btn--ghost btn--sm" id="btn-anticonceptivo">${anticonceptivo ? "Cambiar" : "Apuntarlo"}</button>
+    </p>
     <p class="ciclo-aviso">
       Esto no es un consejo médico ni sirve como método anticonceptivo: la previsión sale de tus propios apuntes y los ciclos cambian.
       Si algo te preocupa, díselo a tu médica o médico.
@@ -286,8 +377,10 @@ export function renderVidaCiclo() {
   elResumen
     .querySelector("[data-apuntar-hoy]")
     .addEventListener("click", () => abrirNota(hoy, notas.find((n) => n.fecha === hoy)));
+  elResumen.querySelector("#btn-anticonceptivo").addEventListener("click", abrirAnticonceptivo);
 
-  pintarCalendario(ciclos, notas, proxima, sangradoTipico, { fertilDesde, fertilHasta, ovulacion });
+  // Con anticonceptivo hormonal no se pintan días fértiles: no aplican.
+  pintarCalendario(ciclos, notas, proxima, sangradoTipico, hormonal ? {} : { fertilDesde, fertilHasta, ovulacion });
 
   // ---- Historial
   document.getElementById("ciclo-historial").innerHTML = `
@@ -385,7 +478,7 @@ function pintarCalendario(ciclos, notas, proxima, sangradoTipico, fertil) {
     <div class="ciclo-leyenda">
       <span><i class="ciclo-punto is-regla"></i> Regla</span>
       <span><i class="ciclo-punto is-prevista"></i> Previsión</span>
-      <span><i class="ciclo-punto is-fertil"></i> Días fértiles</span>
+      ${fertil?.fertilDesde ? `<span><i class="ciclo-punto is-fertil"></i> Días fértiles</span>` : ""}
       <span><i class="ciclo-marca is-dolor"></i> Dolor</span>
       <span><i class="ciclo-marca is-relaciones"></i> Relaciones</span>
     </div>
@@ -400,6 +493,54 @@ function pintarCalendario(ciclos, notas, proxima, sangradoTipico, fertil) {
   );
   el.querySelectorAll("[data-dia]").forEach((btn) =>
     btn.addEventListener("click", () => abrirNota(btn.dataset.dia, notasPorFecha.get(btn.dataset.dia)))
+  );
+}
+
+// El anticonceptivo se guarda en SU configuración (el documento de sistema
+// de Gaby) y cambia lo que enseña toda la pantalla: probabilidad, fases y
+// si se pintan o no los días fértiles.
+function abrirAnticonceptivo() {
+  const actual = anticonceptivoActual();
+  openModal(
+    `
+    <h2 class="modal__title">¿Llevas anticonceptivo?</h2>
+    <p class="entity-card__meta" style="margin:-8px 0 12px;">
+      Con esto la app ajusta sus cálculos: con uno hormonal, la ventana
+      fértil no aplica y la probabilidad de embarazo baja muchísimo.
+    </p>
+    <form id="form-anticonceptivo" class="form-grid">
+      <div class="field field--full">
+        <div class="ciclo-opciones">
+          ${ANTICONCEPTIVOS.map(
+            (a) => `
+            <label class="ciclo-opcion">
+              <input type="radio" name="anticonceptivo" value="${a.id}" ${(actual || "ninguno") === a.id ? "checked" : ""} />
+              <span>${a.texto}</span>
+            </label>`
+          ).join("")}
+        </div>
+      </div>
+      <p class="field-error" id="anticonceptivo-error"></p>
+      <div class="modal__actions field--full">
+        <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>`,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector("#form-anticonceptivo").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          try {
+            await guardarSistema({ ciclo_anticonceptivo: e.target.anticonceptivo.value });
+            closeModal();
+            renderVidaCiclo();
+          } catch (err) {
+            root.querySelector("#anticonceptivo-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
+          }
+        });
+      },
+    }
   );
 }
 
@@ -451,12 +592,16 @@ function abrirFormulario(ciclo) {
 }
 
 function abrirNota(fecha, nota) {
-  const marcadas = new Set(nota?.sensaciones || []);
+  // Las notas viejas guardaban todo junto en "sensaciones": se siguen
+  // leyendo para precargar, y al guardar quedan ya separadas.
+  const marcadas = new Set([...(nota?.animos || []), ...(nota?.sintomas || []), ...(nota?.sensaciones || [])]);
   const dolor = nota?.dolor ?? 0;
+  const probDia = calculosCiclo ? probabilidadEmbarazo(fecha, calculosCiclo.ovulacion, calculosCiclo.anticonceptivo) : null;
 
   openModal(
     `
     <h2 class="modal__title">${bonito(fecha)}</h2>
+    ${probDia ? `<p class="entity-card__meta" style="margin:-8px 0 10px;">Probabilidad de embarazo ese día: <strong>${probDia.texto}</strong>. Estimación, no certeza.</p>` : ""}
     <form id="form-nota" class="form-grid">
 
       <div class="field field--full">
@@ -490,15 +635,45 @@ function abrirNota(fecha, nota) {
       </div>
 
       <div class="field field--full">
-        <span class="field__label">¿Cómo te sentiste?</span>
+        <span class="field__label">Estado de ánimo</span>
         <div class="ciclo-sensaciones">
-          ${SENSACIONES.map(
+          ${ANIMOS.map(
             (s) => `
             <label class="ciclo-sensacion">
-              <input type="checkbox" name="sensacion" value="${s}" ${marcadas.has(s) ? "checked" : ""} />
+              <input type="checkbox" name="animo" value="${s}" ${marcadas.has(s) ? "checked" : ""} />
               <span>${s}</span>
             </label>`
           ).join("")}
+        </div>
+      </div>
+
+      <div class="field field--full">
+        <span class="field__label">Síntomas</span>
+        <div class="ciclo-sensaciones">
+          ${SINTOMAS.map(
+            (s) => `
+            <label class="ciclo-sensacion">
+              <input type="checkbox" name="sintoma" value="${s}" ${marcadas.has(s) ? "checked" : ""} />
+              <span>${s}</span>
+            </label>`
+          ).join("")}
+        </div>
+      </div>
+
+      <div class="field field--full">
+        <span class="field__label">Flujo del día (fuera de la regla)</span>
+        <div class="ciclo-opciones">
+          ${FLUJO_TIPOS.map(
+            (t) => `
+            <label class="ciclo-opcion">
+              <input type="radio" name="flujo_tipo" value="${t.id}" ${nota?.flujo_tipo === t.id ? "checked" : ""} />
+              <span>${t.texto}</span>
+            </label>`
+          ).join("")}
+          <label class="ciclo-opcion">
+            <input type="radio" name="flujo_tipo" value="" ${!nota?.flujo_tipo ? "checked" : ""} />
+            <span>Sin apuntar</span>
+          </label>
         </div>
       </div>
 
@@ -559,8 +734,12 @@ function abrirNota(fecha, nota) {
           const nuevo = {
             fecha,
             flujo: f.flujo.value || null,
+            flujo_tipo: f.flujo_tipo.value || null,
             dolor: Number(f.dolor.value || 0),
-            sensaciones: [...f.querySelectorAll('[name="sensacion"]:checked')].map((c) => c.value),
+            animos: [...f.querySelectorAll('[name="animo"]:checked')].map((c) => c.value),
+            sintomas: [...f.querySelectorAll('[name="sintoma"]:checked')].map((c) => c.value),
+            // El campo viejo se vacía: lo apuntado queda ya separado.
+            sensaciones: [],
             relaciones: hubo,
             proteccion: hubo ? f.proteccion.value || null : null,
             texto: f.texto.value.trim(),

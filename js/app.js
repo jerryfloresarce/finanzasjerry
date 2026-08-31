@@ -1,32 +1,32 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=103";
-import { state, subscribe, initStore } from "./store.js?v=103";
+import { onAuthReady } from "./auth.js?v=104";
+import { state, subscribe, initStore } from "./store.js?v=104";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=103";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=103";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=103";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=103";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=103";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=103";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=103";
-import { mountMetas, renderMetas } from "./views/metas.js?v=103";
-import { mountCuentaPanel } from "./views/cuenta.js?v=103";
-import { refreshAnimations } from "./animations.js?v=103";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=103";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=103";
-import { efectoDeEntrada } from "./efectos.js?v=103";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=104";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=104";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=104";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=104";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=104";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=104";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=104";
+import { mountMetas, renderMetas } from "./views/metas.js?v=104";
+import { mountCuentaPanel } from "./views/cuenta.js?v=104";
+import { refreshAnimations } from "./animations.js?v=104";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=104";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=104";
+import { efectoDeEntrada } from "./efectos.js?v=104";
 // vida:inicio
-import { initPerfil } from "./vida-perfil.js?v=103";
-import { initVida } from "./vida.js?v=103";
-import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=103";
-import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=103";
-import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=103";
-import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=103";
-import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=103";
-import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=103";
-import { mountVidaCiclo, renderVidaCiclo } from "./views/vida-ciclo.js?v=103";
-import { mountVidaOficina, renderVidaOficina } from "./views/vida-oficina.js?v=103";
-import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=103";
+import { initPerfil } from "./vida-perfil.js?v=104";
+import { initVida } from "./vida.js?v=104";
+import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=104";
+import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=104";
+import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=104";
+import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=104";
+import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=104";
+import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=104";
+import { mountVidaCiclo, renderVidaCiclo } from "./views/vida-ciclo.js?v=104";
+import { mountVidaOficina, renderVidaOficina } from "./views/vida-oficina.js?v=104";
+import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=104";
 // vida:fin
 
 const ROUTES = {
@@ -337,7 +337,7 @@ onAuthReady((user) => {
     // Sus colecciones llegan por listeners propios (no pasan por el store):
     // cuando cambian, se repinta la vista de vida que esté abierta.
     initVida(() => {
-      if (["hoy", "entreno", "progreso", "cartera", "menu", "compras", "agenda", "oficina"].includes(currentRoute)) renderCurrentView();
+      if (["hoy", "entreno", "progreso", "cartera", "menu", "compras", "agenda", "oficina", "ciclo"].includes(currentRoute)) renderCurrentView();
     });
     // vida:fin
   }
