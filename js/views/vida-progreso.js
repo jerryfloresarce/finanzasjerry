@@ -25,12 +25,13 @@ import {
   rutinaEmpezada,
   diaDeRutina,
   rachasCaraACara,
+  dueloSemanal,
   INNEGOCIABLES,
-} from "../vida.js?v=92";
-import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=92";
-import { esc } from "../modal.js?v=92";
-import { colorTema } from "../tema.js?v=92";
-import { efectoDeCelebracion } from "../efectos.js?v=92";
+} from "../vida.js?v=93";
+import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=93";
+import { esc } from "../modal.js?v=93";
+import { colorTema } from "../tema.js?v=93";
+import { efectoDeCelebracion } from "../efectos.js?v=93";
 
 let currentState = null;
 let chartPeso = null;
@@ -160,6 +161,7 @@ export function renderVidaProgreso(state) {
   const pesoObjetivo = vida.sistema.peso_objetivo_kg ?? PESO_OBJETIVO_KG;
   const hayEstudio = INNEGOCIABLES.some((i) => i.id === "estudio");
   const caraACara = rachasCaraACara();
+  const duelo = dueloSemanal();
 
   el.innerHTML = `
     ${
@@ -178,12 +180,31 @@ export function renderVidaProgreso(state) {
     </div>
 
     ${
-      caraACara.jerry && caraACara.gaby
-        ? `<div class="card hoy-aviso" style="margin-bottom:14px;"><p class="entity-card__meta" style="margin:0;">
-            <strong>Cara a cara</strong> · 💚 Jerry: ${caraACara.jerry.actual} ${caraACara.jerry.actual === 1 ? "día" : "días"} de racha
-            · 💗 Gaby: ${caraACara.gaby.actual} ${caraACara.gaby.actual === 1 ? "día" : "días"}
-            ${caraACara.jerry.actual === caraACara.gaby.actual ? "· Empate: nadie afloja." : `· Va ganando ${caraACara.jerry.actual > caraACara.gaby.actual ? "Jerry 💚" : "Gaby 💗"}`}
-          </p></div>`
+      caraACara.jerry || caraACara.gaby
+        ? `<article class="card duelo" style="margin-bottom:14px;">
+        <div class="card__header">
+          <h2 class="card__title">El duelo de la semana</h2>
+          <span class="entity-card__tag">${
+            duelo.jerry.puntos === duelo.gaby.puntos
+              ? "Empate"
+              : duelo.jerry.puntos > duelo.gaby.puntos
+                ? "Va ganando Jerry 💚"
+                : "Va ganando Gaby 💗"
+          }</span>
+        </div>
+        <p class="entity-card__meta" style="margin-top:-6px;">
+          Puntos de esta semana, de lunes a hoy. Gana quien se cuida — no
+          quien se machaca: los puntos salen de dormir, moverse, comer bien
+          y cumplir lo tuyo. Perder este duelo también es ganar.
+        </p>
+        <div class="duelo-tabla">
+          <div class="duelo-fila duelo-fila--cabecera"><span></span><span>💚 Jerry</span><span>💗 Gaby</span></div>
+          <div class="duelo-fila"><span>Puntos</span><span>${duelo.jerry.puntos}</span><span>${duelo.gaby.puntos}</span></div>
+          <div class="duelo-fila"><span>Días redondos</span><span>${duelo.jerry.cumplidos}</span><span>${duelo.gaby.cumplidos}</span></div>
+          <div class="duelo-fila"><span>Entrenos</span><span>${duelo.jerry.entrenos}</span><span>${duelo.gaby.entrenos}</span></div>
+          <div class="duelo-fila"><span>Racha</span><span>🔥 ${duelo.jerry.racha}</span><span>🔥 ${duelo.gaby.racha}</span></div>
+        </div>
+      </article>`
         : ""
     }
 

@@ -21,15 +21,21 @@ import {
   alternarBloqueHecho,
   extrasDelDia,
   alternarExtraDelDia,
-} from "../vida.js?v=92";
-import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=92";
-import { openModal, closeModal, esc } from "../modal.js?v=92";
-import { fechaISO } from "../db.js?v=92";
+} from "../vida.js?v=93";
+import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=93";
+import { openModal, closeModal, esc } from "../modal.js?v=93";
+import { fechaISO } from "../db.js?v=93";
 
 // Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
 // que mandan las flechas: en mes salta de mes en mes, en semana de semana
 // en semana y en día de día en día.
 let vista = "mes"; // "mes" | "semana" | "dia"
+
+// Las pastillas de "Hoy" piden aquí la vista antes de navegar: así Hoy y
+// el calendario son la misma cosa con tres pestañas.
+export function pedirVista(v) {
+  vista = v === "semana" || v === "dia" ? v : "mes";
+}
 let fechaFoco = alMediodia(new Date());
 
 function alMediodia(d) {
@@ -63,6 +69,11 @@ export function mountVidaAgenda() {
   root.addEventListener("click", async (e) => {
     const cambioVista = e.target.closest("[data-vista]");
     if (cambioVista) {
+      // "Día" con el foco en hoy ES la pantalla Hoy: una sola cosa, no dos.
+      if (cambioVista.dataset.vista === "dia" && fechaISO(fechaFoco) === fechaISO()) {
+        location.hash = "#/hoy";
+        return;
+      }
       vista = cambioVista.dataset.vista;
       renderVidaAgenda(null);
       return;
@@ -83,6 +94,10 @@ export function mountVidaAgenda() {
     // Tocar un día del mes (o el nombre de un día de la semana) abre su día.
     const diaMes = e.target.closest("[data-ver-dia]");
     if (diaMes) {
+      if (diaMes.dataset.verDia === fechaISO()) {
+        location.hash = "#/hoy";
+        return;
+      }
       fechaFoco = alMediodia(new Date(diaMes.dataset.verDia + "T12:00:00"));
       vista = "dia";
       renderVidaAgenda(null);
@@ -290,16 +305,8 @@ function vistaDia() {
         </div>
       </div>
       ${
-        tareas.length || extras.length
+        tareas.length
           ? `<div class="agenda-tareas" style="border-top:none; padding-top:0; margin:8px 0 4px;">
-        ${extras
-          .map(
-            (x) => `
-          <button type="button" class="agenda-tarea ${x.hecho ? "agenda-tarea--hecha" : ""}" data-extra-toggle="${fechaId}|${x.id}">
-            <span class="agenda-tarea__circulo">${x.hecho ? "✓" : ""}</span>${x.nombre}
-          </button>`
-          )
-          .join("")}
         ${tareas
           .map(
             (t, i) => `
@@ -322,15 +329,22 @@ function vistaDia() {
               : bl.cita
                 ? ` data-cita-real="${fechaId}|${(nCita += 1)}" role="button" title="Toca para apuntar cuánto tardaste"`
                 : "";
+            const hecho = bl.extra ? bl.hecho : conChecks && bloqueHecho(fechaId, bl);
             return `
-          <${etiqueta} class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${bl.tapado ? "dia-bloque--tapado" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${esHoy && i < indiceAhora ? "dia-bloque--pasado" : ""} ${conChecks && bloqueHecho(fechaId, bl) ? "dia-bloque--hecho" : ""}"${attrs}>
+          <${etiqueta} class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${bl.tapado ? "dia-bloque--tapado" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${esHoy && i < indiceAhora ? "dia-bloque--pasado" : ""} ${hecho ? "dia-bloque--hecho" : ""}"${attrs}>
             <span class="dia-bloque__hora">${bl.h}</span>
             <span class="dia-bloque__punto" aria-hidden="true"></span>
             <span class="dia-bloque__cuerpo">
               <span class="dia-bloque__titulo">${bl.cita ? "📌 " : ""}${ruta ? `<i class="ph ${ruta.icono}" aria-hidden="true"></i> ` : ""}${esc(bl.titulo)}${ruta ? ` <span class="agenda-bloque__ir">›</span>` : ""}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
               ${bl.detalle ? `<span class="dia-bloque__detalle">${esc(bl.detalle)}</span>` : ""}
             </span>
-            ${conChecks ? `<button type="button" class="bloque-check ${bloqueHecho(fechaId, bl) ? "bloque-check--on" : ""}" data-check-bloque="${fechaId}|${esc(claveDeBloque(bl))}" title="Marcar como hecho">✓</button>` : ""}
+            ${
+              bl.extra
+                ? `<button type="button" class="bloque-check ${hecho ? "bloque-check--on" : ""}" data-extra-toggle="${fechaId}|${bl.extra}" title="Marcar como hecho">✓</button>`
+                : conChecks
+                  ? `<button type="button" class="bloque-check ${hecho ? "bloque-check--on" : ""}" data-check-bloque="${fechaId}|${esc(claveDeBloque(bl))}" title="Marcar como hecho">✓</button>`
+                  : ""
+            }
           </${etiqueta}>`;
           })
           .join("")}

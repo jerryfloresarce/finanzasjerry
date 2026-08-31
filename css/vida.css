@@ -1092,4 +1092,27 @@ button.agenda-bloque { cursor: pointer; }
    sale por la derecha y no se puede pulsar. */
 #form-nota .modal__actions { flex-wrap: wrap; }
 #form-nota .modal__actions .btn { flex: 1 1 auto; min-height: 44px; }
+
+/* El duelo de la semana (Progreso): tabla de tres columnas, la primera para
+   la etiqueta y una columna por persona. */
+.duelo-tabla { margin-top: 12px; }
+.duelo-fila {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 2px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.92rem;
+}
+.duelo-fila:last-child { border-bottom: none; }
+.duelo-fila span:first-child { color: var(--text-secondary); font-size: 0.84rem; }
+.duelo-fila span:nth-child(2),
+.duelo-fila span:nth-child(3) { text-align: center; font-variant-numeric: tabular-nums; }
+.duelo-fila--cabecera {
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+}
 /* vida:fin */

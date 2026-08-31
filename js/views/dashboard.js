@@ -10,14 +10,14 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   nombreDeCuenta,
-} from "../db.js?v=92";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=92";
-import { seedInitialData } from "../seed.js?v=92";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=92";
-import { openHistorial } from "./cuentas.js?v=92";
-import { esc } from "../modal.js?v=92";
-import { sentidoDeTransferencia } from "./movimientos.js?v=92";
-import { colorTema, paletaTema } from "../tema.js?v=92";
+} from "../db.js?v=93";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=93";
+import { seedInitialData } from "../seed.js?v=93";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=93";
+import { openHistorial } from "./cuentas.js?v=93";
+import { esc } from "../modal.js?v=93";
+import { sentidoDeTransferencia } from "./movimientos.js?v=93";
+import { colorTema, paletaTema } from "../tema.js?v=93";
 
 let chartInstance = null;
 

@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=92";
-import { fechaISO } from "./db.js?v=92";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=92";
+import { db } from "./firebase-init.js?v=93";
+import { fechaISO } from "./db.js?v=93";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=93";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -613,15 +613,21 @@ const tocaRasurarse = (fechaId) => {
   return ((dias % 2) + 2) % 2 === 0;
 };
 
+// Cada extra lleva SU hora: no son una lista aparte, son momentos del día
+// y van dentro de la línea del horario, tachables como todo lo demás. La
+// fruta 4 es la del bonus ("4 piezas de fruta"): las 3 primeras son el
+// objetivo del día, la cuarta suma el bonus — por eso 3 y 4 no se
+// contradicen, son lo mismo contado en dos sitios.
 export function extrasDelDia(fechaId) {
   if (!conChecklistDeDia()) return [];
   const marcas = diaPorFecha(fechaId)?.extras || {};
   const lista = [
-    { id: "fruta1", nombre: "🍎 Fruta 1" },
-    { id: "fruta2", nombre: "🍊 Fruta 2" },
-    { id: "fruta3", nombre: "🍌 Fruta 3" },
+    { id: "fruta1", h: "11:00", nombre: "🍎 Fruta 1", detalle: "" },
+    { id: "fruta2", h: "14:05", nombre: "🍊 Fruta 2", detalle: "De postre" },
+    { id: "fruta3", h: "17:05", nombre: "🍌 Fruta 3", detalle: "Para el camino" },
+    { id: "fruta4", h: "21:30", nombre: "🍇 Fruta 4", detalle: "La del bonus: con esta van las 4 piezas" },
   ];
-  if (tocaRasurarse(fechaId)) lista.push({ id: "rasurado", nombre: "🪒 Rasurarse (~10 min, vale mientras trabajas)" });
+  if (tocaRasurarse(fechaId)) lista.splice(1, 0, { id: "rasurado", h: "10:00", nombre: "🪒 Rasurarse", detalle: "~10 min · vale mientras trabajas" });
   return lista.map((x) => ({ ...x, hecho: Boolean(marcas[x.id]) }));
 }
 
@@ -660,6 +666,25 @@ export const deleteInversion = (id) => deleteDoc(doc(db, "inversiones", id));
 
 // Las rachas de los dos, para la comparativa sana. Solo cuenta un perfil
 // que ya ha pulsado su START; hasta entonces sale null.
+// El duelo sano de la semana: puntos, días cumplidos y entrenos de ESTA
+// semana (de lunes a hoy), cada uno con lo suyo. Compite quien se cuida,
+// no quien se machaca — por eso se compara lo saludable y nada más.
+export function dueloSemanal() {
+  const lunes = lunesDe(new Date());
+  const de = (perfil) => {
+    const dias = diasDePerfil(perfil).filter((d) => d.id >= lunes);
+    const entrenos = crudosVida.entrenos.filter((e) => (e.perfil || "jerry") === perfil && (e.fecha || "") >= lunes);
+    const racha = sistemas[perfil].fecha_inicio ? calcularRachaEn(diasDePerfil(perfil)).actual : 0;
+    return {
+      puntos: dias.reduce((acc, d) => acc + Number(d.puntos || 0), 0),
+      cumplidos: dias.filter((d) => d.cumplido).length,
+      entrenos: entrenos.length,
+      racha,
+    };
+  };
+  return { lunes, jerry: de("jerry"), gaby: de("gaby") };
+}
+
 export function rachasCaraACara() {
   const de = (perfil) => {
     if (!sistemas[perfil].fecha_inicio) return null;
@@ -974,6 +999,15 @@ export function calcularLogros(pesoInicial) {
 // tranquila. Las plantillas viejas se quedan para las fechas anteriores,
 // que el historial no se reescribe.
 const CAMBIO_SALIDA_17 = "2026-09-01";
+
+// Las tareas de casa NO tocan todas todos los días: cada día laborable
+// lleva las suyas (editable con el lápiz del horario, como todo).
+const CASA_POR_DIA = {
+  1: { casa: "Hacer la cama · un barrido rápido", ropa: "Lavadora: poner y tender" },
+  2: { casa: "Hacer la cama", ropa: "Ropa: recoger si hay tendida" },
+  3: { casa: "Polvo y ordenar un poco", ropa: "Ropa: recoger y doblar" },
+  4: { casa: "Hacer la cama · baño rápido", ropa: "Lavadora: poner y tender (la 2ª)" },
+};
 const PRIMER_LUNES_PREP_OFICINA = "2026-09-07";
 const PRIMER_MARTES_OFICINA = "2026-09-08";
 
@@ -983,7 +1017,7 @@ function horarioLaborable(nombreEntreno, fechaId = "") {
       { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
       { h: "08:00", titulo: "Trabajo", detalle: "Desayuno en la primera hora: proteína + fruta" },
       { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
-      { h: "11:00", titulo: "Fruta 1", detalle: "Y la lavadora: poner, tender o recoger la ropa" },
+      { h: "11:00", titulo: "Lavadora", detalle: "Poner, tender o recoger la ropa" },
       { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
       { h: "15:00", titulo: "Comer", detalle: "Dientes (2) · fruta 2 de postre" },
       { h: "15:40", titulo: "Estudio", detalle: "El bloque de verdad, en la mesa" },
@@ -997,10 +1031,10 @@ function horarioLaborable(nombreEntreno, fechaId = "") {
   const bloques = [
     { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
     { h: "08:00", titulo: "Trabajo (hasta las 17:00)", detalle: "Desayuno en la primera hora: proteína + fruta" },
-    { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
-    { h: "11:00", titulo: "Lavadora", detalle: "Poner, tender o recoger la ropa" },
+    { h: "09:30", titulo: "Casa", detalle: (CASA_POR_DIA[new Date(fechaId + "T12:00:00").getDay()] || CASA_POR_DIA[1]).casa },
+    { h: "11:00", titulo: "Ropa", detalle: (CASA_POR_DIA[new Date(fechaId + "T12:00:00").getDay()] || CASA_POR_DIA[1]).ropa },
     { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
-    { h: "14:00", titulo: "Comer", detalle: "Con Gaby · dientes (2) · fruta de postre" },
+    { h: "14:00", titulo: "Comer", detalle: "Con Gaby · dientes (2)" },
     { h: "17:00", titulo: "Salida del trabajo", detalle: "Merienda y mochila del gimnasio" },
     { h: "17:30", titulo: "Salir al gimnasio", detalle: "Fruta por el camino" },
     { h: "17:55", titulo: nombreEntreno, detalle: "Ducha allí" },
@@ -1021,7 +1055,7 @@ function horarioTardeLibre(queToca, fechaId = "") {
       { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
       { h: "08:00", titulo: "Trabajo", detalle: "Desayuno en la primera hora: proteína + fruta" },
       { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
-      { h: "11:00", titulo: "Fruta 1", detalle: "Y la lavadora: poner, tender o recoger la ropa" },
+      { h: "11:00", titulo: "Lavadora", detalle: "Poner, tender o recoger la ropa" },
       { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
       { h: "15:00", titulo: "Comer", detalle: "Dientes (2) · fruta 2 de postre" },
       { h: "15:40", titulo: "Estudio", detalle: "El bloque de verdad, en la mesa" },
@@ -1033,10 +1067,10 @@ function horarioTardeLibre(queToca, fechaId = "") {
   return [
     { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
     { h: "08:00", titulo: "Trabajo (hasta las 17:00)", detalle: "Desayuno en la primera hora: proteína + fruta" },
-    { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
-    { h: "11:00", titulo: "Lavadora", detalle: "Poner, tender o recoger la ropa" },
+    { h: "09:30", titulo: "Casa", detalle: (CASA_POR_DIA[new Date(fechaId + "T12:00:00").getDay()] || CASA_POR_DIA[1]).casa },
+    { h: "11:00", titulo: "Ropa", detalle: (CASA_POR_DIA[new Date(fechaId + "T12:00:00").getDay()] || CASA_POR_DIA[1]).ropa },
     { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
-    { h: "14:00", titulo: "Comer", detalle: "Con Gaby · dientes (2) · fruta de postre" },
+    { h: "14:00", titulo: "Comer", detalle: "Con Gaby · dientes (2)" },
     { h: "17:00", titulo: "Salida del trabajo", detalle: "Merienda" },
     { h: "17:15", titulo: "Tarde libre", detalle: queToca },
     { h: "20:45", titulo: "Salir hacia la tienda", detalle: "Como muy tarde · estudio allí si está tranquila" },
@@ -1136,7 +1170,7 @@ function bloquesDeSerie(fecha = new Date()) {
       { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
       { h: "08:00", titulo: "Trabajo (hasta las 14:30)", detalle: "Desayuno en la primera hora" },
       { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
-      { h: "11:00", titulo: "Fruta 1", detalle: "Y la lavadora: poner, tender o recoger" },
+      { h: "11:00", titulo: "Lavadora", detalle: "Poner, tender o recoger" },
       { h: "13:30", titulo: "Hueco de cocina", detalle: "Cena preparada · platos" },
       { h: "14:45", titulo: "Comer", detalle: "Dientes (2) · fruta de postre" },
       { h: "15:30", titulo: "Estudio", detalle: "" },
@@ -1193,9 +1227,12 @@ export function bloquesDelDia(fecha = new Date()) {
   const conDuracion = (b) =>
     b.duracion ? { ...b, detalle: [b.detalle, `~${enHoras(Number(b.duracion))}`].filter(Boolean).join(" · ") } : b;
   const base = (Array.isArray(propios) && propios.length ? propios : bloquesDeSerie(fecha)).map(conDuracion);
+  // Los extras del día (frutas, rasurado) van DENTRO de la línea, a su
+  // hora, como bloques tachables — no en una lista aparte.
+  const extras = extrasDelDia(fechaISO(fecha)).map((x) => ({ h: x.h, titulo: x.nombre, detalle: x.detalle, extra: x.id, hecho: x.hecho }));
   const agenda = diaPorFecha(fechaISO(fecha))?.agenda;
-  if (!Array.isArray(agenda) || !agenda.length) return base;
-  const citas = agenda.map((a) => {
+  if ((!Array.isArray(agenda) || !agenda.length) && !extras.length) return base;
+  const citas = (Array.isArray(agenda) ? agenda : []).map((a) => {
     const min = minutosDeBloque(a.h, false);
     const fin = a.duracion ? min + Number(a.duracion) : null;
     return {
@@ -1221,6 +1258,7 @@ export function bloquesDelDia(fecha = new Date()) {
       return { b: tapa ? { ...b, tapado: true, tapadoHasta: tapa.fin } : b, min };
     }),
     ...citas.map((c) => ({ b: c.b, min: c.min })),
+    ...extras.map((x) => ({ b: x, min: minutosDeBloque(x.h, false) })),
   ];
   todos.sort((x, y) => x.min - y.min);
   return todos.map((x) => x.b);
@@ -1476,6 +1514,7 @@ RECETAS.push(
 export const PLATOS_ESPECIALES = [
   { id: "esp_casa_mama", nombre: "En casa de mamá", especial: true, pasos: ["Hoy cocina la mamá de Jerry: no hay nada que preparar.", "Solo llegar con hambre (y de buen humor)."] },
   { id: "esp_fuera", nombre: "Comer fuera", especial: true, pasos: ["Día de no cocinar: restaurante, pedido o lo que surja."] },
+  { id: "esp_sobras", nombre: "Lo del mediodía (sobras)", especial: true, pasos: ["Ha sobrado del mediodía: calentar y a cenar.", "Cero cocina, cero platos nuevos. La mejor cena posible."] },
 ];
 
 // Los platos que añadís vosotros ("Plato vuestro" en la pantalla Menú):
@@ -1592,8 +1631,17 @@ export function menuDeHoy(fecha = new Date()) {
   return {
     desayuno: recetaPorId(menu.desayunos?.[dia]),
     comida: recetaPorId(menu.comidas?.[dia]),
-    cena: recetaPorId(menu.cenas?.[dia]),
+    // "Nos ha sobrado del mediodía": la cena de UNA fecha concreta se marca
+    // como sobras sin tocar la plantilla de la semana. Es de casa: lo ven
+    // los dos perfiles.
+    cena: cenaEsSobras(fechaISO(fecha)) ? recetaPorId("esp_sobras") : recetaPorId(menu.cenas?.[dia]),
   };
+}
+
+export const cenaEsSobras = (fechaId) => Boolean(vida.menu?.sobras?.[fechaId]);
+
+export async function marcarCenaSobras(fechaId, valor) {
+  await guardarMenu({ sobras: { ...(vida.menu?.sobras || {}), [fechaId]: valor ? true : null } });
 }
 
 // ---------- Cartera de inversiones ----------
