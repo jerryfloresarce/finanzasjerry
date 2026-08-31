@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=101";
-import { fechaISO } from "./db.js?v=101";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=101";
+import { db } from "./firebase-init.js?v=102";
+import { fechaISO } from "./db.js?v=102";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=102";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -151,12 +151,14 @@ const PLANES_JERRY = {
   // 10 kg — en "peso" van los kilos que lleve puestos (0 = sin chaleco) y
   // la doble progresión sube repes como siempre. Cuerpo entero en ~35 min
   // porque sustituye a cualquier día, y TODO en silencio: es un piso, sin
-  // saltos ni impactos ni nada que retumbe abajo.
+  // saltos ni impactos ni nada que retumbe abajo. Todo a 3 series: Jerry
+  // va casi al fallo en cada una, y con esa intensidad 3 series duras
+  // valen más que 4 a medias — y el mareo se queda fuera.
   casa: [
-    { nombre: "Sentadillas con el chaleco", series: 4, repsMin: 12, repsMax: 15, pesoInicial: 10, nota: "El chaleco puesto y bien ajustado; subir y bajar controlado, sin rebotes — cero ruido" },
-    { nombre: "Flexiones", series: 4, repsMin: 8, repsMax: 15, pesoInicial: 0, nota: "Con rodillas o manos en el sofá si hace falta; con el chaleco puesto si va fácil" },
+    { nombre: "Sentadillas con el chaleco", series: 3, repsMin: 12, repsMax: 15, pesoInicial: 10, nota: "El chaleco puesto y bien ajustado; subir y bajar controlado, sin rebotes — cero ruido" },
+    { nombre: "Flexiones", series: 3, repsMin: 8, repsMax: 15, pesoInicial: 0, nota: "Con rodillas o manos en el sofá si hace falta; con el chaleco puesto si va fácil" },
     { nombre: "Zancadas alternas", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 10, etiqueta: "por pierna", nota: "Paso apoyado suave, sin saltar. Si la ingle avisa: paso más corto y sin chaleco" },
-    { nombre: "Remo a una mano con el chaleco", series: 4, repsMin: 10, repsMax: 12, pesoInicial: 10, etiqueta: "por brazo", nota: "El chaleco agarrado como una maleta, lento y apretando la espalda — sin muebles de por medio" },
+    { nombre: "Remo a una mano con el chaleco", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 10, etiqueta: "por brazo", nota: "El chaleco agarrado como una maleta, lento y apretando la espalda — sin muebles de por medio" },
     { nombre: "Flexiones diamante", series: 3, repsMin: 8, repsMax: 12, pesoInicial: 0, nota: "Manos juntas bajo el pecho: el tríceps sin necesitar silla. Con rodillas si hace falta" },
     { nombre: "Plancha", series: 3, repsMin: 30, repsMax: 45, pesoInicial: 0, etiqueta: "segundos", nota: "Con el chaleco puesto cuando 45 s se queden cortos" },
   ],
