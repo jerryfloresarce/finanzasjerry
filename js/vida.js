@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=99";
-import { fechaISO } from "./db.js?v=99";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=99";
+import { db } from "./firebase-init.js?v=100";
+import { fechaISO } from "./db.js?v=100";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=100";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -156,8 +156,8 @@ const PLANES_JERRY = {
     { nombre: "Sentadillas con el chaleco", series: 4, repsMin: 12, repsMax: 15, pesoInicial: 10, nota: "El chaleco puesto y bien ajustado; subir y bajar controlado, sin rebotes — cero ruido" },
     { nombre: "Flexiones", series: 4, repsMin: 8, repsMax: 15, pesoInicial: 0, nota: "Con rodillas o manos en el sofá si hace falta; con el chaleco puesto si va fácil" },
     { nombre: "Zancadas alternas", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 10, etiqueta: "por pierna", nota: "Paso apoyado suave, sin saltar. Si la ingle avisa: paso más corto y sin chaleco" },
-    { nombre: "Remo invertido bajo la mesa", series: 4, repsMin: 8, repsMax: 12, pesoInicial: 0, nota: "Agarrado al borde de una mesa robusta; con el chaleco puesto cuando 12 salgan fáciles. Sin mesa: remo con una mochila bien cargada" },
-    { nombre: "Fondos de tríceps en una silla", series: 3, repsMin: 10, repsMax: 12, pesoInicial: 0, nota: "Los pies más lejos = más difícil; el chaleco, el siguiente escalón" },
+    { nombre: "Remo a una mano con el chaleco", series: 4, repsMin: 10, repsMax: 12, pesoInicial: 10, etiqueta: "por brazo", nota: "El chaleco agarrado como una maleta, lento y apretando la espalda — sin muebles de por medio" },
+    { nombre: "Flexiones diamante", series: 3, repsMin: 8, repsMax: 12, pesoInicial: 0, nota: "Manos juntas bajo el pecho: el tríceps sin necesitar silla. Con rodillas si hace falta" },
     { nombre: "Plancha", series: 3, repsMin: 30, repsMax: 45, pesoInicial: 0, etiqueta: "segundos", nota: "Con el chaleco puesto cuando 45 s se queden cortos" },
   ],
 };
@@ -205,6 +205,10 @@ const TECNICAS = [
     senal: "El culo atrás y abajo como sentándote en una silla que no está.",
     pasos: ["El chaleco puesto y bien ajustado (que no baile), pies a la anchura de los hombros y puntas un poco hacia fuera.", "Baja en 2 segundos hasta que los muslos pasen de paralelo, rodillas hacia fuera y talones clavados.", "Sube empujando el suelo con todo el pie, sin rebotar abajo — controlado y en silencio, que vives en un piso."],
     errores: ["Despegar los talones o irse de puntas.", "Media sentadilla: si no bajas, no cuenta.", "Rebotar abajo para sacar la repetición."] },
+  { clave: /diamante/i, video: "tecnica flexiones diamante triceps",
+    senal: "Los codos ROZANDO las costillas al bajar: eso es el tríceps.",
+    pasos: ["Manos juntas bajo el pecho, pulgares e índices formando un rombo.", "Cuerpo de tabla y baja en 2 segundos con los codos pegados al cuerpo.", "Empuja hasta estirar los brazos. ¿Muy difícil? Con las rodillas apoyadas cuenta igual."],
+    errores: ["Codos abiertos hacia los lados: eso es pecho, no tríceps.", "La cadera caída o en pico.", "Media repetición sin bajar el pecho."] },
   { clave: /flexion|flexión/i, video: "tecnica flexiones correctas progresion",
     senal: "Cuerpo de tabla: aprieta el culo y el abdomen ANTES de doblar los brazos.",
     pasos: ["Manos algo más abiertas que los hombros, cuerpo recto de la cabeza a los talones.", "Baja en 2 segundos con los codos a unos 45° del cuerpo, el pecho casi al suelo.", "Empuja el suelo hasta estirar los brazos. ¿Muy difícil? Manos en el sofá. ¿Muy fácil? El chaleco puesto."],
@@ -213,10 +217,10 @@ const TECNICAS = [
     senal: "La rodilla de atrás busca el suelo, el tronco se queda vertical.",
     pasos: ["Paso largo al frente APOYANDO suave (nada de dejarse caer: cero golpes al suelo).", "Baja la rodilla trasera casi a tocar el suelo, tronco vertical y la rodilla delantera sobre el pie.", "Empuja con el talón delantero para volver y cambia de pierna."],
     errores: ["Paso corto: la rodilla se va por delante de la punta del pie.", "Pisar fuerte por ir rápido — despacio suena a nada y trabaja más.", "Con la ingle delicada: paso más corto y sin chaleco."] },
-  { clave: /remo con mochila|invertido/i, video: "tecnica remo invertido mesa casa",
-    senal: "Tira con los CODOS hacia atrás y junta las escápulas, como siempre en el remo.",
-    pasos: ["Túmbate bajo una mesa robusta y agárrate al borde, cuerpo recto de la cabeza a los talones.", "Tira de los codos hacia atrás llevando el pecho a la mesa, junta las escápulas y aguanta medio segundo.", "Baja frenando, sin dejarte caer. ¿Fácil con 12? El chaleco puesto. Sin mesa: tronco a 45° y rema con una mochila bien cargada."],
-    errores: ["Dejar caer la cadera: la plancha se mantiene todo el rato.", "Dar tirones en vez de subir controlado.", "Una mesa poco estable: primero comprueba que aguanta."] },
+  { clave: /remo a una mano/i, video: "tecnica remo a una mano mancuerna",
+    senal: "Tira del CODO hacia atrás y arriba, pegado al cuerpo; la mano solo sujeta.",
+    pasos: ["Tronco a 45° con la espalda recta y la mano libre apoyada en tu propia rodilla adelantada — nada de muebles.", "El chaleco agarrado por las asas como una maleta: súbelo hasta el costado tirando del codo, y aprieta un segundo arriba.", "Baja en 2-3 segundos. Al acabar un brazo, el otro. ¿Fácil con 12? Aún más lento — el tempo es tu peso extra."],
+    errores: ["Girar el tronco para ayudarte a subir.", "Tirar con la mano y el bíceps en vez del codo.", "La espalda redonda: pecho fuera todo el rato."] },
   { clave: /fondos/i, video: "tecnica fondos triceps silla banco",
     senal: "Los codos van hacia ATRÁS, pegados al cuerpo, nunca abiertos.",
     pasos: ["Manos en el borde de la silla a la anchura de los hombros, piernas estiradas por delante (la silla contra la pared, que no deslice).", "Baja doblando los codos hacia atrás hasta unos 90°, la espalda rozando la silla.", "Empuja hasta estirar los brazos sin bloquear de golpe. Pies más lejos = más difícil; el chaleco, el siguiente escalón."],
@@ -1565,6 +1569,8 @@ RECETAS.push(
     pasos: ["Todo a la batidora 30 segundos.", "Para los días con prisa: se bebe de camino.", "Con avena dentro llena como un desayuno entero."] },
   { id: "d_tostas_tomate", nombre: "Tostadas con tomate y jamón", momento: "desayuno", req: ["pan", "tomate", "jamon"], opc: [], proteina: 14,
     pasos: ["Pan tostado, tomate por encima y el jamón.", "Un chorrito de aceite. El desayuno de bar, en casa."] },
+  { id: "d_ensalada_frutas", nombre: "Ensalada de frutas con su batido", momento: "desayuno", req: ["leche", "fruta"], opc: [], proteina: 10,
+    pasos: ["El batido: leche con un plátano — el plátano ya endulza solo; el azúcar, poco o nada.", "Corta en trozos la fruta que haya: plátano, fresas, manzana, kiwi, naranja…", "Todo al bol y el batido para beber. El melocotón en almíbar, escurrido y solo de vez en cuando: el almíbar es puro azúcar."] },
   { id: "d_bol_queso", nombre: "Bol de queso batido con fruta", momento: "desayuno", req: ["queso", "fruta"], opc: ["frutossecos", "avena"], proteina: 24,
     pasos: ["Queso batido (200 g) + fruta troceada + lo que haya.", "La opción con MÁS proteína por minuto de esfuerzo: ≈ 24 g."] },
   { id: "d_wrap", nombre: "Wrap de desayuno (huevo y queso)", momento: "desayuno", req: ["wraps", "huevos", "queso"], opc: ["jamon"], proteina: 20,
@@ -1643,6 +1649,17 @@ export const PLATOS_ESPECIALES = [
   { id: "esp_casa_mama", nombre: "En casa de mamá", especial: true, pasos: ["Hoy cocina la mamá de Jerry: no hay nada que preparar.", "Solo llegar con hambre (y de buen humor)."] },
   { id: "esp_fuera", nombre: "Comer fuera", especial: true, pasos: ["Día de no cocinar: restaurante, pedido o lo que surja."] },
   { id: "esp_sobras", nombre: "Lo del mediodía (sobras)", especial: true, pasos: ["Ha sobrado del mediodía: calentar y a cenar.", "Cero cocina, cero platos nuevos. La mejor cena posible."] },
+  {
+    id: "esp_saltenas",
+    nombre: "Salteñas de mamá (2)",
+    especial: true,
+    proteina: 30,
+    pasos: [
+      "Los sábados mamá trae salteñas de pollo con patatas y guisantes (2,50 € cada una).",
+      "La ración son DOS, con su guaraná o un batido: es el capricho PLANIFICADO de la semana — planificado no es caer, es parte del plan.",
+      "Si sobran, se rematan el domingo. Y entre semana, la bebida de diario vuelve a ser el agua.",
+    ],
+  },
 ];
 
 // Los platos que añadís vosotros ("Plato vuestro" en la pantalla Menú):
@@ -1737,14 +1754,53 @@ export function generarMenuSemana(lunesISO, marcados) {
   for (const c of lunesISO) semilla = (semilla * 31 + c.charCodeAt(0)) % 9973;
   const menu = { lunes: lunesISO, desayunos: {}, comidas: {}, cenas: {} };
   menu.comidas = repartirSemana(comidas, semilla);
+  // El sábado la comida es fija: las salteñas que trae la mamá de Jerry.
+  // Son de pollo, así que la cena del sábado esquiva el pollo también.
+  menu.comidas[6] = "esp_saltenas";
   const proteinaComida = {};
   for (let d = 1; d <= 7; d++) {
     const r = comidas.find((x) => x.id === menu.comidas[d]);
     if (r) proteinaComida[d] = proteinaDe(r);
   }
+  proteinaComida[6] = "pollo";
   menu.cenas = repartirSemana(cenas, semilla * 31 + 7, proteinaComida);
   if (desayunos.length >= 3) menu.desayunos = repartirSemana(desayunos, semilla * 17 + 3);
   return menu;
+}
+
+// Cambiar UN ingrediente no rehace la semana: si se desmarca algo, solo
+// se sustituyen los platos que lo usaban — el resto del menú (y la compra
+// hecha para él) se queda exactamente igual. Devuelve los mapas a guardar
+// o null si no había nada que tocar.
+export function repararMenu(marcados) {
+  const menu = vida.menu;
+  if (!menu?.lunes) return null;
+  const set = new Set(marcados);
+  const sigueValiendo = (id) => {
+    const r = recetaPorId(id);
+    if (!r) return false;
+    if (r.especial || r.propio) return true; // no dependen de ingredientes
+    return (r.req || []).every((i) => set.has(i));
+  };
+  const disponibles = recetasDisponibles(marcados);
+  const cambios = {};
+  let algo = false;
+  for (const campo of ["desayunos", "comidas", "cenas"]) {
+    const dias = { ...(menu[campo] || {}) };
+    const momento = campo.slice(0, -1);
+    const pool = disponibles.filter((r) => r.momento === momento);
+    for (const dia of Object.keys(dias)) {
+      if (sigueValiendo(dias[dia])) continue;
+      const enUso = new Set(Object.values(dias));
+      const libres = pool.filter((r) => !enUso.has(r.id));
+      const opciones = libres.length ? libres : pool;
+      if (!opciones.length) continue; // sin sustituto: mejor dejarlo que un hueco
+      dias[dia] = opciones[(Number(dia) - 1) % opciones.length].id;
+      algo = true;
+    }
+    cambios[campo] = dias;
+  }
+  return algo ? cambios : null;
 }
 
 // La comida y la cena de HOY según el menú guardado. El menú NO caduca al

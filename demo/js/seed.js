@@ -9,7 +9,7 @@
 // Solo se ofrece cuando no hay ninguna cuenta creada todavía, para no
 // duplicar nada si ya has empezado a usarla.
 
-import { addCuenta, addCategoria, addSuscripcion } from "./db.js?v=99";
+import { addCuenta, addCategoria, addSuscripcion } from "./db.js?v=100";
 
 const hoy = new Date().toISOString().slice(0, 10);
 

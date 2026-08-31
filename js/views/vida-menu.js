@@ -16,11 +16,12 @@ import {
   recetaPorId,
   recetasDisponibles,
   generarMenuSemana,
+  repararMenu,
   guardarMenu,
   lunesDe,
-} from "../vida.js?v=99";
-import { openModal, closeModal, esc } from "../modal.js?v=99";
-import { efectoAlGuardar } from "../efectos.js?v=99";
+} from "../vida.js?v=100";
+import { openModal, closeModal, esc } from "../modal.js?v=100";
+import { efectoAlGuardar } from "../efectos.js?v=100";
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const MOMENTOS = [
@@ -214,9 +215,15 @@ export function mountVidaMenu() {
     if (ing) {
       const id = ing.dataset.ingrediente;
       const lista = new Set(marcados());
-      if (lista.has(id)) lista.delete(id);
+      const quitando = lista.has(id);
+      if (quitando) lista.delete(id);
       else lista.add(id);
-      await guardarMenu({ ingredientes: [...lista] }).catch(() => {});
+      const datos = { ingredientes: [...lista] };
+      // Quitar un ingrediente NO rehace la semana entera: solo se cambian
+      // los platos que lo usaban; el resto del menú se queda tal cual.
+      // Marcar uno nuevo no toca nada (los platos de antes siguen valiendo).
+      if (quitando) Object.assign(datos, repararMenu([...lista]) || {});
+      await guardarMenu(datos).catch(() => {});
       return;
     }
     if (e.target.closest("#btn-nuevo-plato")) {
