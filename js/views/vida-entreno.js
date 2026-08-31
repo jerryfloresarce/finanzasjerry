@@ -21,10 +21,10 @@ import {
   tecnicaDe,
   urlVideoTecnica,
   TECNICA_CROL,
-} from "../vida.js?v=102";
-import { fechaISO, formatFecha } from "../db.js?v=102";
-import { efectoAlGuardar } from "../efectos.js?v=102";
-import { openModal, closeModal, esc } from "../modal.js?v=102";
+} from "../vida.js?v=103";
+import { fechaISO, formatFecha } from "../db.js?v=103";
+import { efectoAlGuardar } from "../efectos.js?v=103";
+import { openModal, closeModal, esc } from "../modal.js?v=103";
 
 let tipoActivo = null;
 
@@ -95,6 +95,18 @@ export function mountVidaEntreno() {
   // queda a salvo de recargas y cierres.
   root.addEventListener("input", (e) => {
     if (e.target.closest("#form-entreno")) apuntarBorrador(root);
+  });
+  // El número gris de las repes es solo el OBJETIVO (placeholder): parecía
+  // un valor puesto y "Guardar" se encontraba las casillas vacías. Ahora
+  // tocar una casilla vacía la rellena sola con el objetivo (y lo deja
+  // seleccionado: teclear encima lo sustituye). Una serie hecha = un toque.
+  root.addEventListener("focusin", (e) => {
+    const i = e.target;
+    if (i.matches?.("[data-reps]") && i.value === "" && i.placeholder) {
+      i.value = i.placeholder;
+      i.select?.();
+      apuntarBorrador(root);
+    }
   });
   root.addEventListener("click", async (e) => {
     const chip = e.target.closest("[data-tipo-entreno]");
@@ -412,7 +424,8 @@ async function guardarSesion(root) {
       if (series.length) data.ejercicios.push({ nombre: plan.nombre, series });
     });
     if (data.ejercicios.length === 0) {
-      root.querySelector("#entreno-error").textContent = "Apunta al menos una serie antes de guardar.";
+      root.querySelector("#entreno-error").textContent =
+        "Las repeticiones están vacías: el número gris es solo el objetivo. Toca la casilla de cada serie hecha (se rellena sola) o escribe tus repes.";
       return;
     }
   } else {

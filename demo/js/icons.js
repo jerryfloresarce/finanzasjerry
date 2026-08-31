@@ -3,7 +3,7 @@
 // icon() de antes para no tocar el resto de las vistas — solo cambia
 // cómo se genera el marcado por dentro.
 
-import { paletaTema } from "./tema.js?v=102";
+import { paletaTema } from "./tema.js?v=103";
 
 const PH = {
   dashboard: "squares-four",
