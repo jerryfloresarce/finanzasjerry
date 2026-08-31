@@ -3,7 +3,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "./firebase-init.js?v=105";
+import { auth } from "./firebase-init.js?v=106";
 
 const loginScreen = document.getElementById("login-screen");
 const appShell = document.getElementById("app-shell");

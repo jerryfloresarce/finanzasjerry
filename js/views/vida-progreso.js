@@ -29,11 +29,11 @@ import {
   retosDeFuerza,
   pesoCorporalActual,
   INNEGOCIABLES,
-} from "../vida.js?v=105";
-import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=105";
-import { esc } from "../modal.js?v=105";
-import { colorTema } from "../tema.js?v=105";
-import { efectoDeCelebracion } from "../efectos.js?v=105";
+} from "../vida.js?v=106";
+import { fechaISO, fromTimestamp, formatEUR, formatFecha } from "../db.js?v=106";
+import { esc } from "../modal.js?v=106";
+import { colorTema } from "../tema.js?v=106";
+import { efectoDeCelebracion } from "../efectos.js?v=106";
 
 let currentState = null;
 let chartPeso = null;
@@ -211,7 +211,8 @@ export function renderVidaProgreso(state) {
         <p class="entity-card__meta" style="margin-top:-6px;">
           Puntos de esta semana, de lunes a hoy. Gana quien se cuida — no
           quien se machaca: los puntos salen de dormir, moverse, comer bien
-          y cumplir lo tuyo. Perder este duelo también es ganar.
+          y cumplir lo tuyo. Un día redondo = los 4 innegociables cumplidos.
+          Perder este duelo también es ganar.
         </p>
         <div class="duelo-tabla">
           <div class="duelo-fila duelo-fila--cabecera"><span></span><span>💚 Jerry</span><span>💗 Gaby</span></div>

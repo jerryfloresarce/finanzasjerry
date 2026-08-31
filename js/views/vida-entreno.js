@@ -21,10 +21,10 @@ import {
   tecnicaDe,
   urlVideoTecnica,
   TECNICA_CROL,
-} from "../vida.js?v=105";
-import { fechaISO, formatFecha } from "../db.js?v=105";
-import { efectoAlGuardar } from "../efectos.js?v=105";
-import { openModal, closeModal, esc } from "../modal.js?v=105";
+} from "../vida.js?v=106";
+import { fechaISO, formatFecha } from "../db.js?v=106";
+import { efectoAlGuardar } from "../efectos.js?v=106";
+import { openModal, closeModal, esc } from "../modal.js?v=106";
 
 let tipoActivo = null;
 
@@ -54,6 +54,7 @@ function apuntarBorrador(root) {
         tipo: tipoActivo,
         pesos,
         reps,
+        fecha_sesion: f.querySelector("#entreno-fecha")?.value ?? "",
         duracion: f.querySelector("#entreno-duracion")?.value ?? "",
         nota: f.querySelector("#entreno-nota")?.value ?? "",
         zonas: [...f.querySelectorAll("[data-zona].chip--on")].map((b) => b.dataset.zona),
@@ -406,8 +407,11 @@ async function guardarSesion(root) {
   const tipo = tipoActivo;
   const esFuerza = Boolean(PLANES[tipo]);
   const f = root.querySelector("#form-entreno");
+  // La fecha del entreno es editable: apuntarlo tarde (o pasada la
+  // medianoche) no debe regalarle la sesión al día equivocado.
+  const fechaElegida = f.querySelector("#entreno-fecha")?.value;
   const data = {
-    fecha: fechaISO(),
+    fecha: fechaElegida && fechaElegida <= fechaISO() ? fechaElegida : fechaISO(),
     tipo,
     duracion_min: Number(f.querySelector("#entreno-duracion")?.value || 0) || null,
     gym_lleno: Boolean(f.querySelector("#entreno-lleno")?.checked),
@@ -566,6 +570,10 @@ export function renderVidaEntreno(_state, forzar = false) {
       <div id="form-entreno">
         ${cuerpo}
         <div class="form-grid" style="margin-top:12px;">
+          <label class="field">
+            <span class="field__label">¿De qué día es?</span>
+            <input type="date" id="entreno-fecha" value="${bor?.fecha_sesion || fechaISO()}" max="${fechaISO()}" data-prefill="${bor?.fecha_sesion || fechaISO()}" title="Si lo apuntas tarde (o pasada la medianoche), pon el día en que entrenaste" />
+          </label>
           <label class="field">
             <span class="field__label">Duración (min)</span>
             <input type="number" id="entreno-duracion" placeholder="75" value="${bor?.duracion || ""}" data-prefill="${bor?.duracion || ""}" />

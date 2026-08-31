@@ -39,13 +39,13 @@ import {
   alternarExtraDelDia,
   cenaEsSobras,
   marcarCenaSobras,
-} from "../vida.js?v=105";
-import { abrirReceta } from "./vida-menu.js?v=105";
-import { pedirVista } from "./vida-agenda.js?v=105";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=105";
-import { fechaISO, formatFecha } from "../db.js?v=105";
-import { efectoDeCelebracion } from "../efectos.js?v=105";
-import { openModal, closeModal, esc } from "../modal.js?v=105";
+} from "../vida.js?v=106";
+import { abrirReceta } from "./vida-menu.js?v=106";
+import { pedirVista } from "./vida-agenda.js?v=106";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=106";
+import { fechaISO, formatFecha } from "../db.js?v=106";
+import { efectoDeCelebracion } from "../efectos.js?v=106";
+import { openModal, closeModal, esc } from "../modal.js?v=106";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -126,6 +126,10 @@ export function mountVidaHoy() {
     if (e.target.closest("#btn-editar-ayer")) {
       fechaEditando = ayerISO();
       renderVidaHoy(currentState);
+      return;
+    }
+    if (e.target.closest("#btn-otro-dia")) {
+      abrirOtroDia();
       return;
     }
     if (e.target.closest("#btn-volver-hoy")) {
@@ -503,7 +507,7 @@ export function renderVidaHoy(state) {
 
     <div class="hoy-cabecera">
       <div>
-        <p class="hoy-cabecera__fecha">${editandoAyer ? "Cerrando AYER · " : ""}${tituloFecha.charAt(0).toUpperCase() + tituloFecha.slice(1)}</p>
+        <p class="hoy-cabecera__fecha">${editandoAyer ? (fechaEditando === ayerISO() ? "Cerrando AYER · " : "Corrigiendo · ") : ""}${tituloFecha.charAt(0).toUpperCase() + tituloFecha.slice(1)}</p>
         <p class="hoy-cabecera__racha"><i class="ph-fill ph-flame" aria-hidden="true"></i> Racha: <strong>${racha}</strong> ${racha === 1 ? "día" : "días"}${diaDeRutina(hoyId) ? ` · Día <strong>${diaDeRutina(hoyId)}</strong>` : ""}</p>
       </div>
       <div class="hoy-puntos ${puntos >= 100 ? "hoy-puntos--pleno" : ""}">
@@ -511,7 +515,11 @@ export function renderVidaHoy(state) {
         <span class="hoy-puntos__max">/ 120</span>
       </div>
     </div>
-    ${editandoAyer ? `<button type="button" class="btn btn--ghost btn--sm" id="btn-volver-hoy" style="margin-bottom:12px;">← Volver a hoy</button>` : ""}
+    ${
+      editandoAyer
+        ? `<button type="button" class="btn btn--ghost btn--sm" id="btn-volver-hoy" style="margin-bottom:12px;">← Volver a hoy</button>`
+        : `<button type="button" class="btn btn--ghost btn--sm" id="btn-otro-dia" style="margin-bottom:12px;">✎ Corregir otro día</button>`
+    }
 
     <div class="grid grid--hoy">
       <article class="card">
@@ -676,6 +684,54 @@ export function abrirEditorHorario(fecha) {
 // La to-do list de UN día: lo que hay que hacer ese día además del horario
 // (recados, llamadas, papeleos). Vive en el documento del día (tareas).
 // Se abre desde "Hoy" (botón ☑) y desde el Calendario personal.
+// ---------- Corregir otro día ----------
+//
+// Cualquier fecha pasada se puede abrir en Hoy y editar con las mismas
+// reglas de siempre: marcar, desmarcar, apuntar a medias y cerrar. Un
+// entreno olvidado, un check sin marcar, un día sin cerrar… la racha y
+// los puntos se recalculan solos.
+function abrirOtroDia() {
+  openModal(
+    `
+    <h2 class="modal__title">Corregir otro día</h2>
+    <p class="entity-card__meta" style="margin:-8px 0 12px;">
+      Elige el día y lo editas como si fuera hoy. La racha y los puntos se
+      recalculan solos al guardar.
+    </p>
+    <form id="form-otro-dia" class="form-grid">
+      <label class="field">
+        <span class="field__label">¿Qué día?</span>
+        <input type="date" name="fecha" required value="${ayerISO()}" max="${fechaISO()}" />
+      </label>
+      <p class="field-error" id="otro-dia-error"></p>
+      <div class="modal__actions field--full">
+        <button type="button" class="btn btn--ghost" id="btn-cancel-otro">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Abrir ese día</button>
+      </div>
+    </form>`,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancel-otro").addEventListener("click", closeModal);
+        root.querySelector("#form-otro-dia").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const v = e.target.fecha.value;
+          const error = root.querySelector("#otro-dia-error");
+          if (!v || v > fechaISO()) return;
+          // Los días de ANTES del START están apartados a propósito (no
+          // cuentan para la racha ni los puntos): editarlos no se vería.
+          if (vida.sistema.fecha_inicio && v < vida.sistema.fecha_inicio) {
+            error.textContent = "Ese día es anterior a tu START: los de antes no cuentan para la racha ni se pueden editar.";
+            return;
+          }
+          fechaEditando = v;
+          closeModal();
+          renderVidaHoy(currentState);
+        });
+      },
+    }
+  );
+}
+
 // ---------- Algo quedó a medias ----------
 //
 // Un innegociable (o un bonus) que no salió del todo no se marca — no hay
