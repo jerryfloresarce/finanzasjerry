@@ -1067,6 +1067,18 @@ button.agenda-bloque { cursor: pointer; }
 .ciclo-sensacion,
 .ciclo-opcion { cursor: pointer; }
 .ciclo-sensacion--sola { display: inline-block; margin-bottom: 4px; }
+/* La salud del día en la ficha del ciclo: cuatro campos cortos en rejilla,
+   y la etiqueta de ciclo irregular del historial. */
+.ciclo-salud { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.ciclo-tag-irregular {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 0.68rem;
+  vertical-align: 2px;
+}
 .ciclo-sensacion input,
 .ciclo-opcion input { position: absolute; opacity: 0; pointer-events: none; }
 .ciclo-sensacion span,

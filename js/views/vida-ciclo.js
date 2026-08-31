@@ -28,11 +28,11 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "../firebase-init.js?v=104";
-import { vida, guardarSistema } from "../vida.js?v=104";
-import { openModal, closeModal, esc } from "../modal.js?v=104";
-import { icon } from "../icons.js?v=104";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=104";
+import { db } from "../firebase-init.js?v=105";
+import { vida, guardarSistema } from "../vida.js?v=105";
+import { openModal, closeModal, esc } from "../modal.js?v=105";
+import { icon } from "../icons.js?v=105";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=105";
 
 // ---- Datos: colecciones propias, escuchadas aquí mismo.
 const addCiclos = (data) => addDoc(collection(db, "ciclos"), data);
@@ -348,6 +348,17 @@ export function renderVidaCiclo() {
            </p>`
           : ""
     }
+    ${
+      duraciones.length >= 2
+        ? `<p class="entity-card__meta" style="margin-top:8px">
+            Tus últimos ciclos han ido de <strong>${Math.min(...duraciones)}</strong> a <strong>${Math.max(...duraciones)}</strong> días${
+              Math.max(...duraciones) - Math.min(...duraciones) <= 7
+                ? " — bastante regulares."
+                : " — con algún baile, que es normal; si se hace costumbre, coméntalo en consulta."
+            }
+          </p>`
+        : ""
+    }
     <p class="entity-card__meta" style="margin-top:8px">
       Anticonceptivo: <strong>${nombreAnticonceptivo(anticonceptivo) || "sin apuntar"}</strong>
       · <button type="button" class="btn btn--ghost btn--sm" id="btn-anticonceptivo">${anticonceptivo ? "Cambiar" : "Apuntarlo"}</button>
@@ -391,11 +402,15 @@ export function renderVidaCiclo() {
           const dias = c.fin ? diasEntre(c.inicio, c.fin) + 1 : null;
           const siguiente = ciclos[i - 1];
           const duracion = siguiente ? diasEntre(c.inicio, siguiente.inicio) : null;
+          // Un ciclo se marca irregular si se sale del rango típico (21–35
+          // días) o se aleja más de 7 días de SU mediana. Informativo, sin
+          // drama: un irregular suelto es normal.
+          const irregular = duracion && (duracion < 21 || duracion > 35 || (duracionTipica && Math.abs(duracion - duracionTipica) > 7));
           return wrapSwipe(
             `
             <div class="entity-row">
               <div class="entity-row__body">
-                <p class="entity-row__name">${bonito(c.inicio)}${c.fin ? " – " + bonito(c.fin) : " · sin fecha de fin"}</p>
+                <p class="entity-row__name">${bonito(c.inicio)}${c.fin ? " – " + bonito(c.fin) : " · sin fecha de fin"}${irregular ? ` <span class="ciclo-tag-irregular">Irregular</span>` : ""}</p>
                 <p class="entity-row__meta">
                   ${dias ? `${dias} ${dias === 1 ? "día" : "días"} de regla` : "Todavía sin cerrar"}${
                     duracion ? ` · ciclo de ${duracion} días` : ""
@@ -635,6 +650,24 @@ function abrirNota(fecha, nota) {
       </div>
 
       <div class="field field--full">
+        <span class="field__label">Salud del día (opcional)</span>
+        <div class="ciclo-salud">
+          <label class="field"><span class="field__label">Temperatura (°C)</span>
+            <input type="number" name="temperatura" step="0.05" min="34" max="42" inputmode="decimal" placeholder="36,6" value="${nota?.temperatura ?? ""}" /></label>
+          <label class="field"><span class="field__label">Sueño (horas)</span>
+            <input type="number" name="sueno_h" step="0.5" min="0" max="24" inputmode="decimal" placeholder="8" value="${nota?.sueno_h ?? ""}" /></label>
+          <label class="field"><span class="field__label">Peso (kg)</span>
+            <input type="number" name="peso_kg" step="0.1" min="0" inputmode="decimal" placeholder="—" value="${nota?.peso_kg ?? ""}" /></label>
+          <label class="field"><span class="field__label">Agua (vasos)</span>
+            <input type="number" name="agua_vasos" step="1" min="0" max="20" inputmode="numeric" placeholder="6" value="${nota?.agua_vasos ?? ""}" /></label>
+        </div>
+        <p class="entity-card__meta" style="margin:6px 0 0;">
+          La temperatura basal (recién despierta, antes de levantarte) sube
+          ~0,3 °C tras ovular: apuntada a diario dibuja tu ciclo de verdad.
+        </p>
+      </div>
+
+      <div class="field field--full">
         <span class="field__label">Estado de ánimo</span>
         <div class="ciclo-sensaciones">
           ${ANIMOS.map(
@@ -736,6 +769,10 @@ function abrirNota(fecha, nota) {
             flujo: f.flujo.value || null,
             flujo_tipo: f.flujo_tipo.value || null,
             dolor: Number(f.dolor.value || 0),
+            temperatura: f.temperatura.value !== "" ? Number(f.temperatura.value) : null,
+            sueno_h: f.sueno_h.value !== "" ? Number(f.sueno_h.value) : null,
+            peso_kg: f.peso_kg.value !== "" ? Number(f.peso_kg.value) : null,
+            agua_vasos: f.agua_vasos.value !== "" ? Number(f.agua_vasos.value) : null,
             animos: [...f.querySelectorAll('[name="animo"]:checked')].map((c) => c.value),
             sintomas: [...f.querySelectorAll('[name="sintoma"]:checked')].map((c) => c.value),
             // El campo viejo se vacía: lo apuntado queda ya separado.
