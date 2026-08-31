@@ -21,16 +21,50 @@ import {
   tecnicaDe,
   urlVideoTecnica,
   TECNICA_CROL,
-} from "../vida.js?v=100";
-import { fechaISO, formatFecha } from "../db.js?v=100";
-import { efectoAlGuardar } from "../efectos.js?v=100";
-import { openModal, closeModal, esc } from "../modal.js?v=100";
+} from "../vida.js?v=101";
+import { fechaISO, formatFecha } from "../db.js?v=101";
+import { efectoAlGuardar } from "../efectos.js?v=101";
+import { openModal, closeModal, esc } from "../modal.js?v=101";
 
 let tipoActivo = null;
 
 function tipoDeHoy() {
   const t = SEMANA_TIPO[new Date().getDay()].tipo;
   return TIPOS_ENTRENO.includes(t) ? t : TIPOS_ENTRENO[0];
+}
+
+// El entreno a medias NO se pierde: lo tecleado se apunta solo (con un
+// respiro de un segundo) en sistema.entreno_borrador. Cerrar la app a
+// mitad de sesión, que llegue una versión nueva, cambiar de pantalla…
+// al volver, el formulario sigue como estaba. Se limpia al guardar.
+let tipoElegidoAMano = false;
+let timerBorrador = null;
+function apuntarBorrador(root) {
+  clearTimeout(timerBorrador);
+  timerBorrador = setTimeout(() => {
+    const f = root.querySelector("#form-entreno");
+    if (!f) return;
+    const pesos = {};
+    const reps = {};
+    f.querySelectorAll("[data-peso]").forEach((i) => (pesos[`${i.dataset.peso}:${i.dataset.serie}`] = i.value));
+    f.querySelectorAll("[data-reps]").forEach((i) => (reps[`${i.dataset.reps}:${i.dataset.serie}`] = i.value));
+    guardarSistema({
+      entreno_borrador: {
+        fecha: fechaISO(),
+        tipo: tipoActivo,
+        pesos,
+        reps,
+        duracion: f.querySelector("#entreno-duracion")?.value ?? "",
+        nota: f.querySelector("#entreno-nota")?.value ?? "",
+        zonas: [...f.querySelectorAll("[data-zona].chip--on")].map((b) => b.dataset.zona),
+        lleno: Boolean(f.querySelector("#entreno-lleno")?.checked),
+      },
+    }).catch(() => {});
+  }, 900);
+}
+function borradorDeHoy() {
+  const b = vida.sistema.entreno_borrador;
+  return b && b.fecha === fechaISO() ? b : null;
 }
 
 // Las zonas del cuerpo que se pueden marcar en una sesión de yoga (o en
@@ -57,16 +91,23 @@ function formularioConDatos(el) {
 
 export function mountVidaEntreno() {
   const root = document.getElementById("view-entreno");
+  // Cada tecla del formulario alimenta el borrador: la sesión a medias
+  // queda a salvo de recargas y cierres.
+  root.addEventListener("input", (e) => {
+    if (e.target.closest("#form-entreno")) apuntarBorrador(root);
+  });
   root.addEventListener("click", async (e) => {
     const chip = e.target.closest("[data-tipo-entreno]");
     if (chip) {
       tipoActivo = chip.dataset.tipoEntreno;
+      tipoElegidoAMano = true;
       renderVidaEntreno(null, true);
       return;
     }
     const zona = e.target.closest("[data-zona]");
     if (zona) {
       zona.classList.toggle("chip--on");
+      apuntarBorrador(root);
       return;
     }
     // Poner (o quitar) la rutina activa en un día de la semana: toca un
@@ -362,11 +403,12 @@ async function guardarSesion(root) {
   };
   if (esFuerza) {
     PLANES[tipo].forEach((plan, idx) => {
-      const peso = Number(f.querySelector(`[data-peso="${idx}"]`)?.value || 0);
+      // Cada serie con SU peso: las primeras con chaleco y las últimas sin
+      // él quedan apuntadas tal cual fueron.
+      const pesos = [...f.querySelectorAll(`[data-peso="${idx}"]`)].map((i) => Number(i.value || 0));
       const series = [...f.querySelectorAll(`[data-reps="${idx}"]`)]
-        .map((i) => Number(i.value || 0))
-        .filter((r) => r > 0)
-        .map((reps) => ({ peso, reps }));
+        .map((i, s) => ({ peso: pesos[s] ?? pesos[0] ?? 0, reps: Number(i.value || 0) }))
+        .filter((x) => x.reps > 0);
       if (series.length) data.ejercicios.push({ nombre: plan.nombre, series });
     });
     if (data.ejercicios.length === 0) {
@@ -385,6 +427,9 @@ async function guardarSesion(root) {
   }
   try {
     await addEntreno(data);
+    // Entreno guardado = borrador cumplido: se limpia para que no vuelva.
+    clearTimeout(timerBorrador);
+    guardarSistema({ entreno_borrador: null }).catch(() => {});
     efectoAlGuardar();
     renderVidaEntreno(null, true);
   } catch (err) {
@@ -395,11 +440,17 @@ async function guardarSesion(root) {
 export function renderVidaEntreno(_state, forzar = false) {
   const el = document.getElementById("entreno-content");
   if (!el) return;
+  // Con un borrador de HOY a medias, la pantalla vuelve sola a esa rutina
+  // (salvo que el usuario haya elegido otra a mano en esta visita).
+  const borHoy = borradorDeHoy();
+  if (!tipoElegidoAMano && borHoy && TIPOS_ENTRENO.includes(borHoy.tipo)) tipoActivo = borHoy.tipo;
   if (!tipoActivo) tipoActivo = tipoDeHoy();
   if (!forzar && el.querySelector("#form-entreno") && formularioConDatos(el)) return;
 
   const esFuerza = Boolean(PLANES[tipoActivo]);
   const ultima = ultimoEntrenoDeTipo(tipoActivo);
+  // El borrador solo rellena si es de hoy Y de la rutina que se está viendo.
+  const bor = borHoy && borHoy.tipo === tipoActivo ? borHoy : null;
   const deHoy = vida.entrenos.filter((e) => e.fecha === fechaISO());
   const toca = SEMANA_TIPO[new Date().getDay()];
 
@@ -423,16 +474,24 @@ export function renderVidaEntreno(_state, forzar = false) {
           </div>
           ${plan.nota ? `<p class="ejercicio__nota">${esc(plan.nota)}</p>` : ""}
           ${sug?.texto ? `<p class="ejercicio__sube"><i class="ph-fill ph-trend-up" aria-hidden="true"></i> ${sug.texto}</p>` : ""}
-          <div class="ejercicio__series">
-            <label class="ejercicio__peso">
-              <span>kg</span>
-              <input type="number" step="0.5" value="${peso || ""}" data-peso="${idx}" data-prefill="${peso || ""}" />
-            </label>
-            ${Array.from({ length: plan.series }, (_, s) => `
-              <label class="ejercicio__reps">
+          <div class="ejercicio__series ejercicio__series--porserie">
+            <div class="serie-col serie-col--leyenda"><span>&nbsp;</span><span>kg</span><span>${unidad === "reps" ? "reps" : unidad}</span></div>
+            ${Array.from({ length: plan.series }, (_, s) => {
+              // CADA serie lleva su kg: las primeras con el chaleco y las
+              // últimas sin él, por ejemplo. El borrador manda si lo hay;
+              // si no, el kg que se usó en ESA serie la última vez (o la
+              // sugerencia de subir, cuando toca).
+              const ult = (ultima?.ejercicios || []).find((x) => x.nombre === plan.nombre);
+              const pesoSerie = bor ? (bor.pesos?.[`${idx}:${s}`] ?? "") : (sug?.texto ? sug.peso : (ult?.series?.[s]?.peso ?? peso));
+              const repsSerie = bor ? (bor.reps?.[`${idx}:${s}`] ?? "") : "";
+              const vPeso = pesoSerie === 0 ? "0" : pesoSerie || "";
+              return `
+              <div class="serie-col">
                 <span>S${s + 1}</span>
-                <input type="number" inputmode="numeric" placeholder="${unidad === "reps" ? plan.repsMin : plan.repsMax}" data-reps="${idx}" data-prefill="" />
-              </label>`).join("")}
+                <input type="number" step="0.5" value="${vPeso}" data-peso="${idx}" data-serie="${s}" data-prefill="${vPeso}" title="Los kg de la serie ${s + 1}" />
+                <input type="number" inputmode="numeric" placeholder="${unidad === "reps" ? plan.repsMin : plan.repsMax}" value="${repsSerie}" data-reps="${idx}" data-serie="${s}" data-prefill="${repsSerie}" />
+              </div>`;
+            }).join("")}
           </div>
         </div>`;
       })
@@ -454,13 +513,13 @@ export function renderVidaEntreno(_state, forzar = false) {
           ? `
       <p class="field__label" style="margin:4px 0 6px;">¿Qué has trabajado o estirado? (opcional)</p>
       <div class="chips" style="margin-bottom:12px;">
-        ${ZONAS_CUERPO.map((z) => `<button type="button" class="chip" data-zona="${z}">${z}</button>`).join("")}
+        ${ZONAS_CUERPO.map((z) => `<button type="button" class="chip ${bor?.zonas?.includes(z) ? "chip--on" : ""}" data-zona="${z}">${z}</button>`).join("")}
       </div>`
           : ""
       }
       <label class="field field--full">
         <span class="field__label">Nota (opcional)</span>
-        <input type="text" id="entreno-nota" placeholder="${tipoActivo === "piscina" ? "8×50 m a crol" : tipoActivo === "yoga" ? "Con la abuela" : "12 %, 5 km/h"}" data-prefill="" />
+        <input type="text" id="entreno-nota" placeholder="${tipoActivo === "piscina" ? "8×50 m a crol" : tipoActivo === "yoga" ? "Con la abuela" : "12 %, 5 km/h"}" value="${esc(bor?.nota || "")}" data-prefill="${esc(bor?.nota || "")}" />
       </label>`;
   }
 
@@ -496,10 +555,10 @@ export function renderVidaEntreno(_state, forzar = false) {
         <div class="form-grid" style="margin-top:12px;">
           <label class="field">
             <span class="field__label">Duración (min)</span>
-            <input type="number" id="entreno-duracion" placeholder="75" data-prefill="" />
+            <input type="number" id="entreno-duracion" placeholder="75" value="${bor?.duracion || ""}" data-prefill="${bor?.duracion || ""}" />
           </label>
           ${esFuerza ? `<label class="field-check" style="align-self:end;">
-            <input type="checkbox" id="entreno-lleno" />
+            <input type="checkbox" id="entreno-lleno" ${bor?.lleno ? "checked" : ""} />
             El gimnasio estaba lleno
           </label>` : ""}
         </div>

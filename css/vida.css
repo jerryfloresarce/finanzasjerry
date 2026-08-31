@@ -1118,6 +1118,16 @@ button.agenda-bloque { cursor: pointer; }
   color: var(--text-primary);
   font-size: 0.88rem;
 }
+/* Serie a serie: cada serie del entreno con su kg (arriba) y sus repes
+   (abajo) — con chaleco unas, sin él otras. */
+.ejercicio__series--porserie { display: flex; gap: 8px; align-items: end; flex-wrap: wrap; }
+.serie-col { display: grid; gap: 4px; justify-items: center; }
+.serie-col > span { font-size: 0.72rem; color: var(--text-muted); }
+.serie-col input { width: 62px; text-align: center; }
+.serie-col--leyenda { justify-items: end; }
+.serie-col--leyenda span { line-height: 38px; }
+.serie-col--leyenda span:first-child { line-height: 1; }
+
 /* Retos de fuerza (Progreso): la escalera de niveles con su barra y el
    banner de reto superado. */
 .retos-lista { display: grid; gap: 12px; margin: 12px 0; }

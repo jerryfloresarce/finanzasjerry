@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=100";
-import { fechaISO } from "./db.js?v=100";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=100";
+import { db } from "./firebase-init.js?v=101";
+import { fechaISO } from "./db.js?v=101";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=101";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
