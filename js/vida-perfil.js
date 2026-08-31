@@ -11,8 +11,8 @@
 //
 // Este archivo es PERSONAL (vida-*): el kit lo excluye entero.
 
-import { registrarGanchosDeDatos, refiltrarColeccion } from "./db.js?v=91";
-import { usarClaveDeTema, aplicarTema, temaGuardadoEnLocal } from "./tema.js?v=91";
+import { registrarGanchosDeDatos, refiltrarColeccion } from "./db.js?v=92";
+import { usarClaveDeTema, aplicarTema, temaGuardadoEnLocal } from "./tema.js?v=92";
 
 export const PERFILES = {
   jerry: {
@@ -130,7 +130,7 @@ if (esGaby()) {
   // Además del banner de datos de Jerry, en su app se esconde Préstamos:
   // ella no presta dinero, y un apartado que no se usa solo estorba. La
   // ruta sigue existiendo por si algún día lo quiere.
-  estilo.textContent = "#seed-banner{display:none!important} .nav__link[data-route=\"prestamos\"]{display:none!important}";
+  estilo.textContent = "#seed-banner{display:none!important} .nav__link[data-route=\"prestamos\"]{display:none!important} .nav__link[data-route=\"oficina\"]{display:none!important}";
   document.head.appendChild(estilo);
 } else {
   // Y al revés: el apartado Ciclo (su regla) es de Gaby. En la app de

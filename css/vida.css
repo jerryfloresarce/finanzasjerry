@@ -793,6 +793,33 @@ button.agenda-bloque { cursor: pointer; }
   font-weight: 600;
 }
 
+/* El día como checklist (perfil de Jerry): cada bloque lleva su círculo
+   de hecho a la derecha, y el bloque tachado se apaga en verde suave. */
+.bloque-check {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  align-self: center;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+  color: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.bloque-check:hover { border-color: var(--success); }
+.bloque-check--on { background: var(--success); border-color: var(--success); color: var(--bg, #10140f); }
+.dia-bloque--hecho .dia-bloque__titulo { text-decoration: line-through; text-decoration-thickness: 1px; color: var(--text-muted); }
+.dia-bloque--hecho .dia-bloque__detalle { opacity: 0.6; }
+.dia-bloque--hecho .dia-bloque__punto { background: var(--success); border-color: var(--success); }
+
 /* Bloque de la plantilla tapado por una cita con duración: se queda en
    segundo plano, tachado suave, mientras la cita ocupa su rato. */
 .dia-bloque--tapado { opacity: 0.35; }

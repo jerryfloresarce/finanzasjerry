@@ -7,10 +7,24 @@
 // la semana, ＋ apunta citas con sus minutos aprox, ☑ abre la to-do list
 // del día, y tocar una cita apunta cuánto tardaste al final.
 
-import { vida, bloquesDelDia, bloqueActual, avisoDeEntrenoSinHueco, diaPorFecha, guardarDia, SEMANA_TIPO } from "../vida.js?v=91";
-import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=91";
-import { openModal, closeModal, esc } from "../modal.js?v=91";
-import { fechaISO } from "../db.js?v=91";
+import {
+  vida,
+  bloquesDelDia,
+  bloqueActual,
+  avisoDeEntrenoSinHueco,
+  diaPorFecha,
+  guardarDia,
+  SEMANA_TIPO,
+  conChecklistDeDia,
+  claveDeBloque,
+  bloqueHecho,
+  alternarBloqueHecho,
+  extrasDelDia,
+  alternarExtraDelDia,
+} from "../vida.js?v=92";
+import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=92";
+import { openModal, closeModal, esc } from "../modal.js?v=92";
+import { fechaISO } from "../db.js?v=92";
 
 // Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
 // que mandan las flechas: en mes salta de mes en mes, en semana de semana
@@ -40,6 +54,7 @@ function rutaDeBloque(b) {
   const t = `${b.titulo || ""} ${b.detalle || ""}`;
   if (/entren|gym|gim|fuerza|piscina|yoga|calisten|pierna|tir[oó]n|empuje|core|caminat|estir/i.test(t)) return { href: "#/entreno", icono: "ph-barbell" };
   if (/desayun|comida|cena|batch|cocin|comer/i.test(t)) return { href: "#/menu", icono: "ph-fork-knife" };
+  if (/oficina/i.test(t)) return { href: "#/oficina", icono: "ph-briefcase" };
   return null;
 }
 
@@ -86,6 +101,24 @@ export function mountVidaAgenda() {
     const tareasBtn = e.target.closest("[data-tareas-fecha]");
     if (tareasBtn) {
       abrirTareasDia(tareasBtn.dataset.tareasFecha);
+      return;
+    }
+    // Los extras del día (frutas, rasurado) y los bloques tachables.
+    const extra = e.target.closest("[data-extra-toggle]");
+    if (extra) {
+      const [fechaId, id] = extra.dataset.extraToggle.split("|");
+      await alternarExtraDelDia(fechaId, id).catch(() => {});
+      return;
+    }
+    const checkBloque = e.target.closest("[data-check-bloque]");
+    if (checkBloque) {
+      // El check puede vivir dentro de un bloque-enlace (entreno, menú):
+      // marcar hecho no debe navegar — se para aquí y también se corta el
+      // camino hacia el listener global de <a href="#/...">.
+      e.preventDefault();
+      e.stopPropagation();
+      const [fechaId, ...resto] = checkBloque.dataset.checkBloque.split("|");
+      await alternarBloqueHecho(fechaId, resto.join("|")).catch(() => {});
       return;
     }
     // Marcar una tarea directamente desde la tarjeta del día.
@@ -242,6 +275,8 @@ function vistaDia() {
   const tareas = diaPorFecha(fechaId)?.tareas || [];
   const aviso = avisoDeEntrenoSinHueco(fecha);
   const toca = SEMANA_TIPO[fecha.getDay()];
+  const conChecks = conChecklistDeDia();
+  const extras = extrasDelDia(fechaId);
   let nCita = -1;
 
   return `
@@ -255,8 +290,16 @@ function vistaDia() {
         </div>
       </div>
       ${
-        tareas.length
+        tareas.length || extras.length
           ? `<div class="agenda-tareas" style="border-top:none; padding-top:0; margin:8px 0 4px;">
+        ${extras
+          .map(
+            (x) => `
+          <button type="button" class="agenda-tarea ${x.hecho ? "agenda-tarea--hecha" : ""}" data-extra-toggle="${fechaId}|${x.id}">
+            <span class="agenda-tarea__circulo">${x.hecho ? "✓" : ""}</span>${x.nombre}
+          </button>`
+          )
+          .join("")}
         ${tareas
           .map(
             (t, i) => `
@@ -280,13 +323,14 @@ function vistaDia() {
                 ? ` data-cita-real="${fechaId}|${(nCita += 1)}" role="button" title="Toca para apuntar cuánto tardaste"`
                 : "";
             return `
-          <${etiqueta} class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${bl.tapado ? "dia-bloque--tapado" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${esHoy && i < indiceAhora ? "dia-bloque--pasado" : ""}"${attrs}>
+          <${etiqueta} class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${bl.tapado ? "dia-bloque--tapado" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${esHoy && i < indiceAhora ? "dia-bloque--pasado" : ""} ${conChecks && bloqueHecho(fechaId, bl) ? "dia-bloque--hecho" : ""}"${attrs}>
             <span class="dia-bloque__hora">${bl.h}</span>
             <span class="dia-bloque__punto" aria-hidden="true"></span>
             <span class="dia-bloque__cuerpo">
               <span class="dia-bloque__titulo">${bl.cita ? "📌 " : ""}${ruta ? `<i class="ph ${ruta.icono}" aria-hidden="true"></i> ` : ""}${esc(bl.titulo)}${ruta ? ` <span class="agenda-bloque__ir">›</span>` : ""}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
               ${bl.detalle ? `<span class="dia-bloque__detalle">${esc(bl.detalle)}</span>` : ""}
             </span>
+            ${conChecks ? `<button type="button" class="bloque-check ${bloqueHecho(fechaId, bl) ? "bloque-check--on" : ""}" data-check-bloque="${fechaId}|${esc(claveDeBloque(bl))}" title="Marcar como hecho">✓</button>` : ""}
           </${etiqueta}>`;
           })
           .join("")}

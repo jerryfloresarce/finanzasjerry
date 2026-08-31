@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=91";
-import { fechaISO } from "./db.js?v=91";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=91";
+import { db } from "./firebase-init.js?v=92";
+import { fechaISO } from "./db.js?v=92";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=92";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -584,6 +584,52 @@ export function initVida(cb) {
 // el sistema/menú de cada uno vive en su propio documento.
 const sellar = (data) => ({ ...data, perfil: perfilVisto() });
 export const guardarDia = (fechaId, data) => setDoc(doc(db, "dias", docIdDia(fechaId)), sellar({ ...data, fecha: fechaId }), { merge: true });
+
+// ---------- El día como checklist (solo Jerry) ----------
+//
+// Jerry va tachando el día MIENTRAS pasa, no al final: cada bloque del
+// horario se puede marcar hecho (dias/{fecha}.hechos, por clave de
+// bloque), y además hay "extras" del día — las 3 frutas una a una y el
+// rasurado en días alternos (dias/{fecha}.extras).
+export const conChecklistDeDia = () => !esGaby();
+
+// La clave de un bloque: hora + título, sin puntos (Firestore no admite
+// "." en claves de mapa). Sobrevive a reordenar el horario; si se cambia
+// el texto de un bloque, su check se pierde — es asumible.
+export const claveDeBloque = (b) => `${b.h || ""} ${b.titulo || ""}`.replace(/[.~/\[\]]/g, "_");
+
+export const bloqueHecho = (fechaId, b) => Boolean(diaPorFecha(fechaId)?.hechos?.[claveDeBloque(b)]);
+
+export async function alternarBloqueHecho(fechaId, clave) {
+  const hechos = { ...(diaPorFecha(fechaId)?.hechos || {}) };
+  hechos[clave] = !hechos[clave];
+  await guardarDia(fechaId, { hechos });
+}
+
+// Rasurado en días alternos, anclado al 31-08-2026 (ese día tocaba).
+const ANCLA_RASURADO = "2026-08-31";
+const tocaRasurarse = (fechaId) => {
+  const dias = Math.round((new Date(fechaId + "T12:00:00") - new Date(ANCLA_RASURADO + "T12:00:00")) / 86400000);
+  return ((dias % 2) + 2) % 2 === 0;
+};
+
+export function extrasDelDia(fechaId) {
+  if (!conChecklistDeDia()) return [];
+  const marcas = diaPorFecha(fechaId)?.extras || {};
+  const lista = [
+    { id: "fruta1", nombre: "🍎 Fruta 1" },
+    { id: "fruta2", nombre: "🍊 Fruta 2" },
+    { id: "fruta3", nombre: "🍌 Fruta 3" },
+  ];
+  if (tocaRasurarse(fechaId)) lista.push({ id: "rasurado", nombre: "🪒 Rasurarse (~10 min, vale mientras trabajas)" });
+  return lista.map((x) => ({ ...x, hecho: Boolean(marcas[x.id]) }));
+}
+
+export async function alternarExtraDelDia(fechaId, id) {
+  const extras = { ...(diaPorFecha(fechaId)?.extras || {}) };
+  extras[id] = !extras[id];
+  await guardarDia(fechaId, { extras });
+}
 export const addEntreno = (data) => addDoc(col("entrenos"), sellar(data));
 export const updateEntreno = (id, data) => updateDoc(doc(db, "entrenos", id), data);
 export const deleteEntreno = (id) => deleteDoc(doc(db, "entrenos", id));
@@ -922,37 +968,96 @@ export function calcularLogros(pesoInicial) {
 // huecos del trabajo (que es donde de verdad se hacen). La pantalla Hoy lo
 // pinta y marca en qué bloque estás ahora mismo.
 
-function horarioLaborable(nombreEntreno) {
+// Desde el 1 de septiembre de 2026 el trabajo es hasta las 17:00: los
+// huecos de casa siguen dentro de la jornada (teletrabajo), la comida se
+// alinea con la de Gaby (14:00) y el estudio se hace en la tienda si está
+// tranquila. Las plantillas viejas se quedan para las fechas anteriores,
+// que el historial no se reescribe.
+const CAMBIO_SALIDA_17 = "2026-09-01";
+const PRIMER_LUNES_PREP_OFICINA = "2026-09-07";
+const PRIMER_MARTES_OFICINA = "2026-09-08";
+
+function horarioLaborable(nombreEntreno, fechaId = "") {
+  if (fechaId < CAMBIO_SALIDA_17)
+    return [
+      { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
+      { h: "08:00", titulo: "Trabajo", detalle: "Desayuno en la primera hora: proteína + fruta" },
+      { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
+      { h: "11:00", titulo: "Fruta 1", detalle: "Y la lavadora: poner, tender o recoger la ropa" },
+      { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
+      { h: "15:00", titulo: "Comer", detalle: "Dientes (2) · fruta 2 de postre" },
+      { h: "15:40", titulo: "Estudio", detalle: "El bloque de verdad, en la mesa" },
+      { h: "16:10", titulo: "Siesta corta o libre", detalle: "Alarma: nunca más allá de las 17:00" },
+      { h: "17:30", titulo: "Salir al gimnasio", detalle: "Mochila hecha · fruta 3 por el camino" },
+      { h: "17:55", titulo: nombreEntreno, detalle: "Ducha allí" },
+      { h: "20:00", titulo: "Tienda", detalle: "" },
+      { h: "22:40", titulo: "En casa · cenar", detalle: "La cena ya estaba hecha: solo calentar" },
+      { h: "23:15", titulo: "Dormir", detalle: "Dientes (3) · móvil fuera de la cama" },
+    ];
+  const bloques = [
+    { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
+    { h: "08:00", titulo: "Trabajo (hasta las 17:00)", detalle: "Desayuno en la primera hora: proteína + fruta" },
+    { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
+    { h: "11:00", titulo: "Lavadora", detalle: "Poner, tender o recoger la ropa" },
+    { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
+    { h: "14:00", titulo: "Comer", detalle: "Con Gaby · dientes (2) · fruta de postre" },
+    { h: "17:00", titulo: "Salida del trabajo", detalle: "Merienda y mochila del gimnasio" },
+    { h: "17:30", titulo: "Salir al gimnasio", detalle: "Fruta por el camino" },
+    { h: "17:55", titulo: nombreEntreno, detalle: "Ducha allí" },
+    { h: "20:00", titulo: "Tienda", detalle: "Hueco de estudio si está tranquila (20-25 min)" },
+    { h: "22:40", titulo: "En casa · cenar", detalle: "La cena ya estaba hecha: solo calentar" },
+    { h: "23:15", titulo: "Dormir", detalle: "Dientes (3) · móvil fuera de la cama" },
+  ];
+  // Los lunes por la noche, si el día siguiente es martes de oficina, se
+  // deja todo preparado — el bloque lleva a la lista de la mochila.
+  if (fechaId >= PRIMER_LUNES_PREP_OFICINA && new Date(fechaId + "T12:00:00").getDay() === 1)
+    bloques.splice(bloques.length - 1, 0, { h: "22:55", titulo: "Preparar la oficina", detalle: "Repasa la lista de la mochila" });
+  return bloques;
+}
+
+function horarioTardeLibre(queToca, fechaId = "") {
+  if (fechaId < CAMBIO_SALIDA_17)
+    return [
+      { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
+      { h: "08:00", titulo: "Trabajo", detalle: "Desayuno en la primera hora: proteína + fruta" },
+      { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
+      { h: "11:00", titulo: "Fruta 1", detalle: "Y la lavadora: poner, tender o recoger la ropa" },
+      { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
+      { h: "15:00", titulo: "Comer", detalle: "Dientes (2) · fruta 2 de postre" },
+      { h: "15:40", titulo: "Estudio", detalle: "El bloque de verdad, en la mesa" },
+      { h: "16:10", titulo: "Tarde libre", detalle: queToca },
+      { h: "20:45", titulo: "Salir hacia la tienda", detalle: "Como muy tarde" },
+      { h: "22:40", titulo: "En casa · cenar", detalle: "La cena ya estaba hecha" },
+      { h: "23:15", titulo: "Dormir", detalle: "Dientes (3) · móvil fuera de la cama" },
+    ];
   return [
     { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
-    { h: "08:00", titulo: "Trabajo", detalle: "Desayuno en la primera hora: proteína + fruta" },
+    { h: "08:00", titulo: "Trabajo (hasta las 17:00)", detalle: "Desayuno en la primera hora: proteína + fruta" },
     { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
-    { h: "11:00", titulo: "Fruta 1", detalle: "Y la lavadora: poner, tender o recoger la ropa" },
+    { h: "11:00", titulo: "Lavadora", detalle: "Poner, tender o recoger la ropa" },
     { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
-    { h: "15:00", titulo: "Comer", detalle: "Dientes (2) · fruta 2 de postre" },
-    { h: "15:40", titulo: "Estudio", detalle: "El bloque de verdad, en la mesa" },
-    { h: "16:10", titulo: "Siesta corta o libre", detalle: "Alarma: nunca más allá de las 17:00" },
-    { h: "17:30", titulo: "Salir al gimnasio", detalle: "Mochila hecha · fruta 3 por el camino" },
-    { h: "17:55", titulo: nombreEntreno, detalle: "Ducha allí" },
-    { h: "20:00", titulo: "Tienda", detalle: "" },
-    { h: "22:40", titulo: "En casa · cenar", detalle: "La cena ya estaba hecha: solo calentar" },
+    { h: "14:00", titulo: "Comer", detalle: "Con Gaby · dientes (2) · fruta de postre" },
+    { h: "17:00", titulo: "Salida del trabajo", detalle: "Merienda" },
+    { h: "17:15", titulo: "Tarde libre", detalle: queToca },
+    { h: "20:45", titulo: "Salir hacia la tienda", detalle: "Como muy tarde · estudio allí si está tranquila" },
+    { h: "22:40", titulo: "En casa · cenar", detalle: "La cena ya estaba hecha" },
     { h: "23:15", titulo: "Dormir", detalle: "Dientes (3) · móvil fuera de la cama" },
   ];
 }
 
-function horarioTardeLibre(queToca) {
+// El martes de oficina (desde el 8 de septiembre de 2026): solo trabajar y
+// ya — sin huecos de casa ni entreno serio. La mochila se prepara la noche
+// anterior con la lista del apartado Oficina.
+function horarioOficina() {
   return [
-    { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
-    { h: "08:00", titulo: "Trabajo", detalle: "Desayuno en la primera hora: proteína + fruta" },
-    { h: "09:30", titulo: "Hueco de casa", detalle: "Hacer la cama · barrer u ordenar un poco" },
-    { h: "11:00", titulo: "Fruta 1", detalle: "Y la lavadora: poner, tender o recoger la ropa" },
-    { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
-    { h: "15:00", titulo: "Comer", detalle: "Dientes (2) · fruta 2 de postre" },
-    { h: "15:40", titulo: "Estudio", detalle: "El bloque de verdad, en la mesa" },
-    { h: "16:10", titulo: "Tarde libre", detalle: queToca },
+    { h: "07:00", titulo: "Levantarse", detalle: "Desayuno con calma · mochila ya hecha de anoche" },
+    { h: "07:45", titulo: "Salir a la oficina", detalle: "Repaso rápido de la mochila" },
+    { h: "08:30", titulo: "Oficina (hasta las 17:00)", detalle: "Comida allí · fruta cuando se pueda" },
+    { h: "17:00", titulo: "Vuelta a casa", detalle: "" },
+    { h: "18:00", titulo: "Caminata suave si el cuerpo quiere", detalle: "Día de oficina: lo justo y sin agobios" },
     { h: "20:45", titulo: "Salir hacia la tienda", detalle: "Como muy tarde" },
-    { h: "22:40", titulo: "En casa · cenar", detalle: "La cena ya estaba hecha" },
-    { h: "23:15", titulo: "Dormir", detalle: "Dientes (3) · móvil fuera de la cama" },
+    { h: "22:40", titulo: "En casa · cenar", detalle: "" },
+    { h: "23:15", titulo: "Dormir", detalle: "Dientes 🦷 · el día duro ya está hecho" },
   ];
 }
 
@@ -1019,9 +1124,13 @@ function bloquesGaby(fecha) {
 function bloquesDeSerie(fecha = new Date()) {
   if (esGaby()) return bloquesGaby(fecha);
   const dia = fecha.getDay();
-  if (dia === 1 || dia === 3) return horarioLaborable(SEMANA_TIPO[dia].nombre);
-  if (dia === 2) return horarioTardeLibre("Caminata con elevación (35 min) cuando mejor te venga");
-  if (dia === 4) return horarioTardeLibre("Piscina con tu hermano");
+  const f = fechaISO(fecha);
+  if (dia === 1 || dia === 3) return horarioLaborable(SEMANA_TIPO[dia].nombre, f);
+  if (dia === 2) {
+    if (f >= PRIMER_MARTES_OFICINA) return horarioOficina();
+    return horarioTardeLibre("Caminata con elevación (35 min) cuando mejor te venga", f);
+  }
+  if (dia === 4) return horarioTardeLibre("Piscina con tu hermano", f);
   if (dia === 5)
     return [
       { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },

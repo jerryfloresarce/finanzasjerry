@@ -29,12 +29,18 @@ import {
   guardarSistema,
   guardarDia,
   avisoDeEntrenoSinHueco,
-} from "../vida.js?v=91";
-import { abrirReceta } from "./vida-menu.js?v=91";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=91";
-import { fechaISO, formatFecha } from "../db.js?v=91";
-import { efectoDeCelebracion } from "../efectos.js?v=91";
-import { openModal, closeModal, esc } from "../modal.js?v=91";
+  conChecklistDeDia,
+  claveDeBloque,
+  bloqueHecho,
+  alternarBloqueHecho,
+  extrasDelDia,
+  alternarExtraDelDia,
+} from "../vida.js?v=92";
+import { abrirReceta } from "./vida-menu.js?v=92";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=92";
+import { fechaISO, formatFecha } from "../db.js?v=92";
+import { efectoDeCelebracion } from "../efectos.js?v=92";
+import { openModal, closeModal, esc } from "../modal.js?v=92";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -129,6 +135,16 @@ export function mountVidaHoy() {
       abrirEditorHorario(new Date((fechaEditando ?? fechaISO()) + "T12:00:00"));
       return;
     }
+    const extraHoy = e.target.closest("[data-extra-hoy]");
+    if (extraHoy) {
+      alternarExtraDelDia(fechaEditando ?? fechaISO(), extraHoy.dataset.extraHoy).catch(() => {});
+      return;
+    }
+    const checkBloque = e.target.closest("[data-check-bloque]");
+    if (checkBloque) {
+      alternarBloqueHecho(fechaEditando ?? fechaISO(), checkBloque.dataset.checkBloque).catch(() => {});
+      return;
+    }
     const tareaHoy = e.target.closest("[data-tarea-hoy]");
     if (tareaHoy) {
       const fid = fechaEditando ?? fechaISO();
@@ -215,6 +231,10 @@ export function renderVidaHoy(state) {
   const indiceAhora = bloqueActual(ahora);
   const horaTxt = `${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}`;
   const menuHoy = editandoAyer ? null : menuDeHoy(fecha);
+  // El día como checklist (solo el perfil de Jerry): bloques tachables y
+  // los extras del día — las frutas una a una y el rasurado alterno.
+  const conChecks = conChecklistDeDia();
+  const extras = extrasDelDia(fechaEditando);
 
   const filaCheck = (grupo, item, marcado, extra = "") => `
     <button type="button" class="hoy-check ${marcado ? "hoy-check--on" : ""} ${grupo === "bonus" ? "hoy-check--bonus" : ""}" data-check="${grupo}:${item.id}" ${cerradoSinEditar ? "disabled" : ""}>
@@ -273,9 +293,17 @@ export function renderVidaHoy(state) {
         </div>
 
         ${
-          (guardado?.tareas || []).length
+          (guardado?.tareas || []).length || extras.length
             ? `<h2 class="card__title" style="margin-top:18px;">Para hacer hoy</h2>
         <div class="agenda-tareas" style="border-top:none; padding-top:0;">
+          ${extras
+            .map(
+              (x) => `
+            <button type="button" class="agenda-tarea ${x.hecho ? "agenda-tarea--hecha" : ""}" data-extra-hoy="${x.id}">
+              <span class="agenda-tarea__circulo">${x.hecho ? "✓" : ""}</span>${x.nombre}
+            </button>`
+            )
+            .join("")}
           ${(guardado?.tareas || [])
             .map(
               (t, i) => `
@@ -293,13 +321,14 @@ export function renderVidaHoy(state) {
             .map((bl, i) => {
               const esAhora = !editandoAyer && i === indiceAhora;
               return `
-            <div class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${bl.tapado ? "dia-bloque--tapado" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${!editandoAyer && i < indiceAhora ? "dia-bloque--pasado" : ""}">
+            <div class="dia-bloque ${bl.cita ? "dia-bloque--cita" : ""} ${bl.tapado ? "dia-bloque--tapado" : ""} ${esAhora ? "dia-bloque--ahora" : ""} ${!editandoAyer && i < indiceAhora ? "dia-bloque--pasado" : ""} ${conChecks && bloqueHecho(fechaEditando, bl) ? "dia-bloque--hecho" : ""}">
               <span class="dia-bloque__hora">${bl.h}</span>
               <span class="dia-bloque__punto" aria-hidden="true"></span>
               <span class="dia-bloque__cuerpo">
                 <span class="dia-bloque__titulo">${bl.cita ? "📌 " : ""}${esc(bl.titulo)}${esAhora ? ` <span class="dia-ahora">AHORA · ${horaTxt}</span>` : ""}</span>
                 ${bl.detalle ? `<span class="dia-bloque__detalle">${esc(bl.detalle)}</span>` : ""}
               </span>
+              ${conChecks ? `<button type="button" class="bloque-check ${bloqueHecho(fechaEditando, bl) ? "bloque-check--on" : ""}" data-check-bloque="${esc(claveDeBloque(bl))}" title="Marcar como hecho">✓</button>` : ""}
             </div>`;
             })
             .join("")}
