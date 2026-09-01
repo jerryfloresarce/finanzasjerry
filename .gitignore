@@ -150,3 +150,7 @@ herramientas/previa-*.html
 # El kit vive en su propio repositorio privado: jerryfloresarce/Kit-finanzas
 kit-finanzas/
 _site
+
+# La copia local de index.html con firebase falso que usan las pruebas del
+# navegador (se regenera cada tanda; nunca debe publicarse).
+prueba-local.html
