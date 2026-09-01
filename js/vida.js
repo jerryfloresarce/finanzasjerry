@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=107";
-import { fechaISO } from "./db.js?v=107";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=107";
+import { db } from "./firebase-init.js?v=108";
+import { fechaISO } from "./db.js?v=108";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=108";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -1658,6 +1658,7 @@ export const PLATOS_ESPECIALES = [
   { id: "esp_casa_mama", nombre: "En casa de mamá", especial: true, pasos: ["Hoy cocina la mamá de Jerry: no hay nada que preparar.", "Solo llegar con hambre (y de buen humor)."] },
   { id: "esp_fuera", nombre: "Comer fuera", especial: true, pasos: ["Día de no cocinar: restaurante, pedido o lo que surja."] },
   { id: "esp_sobras", nombre: "Lo del mediodía (sobras)", especial: true, pasos: ["Ha sobrado del mediodía: calentar y a cenar.", "Cero cocina, cero platos nuevos. La mejor cena posible."] },
+  { id: "esp_sobras_ayer", nombre: "Sobras de ayer", especial: true, pasos: ["Sobró comida de ayer: se calienta y listo, hoy no se cocina.", "Aprovechar lo hecho no es saltarse el menú — ES el menú. Cero desperdicio.", "Si aún queda para la cena, marca también la cena como sobras y día redondo de cocina."] },
   {
     id: "esp_saltenas",
     nombre: "Salteñas de mamá (2)",
@@ -1823,7 +1824,9 @@ export function menuDeHoy(fecha = new Date()) {
   const dia = ((fecha.getDay() + 6) % 7) + 1; // lunes = 1 … domingo = 7
   return {
     desayuno: recetaPorId(menu.desayunos?.[dia]),
-    comida: recetaPorId(menu.comidas?.[dia]),
+    // "Sobró de ayer": la comida de UNA fecha concreta puede ser lo que
+    // quedó del día anterior, sin tocar la plantilla de la semana.
+    comida: comidaEsSobras(fechaISO(fecha)) ? recetaSobrasAyer(fecha) : recetaPorId(menu.comidas?.[dia]),
     // "Nos ha sobrado del mediodía": la cena de UNA fecha concreta se marca
     // como sobras sin tocar la plantilla de la semana. Es de casa: lo ven
     // los dos perfiles.
@@ -1831,10 +1834,27 @@ export function menuDeHoy(fecha = new Date()) {
   };
 }
 
+// El plato "Sobras de ayer", con el nombre del plato que tocaba ayer si se
+// puede saber (si ayer también fue especial — casa de mamá, sobras… — se
+// queda en el genérico).
+function recetaSobrasAyer(fecha) {
+  const base = recetaPorId("esp_sobras_ayer");
+  const ayer = new Date(fecha);
+  ayer.setDate(ayer.getDate() - 1);
+  const diaAyer = ((ayer.getDay() + 6) % 7) + 1;
+  const deAyer = recetaPorId(vida.menu?.comidas?.[diaAyer]);
+  return deAyer && !deAyer.especial ? { ...base, nombre: `Sobras de ayer (${deAyer.nombre})` } : base;
+}
+
 export const cenaEsSobras = (fechaId) => Boolean(vida.menu?.sobras?.[fechaId]);
+export const comidaEsSobras = (fechaId) => Boolean(vida.menu?.sobras_comida?.[fechaId]);
 
 export async function marcarCenaSobras(fechaId, valor) {
   await guardarMenu({ sobras: { ...(vida.menu?.sobras || {}), [fechaId]: valor ? true : null } });
+}
+
+export async function marcarComidaSobras(fechaId, valor) {
+  await guardarMenu({ sobras_comida: { ...(vida.menu?.sobras_comida || {}), [fechaId]: valor ? true : null } });
 }
 
 // ---------- Cartera de inversiones ----------

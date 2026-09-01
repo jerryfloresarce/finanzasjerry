@@ -39,13 +39,15 @@ import {
   alternarExtraDelDia,
   cenaEsSobras,
   marcarCenaSobras,
-} from "../vida.js?v=107";
-import { abrirReceta } from "./vida-menu.js?v=107";
-import { pedirVista } from "./vida-agenda.js?v=107";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=107";
-import { fechaISO, formatFecha } from "../db.js?v=107";
-import { efectoDeCelebracion } from "../efectos.js?v=107";
-import { openModal, closeModal, esc } from "../modal.js?v=107";
+  comidaEsSobras,
+  marcarComidaSobras,
+} from "../vida.js?v=108";
+import { abrirReceta } from "./vida-menu.js?v=108";
+import { pedirVista } from "./vida-agenda.js?v=108";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=108";
+import { fechaISO, formatFecha } from "../db.js?v=108";
+import { efectoDeCelebracion } from "../efectos.js?v=108";
+import { openModal, closeModal, esc } from "../modal.js?v=108";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -170,6 +172,10 @@ export function mountVidaHoy() {
     }
     if (e.target.closest("#btn-cena-sobras")) {
       marcarCenaSobras(fechaISO(), !cenaEsSobras(fechaISO())).catch(() => {});
+      return;
+    }
+    if (e.target.closest("#btn-comida-sobras")) {
+      marcarComidaSobras(fechaISO(), !comidaEsSobras(fechaISO())).catch(() => {});
       return;
     }
     if (e.target.closest("#btn-editar-horario")) {
@@ -366,13 +372,16 @@ export function renderVidaHoy(state) {
           </button>` : ""}
           ${menuHoy.comida ? `<button type="button" class="hoy-toca__fila hoy-toca__fila--boton" data-receta="${menuHoy.comida.id}">
             <span class="hoy-check__icon"><i class="ph ph-fork-knife" aria-hidden="true"></i></span>
-            <span><strong>Comida:</strong> ${menuHoy.comida.nombre}<br /><span class="entity-card__meta">Toca y sale la guía rápida · ≈ ${menuHoy.comida.proteina} g de proteína</span></span>
+            <span><strong>Comida:</strong> ${menuHoy.comida.nombre}<br /><span class="entity-card__meta">${menuHoy.comida.id === "esp_sobras_ayer" ? "Sobró de ayer: calentar y listo" : menuHoy.comida.especial ? "Toca para la guía" : `Toca y sale la guía rápida · ≈ ${menuHoy.comida.proteina} g de proteína`}</span></span>
           </button>` : ""}
           ${menuHoy.cena ? `<button type="button" class="hoy-toca__fila hoy-toca__fila--boton" data-receta="${menuHoy.cena.id}">
             <span class="hoy-check__icon"><i class="ph ph-moon-stars" aria-hidden="true"></i></span>
             <span><strong>Cena:</strong> ${menuHoy.cena.nombre}<br /><span class="entity-card__meta">${menuHoy.cena.id === "esp_sobras" ? "Ha sobrado del mediodía: calentar y listo" : "Déjala hecha por la mañana · toca para la guía"}</span></span>
           </button>` : ""}
-          <button type="button" class="btn btn--ghost btn--sm" id="btn-cena-sobras" style="align-self:flex-start;">${cenaEsSobras(hoyId) ? "↩︎ La cena vuelve a ser la del menú" : "🍲 La cena será lo del mediodía (sobras)"}</button>`
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-self:flex-start;">
+            <button type="button" class="btn btn--ghost btn--sm" id="btn-comida-sobras">${comidaEsSobras(hoyId) ? "↩︎ La comida vuelve a ser la del menú" : "🥘 Hoy como sobras de ayer"}</button>
+            <button type="button" class="btn btn--ghost btn--sm" id="btn-cena-sobras">${cenaEsSobras(hoyId) ? "↩︎ La cena vuelve a ser la del menú" : "🍲 La cena será lo del mediodía (sobras)"}</button>
+          </div>`
               : `
           <div class="hoy-toca__fila">
             <span class="hoy-check__icon"><i class="ph ph-cooking-pot" aria-hidden="true"></i></span>
