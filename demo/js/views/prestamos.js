@@ -13,11 +13,11 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=110";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=110";
-import { initials, avatarColor, icon } from "../icons.js?v=110";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=110";
-import { efectoDeCelebracion } from "../efectos.js?v=110";
+} from "../db.js?v=111";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=111";
+import { initials, avatarColor, icon } from "../icons.js?v=111";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=111";
+import { efectoDeCelebracion } from "../efectos.js?v=111";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -257,17 +257,25 @@ export function renderPrestamos(state) {
     btn.addEventListener("click", () => deshacerDiaPagado(pagosPrestamos.find((pg) => pg.id === btn.dataset.diaPagado)))
   );
   attachSwipe(el, (id) => eliminarPrestamo(prestamos.find((p) => p.id === id)), {
-    confirmar: "¿Eliminar este préstamo? Si al crearlo se descontó de una cuenta, ese movimiento también se borra.",
+    confirmar:
+      "¿Eliminar este préstamo? Los pagos ya registrados se quedan en Movimientos (ese dinero entró de verdad). Solo si nunca cobró nada, se borra también el gasto de cuando salió el dinero.",
   });
 }
 
-// Borrar un préstamo se lleva por delante el movimiento que sacó el dinero
-// de la cuenta al crearlo. Si no, borrar un préstamo apuntado por error
-// dejaría el saldo de esa cuenta descuadrado y un movimiento suelto que
-// nadie sabría de dónde ha salido.
+// Borrar un préstamo que NUNCA cobró nada se lleva por delante el
+// movimiento que sacó el dinero de la cuenta al crearlo: fue un apunte por
+// error y así no deja el saldo descuadrado ni un gasto suelto.
+//
+// Pero si el préstamo YA tiene pagos registrados, el dinero se movió de
+// verdad (salió el gasto, entraron los pagos): ahí NO se toca ningún
+// movimiento — borrar la tarjeta borrando solo la mitad de la historia
+// dejaba la cuenta con dinero fantasma (pasó con un préstamo ya devuelto:
+// se fue el −60 del origen, se quedaron los dos +30, y la cuenta subió
+// 60 € que no existían).
 async function eliminarPrestamo(prestamo) {
   if (!prestamo) return;
-  if (prestamo.movimiento_origen_id) {
+  const cobros = pagosDelPrestamo(prestamo, currentState?.movimientos ?? []);
+  if (prestamo.movimiento_origen_id && cobros.length === 0) {
     try {
       await deleteMovimiento(prestamo.movimiento_origen_id);
     } catch (err) {
