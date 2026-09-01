@@ -1,9 +1,9 @@
-import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js?v=112";
-import { openModal, closeModal, esc } from "../modal.js?v=112";
-import { entityIcon, iconForCategoriaTipo, icon } from "../icons.js?v=112";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=112";
-import { emojiFieldHTML, attachEmojiPicker, CATEGORIA_EMOJIS } from "../emoji-picker.js?v=112";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=112";
+import { addCategoria, updateCategoria, deleteCategoria, gastosPorCategoriaDelMes, formatEUR } from "../db.js?v=113";
+import { openModal, closeModal, esc } from "../modal.js?v=113";
+import { entityIcon, iconForCategoriaTipo, icon } from "../icons.js?v=113";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=113";
+import { emojiFieldHTML, attachEmojiPicker, CATEGORIA_EMOJIS } from "../emoji-picker.js?v=113";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=113";
 
 const TIPOS = ["Fijo", "Variable", "Ocio", "PrestamoDado"];
 
@@ -54,7 +54,7 @@ export function renderCategorias(state) {
     btn.addEventListener("click", () => openForm(categorias.find((c) => c.id === btn.dataset.edit)))
   );
   attachSwipe(el, (id) => deleteCategoria(id), {
-    confirmar: "¿Eliminar esta categoría?",
+    confirmar: "¿Eliminar esta categoría? Sus movimientos no se borran: quedarán como 'sin categoría'.",
   });
   attachCopyId(el);
 }

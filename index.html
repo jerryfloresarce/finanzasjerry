@@ -21,7 +21,7 @@
      Sin esto, al añadirla a la pantalla de inicio se abre DENTRO de Safari
      con su barra de direcciones, y esa barra que aparece y desaparece al
      deslizar es lo que hace que todo se mueva de forma rara. -->
-<link rel="manifest" href="manifest.json?v=112" />
+<link rel="manifest" href="manifest.json?v=113" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <!-- "black-translucent" hace que la app llegue hasta arriba del todo, por
@@ -37,11 +37,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=112" />
+<link rel="stylesheet" href="css/styles.css?v=113" />
 <!-- vida:inicio -->
-<link rel="stylesheet" href="css/vida.css?v=112" />
+<link rel="stylesheet" href="css/vida.css?v=113" />
 <!-- vida:fin -->
-<link rel="stylesheet" href="css/temas.css?v=112" />
+<link rel="stylesheet" href="css/temas.css?v=113" />
 <script>
   /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
      desde un módulo (que se ejecuta al final), la app abriría un instante
@@ -96,11 +96,18 @@
     <p class="brand-mark brand-mark--sidebar"><span class="brand-mark__icon" aria-hidden="true"><i class="ph-thin ph-leaf"></i></span>Jerry’s <span>Life</span></p>
     <nav class="nav" id="main-nav">
       <!-- vida:inicio -->
+      <p class="nav__titulo">Tu día</p>
       <a href="#/hoy" class="nav__link" data-route="hoy">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-sun"></i></span> Hoy
       </a>
       <a href="#/agenda" class="nav__link" data-route="agenda">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-calendar-heart"></i></span> Calendario
+      </a>
+      <a href="#/entreno" class="nav__link" data-route="entreno">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-barbell"></i></span> Entreno
+      </a>
+      <a href="#/menu" class="nav__link" data-route="menu">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-cooking-pot"></i></span> Menú
       </a>
       <a href="#/compras" class="nav__link" data-route="compras">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-basket"></i></span> Compras
@@ -114,19 +121,31 @@
       <a href="#/progreso" class="nav__link" data-route="progreso">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-trophy"></i></span> Progreso
       </a>
-      <div class="nav__separador" aria-hidden="true"></div>
       <!-- vida:fin -->
+      <p class="nav__titulo">Tu dinero</p>
       <a href="#/dashboard" class="nav__link" data-route="dashboard">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-squares-four"></i></span> Dashboard
       </a>
       <a href="#/movimientos" class="nav__link" data-route="movimientos">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-left-right"></i></span> Movimientos
       </a>
+      <a href="#/cuentas" class="nav__link" data-route="cuentas">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-bank"></i></span> Cuentas
+      </a>
       <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Gastos fijos
       </a>
       <a href="#/prestamos" class="nav__link" data-route="prestamos">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-hand-coins"></i></span> Préstamos
+      </a>
+      <a href="#/metas" class="nav__link" data-route="metas">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-piggy-bank"></i></span> Metas
+      </a>
+      <a href="#/graficos" class="nav__link" data-route="graficos">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-pie-slice"></i></span> Gráficos
+      </a>
+      <a href="#/categorias" class="nav__link" data-route="categorias">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
       </a>
       <!-- vida:inicio -->
       <a href="#/cartera" class="nav__link" data-route="cartera">
@@ -153,11 +172,18 @@
   <div id="mobile-nav-scrim" class="mobile-nav-scrim is-hidden"></div>
   <nav id="mobile-nav" class="mobile-nav is-hidden">
     <!-- vida:inicio -->
+      <p class="nav__titulo">Tu día</p>
       <a href="#/hoy" class="nav__link" data-route="hoy">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-sun"></i></span> Hoy
       </a>
       <a href="#/agenda" class="nav__link" data-route="agenda">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-calendar-heart"></i></span> Calendario
+      </a>
+      <a href="#/entreno" class="nav__link" data-route="entreno">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-barbell"></i></span> Entreno
+      </a>
+      <a href="#/menu" class="nav__link" data-route="menu">
+        <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-cooking-pot"></i></span> Menú
       </a>
       <a href="#/compras" class="nav__link" data-route="compras">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-basket"></i></span> Compras
@@ -171,19 +197,31 @@
       <a href="#/progreso" class="nav__link" data-route="progreso">
         <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-trophy"></i></span> Progreso
       </a>
-      <div class="nav__separador" aria-hidden="true"></div>
       <!-- vida:fin -->
+      <p class="nav__titulo">Tu dinero</p>
       <a href="#/dashboard" class="nav__link" data-route="dashboard">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-squares-four"></i></span> Dashboard
     </a>
     <a href="#/movimientos" class="nav__link" data-route="movimientos">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-left-right"></i></span> Movimientos
     </a>
+    <a href="#/cuentas" class="nav__link" data-route="cuentas">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-bank"></i></span> Cuentas
+    </a>
     <a href="#/suscripciones" class="nav__link" data-route="suscripciones">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-arrows-clockwise"></i></span> Gastos fijos
     </a>
     <a href="#/prestamos" class="nav__link" data-route="prestamos">
       <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-hand-coins"></i></span> Préstamos
+    </a>
+    <a href="#/metas" class="nav__link" data-route="metas">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-piggy-bank"></i></span> Metas
+    </a>
+    <a href="#/graficos" class="nav__link" data-route="graficos">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-chart-pie-slice"></i></span> Gráficos
+    </a>
+    <a href="#/categorias" class="nav__link" data-route="categorias">
+      <span class="nav__icon" aria-hidden="true"><i class="ph-thin ph-tag"></i></span> Categorías
     </a>
     <!-- vida:inicio -->
     <a href="#/cartera" class="nav__link" data-route="cartera">
@@ -567,6 +605,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=112"></script>
+<script type="module" src="js/app.js?v=113"></script>
 </body>
 </html>

@@ -10,11 +10,11 @@ import {
   destinoTransferencia,
   textoPeriodo,
   nombreDeCuenta,
-} from "../db.js?v=112";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=112";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=112";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=112";
-import { colorTema } from "../tema.js?v=112";
+} from "../db.js?v=113";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=113";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=113";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=113";
+import { colorTema } from "../tema.js?v=113";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -293,7 +293,7 @@ function openDiaDetalle(fecha, state) {
         const lista = root.querySelector(".mini-list");
         if (lista) {
           attachSwipe(lista, (id) => deleteMovimiento(id), {
-            confirmar: "¿Eliminar este movimiento?",
+            confirmar: "¿Eliminar este movimiento? El saldo de su cuenta se ajustará al quitarlo.",
           });
         }
       },

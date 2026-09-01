@@ -42,13 +42,13 @@ import {
   comidaEsSobras,
   marcarComidaSobras,
   cambiosDeFecha,
-} from "../vida.js?v=112";
-import { abrirReceta, abrirCambioFecha } from "./vida-menu.js?v=112";
-import { pedirVista } from "./vida-agenda.js?v=112";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=112";
-import { fechaISO, formatFecha } from "../db.js?v=112";
-import { efectoDeCelebracion } from "../efectos.js?v=112";
-import { openModal, closeModal, esc } from "../modal.js?v=112";
+} from "../vida.js?v=113";
+import { abrirReceta, abrirCambioFecha } from "./vida-menu.js?v=113";
+import { pedirVista } from "./vida-agenda.js?v=113";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=113";
+import { fechaISO, formatFecha } from "../db.js?v=113";
+import { efectoDeCelebracion } from "../efectos.js?v=113";
+import { openModal, closeModal, esc } from "../modal.js?v=113";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -242,6 +242,18 @@ export function mountVidaHoy() {
       const peso = document.getElementById("hoy-peso")?.value ?? "";
       const cadera = document.getElementById("hoy-cadera")?.value ?? "";
       const cumplido = esCumplido(b.innegociables);
+      // Cerrar sin los 4 innegociables NUNCA en silencio: se avisa de qué
+      // falta y de que el día no contará para la racha, ANTES de cerrar.
+      // La sorpresa de "cerré el día y no me lo ha contado" no puede volver.
+      if (!cumplido) {
+        const faltan = INNEGOCIABLES.filter((i) => !b.innegociables?.[i.id]).map((i) => i.nombre);
+        const seguir = confirm(
+          `Sin marcar: ${faltan.join(" · ")}.\n\n` +
+            `Puedes cerrar igual (los puntos y lo marcado se guardan), pero el día NO contará como cumplido para la racha. ` +
+            `Un día fallado suelto no la rompe; dos seguidos sí.\n\n¿Cerrar el día así?`
+        );
+        if (!seguir) return;
+      }
       try {
         await guardarDia(fechaEditando, {
           fecha: fechaEditando,
@@ -574,7 +586,13 @@ export function renderVidaHoy(state) {
         ${
           cerradoSinEditar
             ? `<div class="hoy-cerrado">
-                <p>${guardado.cumplido ? "✓ Día cumplido · " : "Día cerrado · "}${guardado.puntos} puntos${
+                <p>${guardado.cumplido ? "✓ Día cumplido · " : "Día cerrado (no cumplido) · "}${guardado.puntos} puntos${
+                  !guardado.cumplido
+                    ? `<br /><span class="hoy-check__parcial">Faltó: ${INNEGOCIABLES.filter((i) => !guardado.innegociables?.[i.id])
+                        .map((i) => esc(i.nombre))
+                        .join(" · ")}</span>`
+                    : ""
+                }${
                   Object.keys(parciales).length
                     ? `<br /><span class="hoy-check__parcial">${Object.entries(parciales)
                         .map(([id, p]) => {

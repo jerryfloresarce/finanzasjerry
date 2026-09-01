@@ -862,7 +862,27 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
   height: 100vh;
 }
 
-.nav { display: flex; flex-direction: column; gap: 2px; padding: 16px 12px; flex: 1; }
+/* overflow-y: con el menú completo (17 pantallas) la lista puede superar
+   la altura de la ventana en portátiles pequeños — que ruede, no que corte. */
+.nav { display: flex; flex-direction: column; gap: 2px; padding: 16px 12px; flex: 1; overflow-y: auto; min-height: 0; }
+
+/* Los títulos de sección del menú: con todas las pantallas visibles, el
+   menú necesita capítulos ("Tu día" / "Tu dinero") para leerse de un
+   vistazo. Nada de pantallas escondidas detrás de enlaces pequeños. */
+.nav__titulo {
+  margin: 14px 14px 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.nav__titulo:first-child { margin-top: 0; }
+/* En la barra lateral de escritorio, con el menú completo, los enlaces van
+   un punto más compactos para que las ~17 pantallas quepan sin rodar en un
+   portátil normal. El menú del móvil mantiene su tamaño de dedo. */
+.sidebar .nav__link { padding: 7px 14px; }
+.sidebar .nav__titulo { margin: 10px 14px 3px; }
 
 .nav__link {
   display: flex;
