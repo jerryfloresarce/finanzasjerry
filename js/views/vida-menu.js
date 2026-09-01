@@ -19,9 +19,13 @@ import {
   repararMenu,
   guardarMenu,
   lunesDe,
-} from "../vida.js?v=108";
-import { openModal, closeModal, esc } from "../modal.js?v=108";
-import { efectoAlGuardar } from "../efectos.js?v=108";
+  cambiosDeFecha,
+  guardarCambiosDeFecha,
+  platoDePlantilla,
+} from "../vida.js?v=109";
+import { fechaISO } from "../db.js?v=109";
+import { openModal, closeModal, esc } from "../modal.js?v=109";
+import { efectoAlGuardar } from "../efectos.js?v=109";
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const MOMENTOS = [
@@ -69,13 +73,13 @@ export function abrirReceta(recetaId) {
 // Las opciones de un momento del día: los especiales (casa de mamá, fuera),
 // los platos vuestros de ese momento y todas las recetas de ese momento —
 // primero las que salen con lo marcado, luego el resto por si apetece igual.
-function opcionesDe(momento, elegido) {
+function opcionesDe(momento, elegido, etiquetaVacia = "— Nada apuntado") {
   const disponibles = new Set(recetasDisponibles(marcados()).map((r) => r.id));
   const propias = platosPropios().filter((r) => r.momento === momento);
   const recetas = RECETAS.filter((r) => r.momento === momento);
   const opcion = (r) => `<option value="${r.id}" ${r.id === elegido ? "selected" : ""}>${esc(r.nombre)}${r.aire ? " (AirFryer)" : ""}</option>`;
   return `
-    <option value="" ${!elegido ? "selected" : ""}>— Nada apuntado</option>
+    <option value="" ${!elegido ? "selected" : ""}>${etiquetaVacia}</option>
     <optgroup label="Días sin cocinar">${PLATOS_ESPECIALES.map(opcion).join("")}</optgroup>
     ${propias.length ? `<optgroup label="Platos vuestros">${propias.map(opcion).join("")}</optgroup>` : ""}
     <optgroup label="Con lo que tenéis marcado">${recetas.filter((r) => disponibles.has(r.id)).map(opcion).join("")}</optgroup>
@@ -125,6 +129,69 @@ function abrirEditorDia(d) {
             datos[m.campo] = mapa;
           }
           await guardarMenu(datos).catch(() => {});
+          closeModal();
+          efectoAlGuardar();
+        });
+      },
+    }
+  );
+}
+
+// El editor de UNA fecha concreta: "las hamburguesas mejor mañana, que se
+// ponen malas". Cambia solo ese día del calendario — la plantilla semanal
+// no se toca y la semana siguiente todo vuelve a su sitio. Exportada: se
+// abre desde la pantalla Hoy.
+export function abrirCambioFecha(fechaId = fechaISO()) {
+  const selectsDe = (fid) => {
+    const cambio = cambiosDeFecha(fid) || {};
+    return MOMENTOS.map(
+      (m) => `
+        <label class="field field--full">
+          <span class="field__label">${m.nombre}</span>
+          <select name="${m.momento}" data-plantilla="${platoDePlantilla(fid, m.campo)}">${opcionesDe(m.momento, cambio[m.momento] || platoDePlantilla(fid, m.campo), "— Nada")}</select>
+        </label>`
+    ).join("");
+  };
+  openModal(
+    `
+    <h2 class="modal__title">Cambiar el menú de un día concreto</h2>
+    <p class="entity-card__meta" style="margin:-8px 0 12px;">
+      Para los "esto mejor mañana": cambia SOLO esa fecha. La plantilla de
+      la semana se queda como está, y la semana que viene manda ella otra vez.
+    </p>
+    <form id="form-cambio-fecha" class="form-grid">
+      <label class="field field--full">
+        <span class="field__label">¿Qué día?</span>
+        <input type="date" name="fecha" value="${fechaId}" />
+      </label>
+      <div id="cambio-selects" class="form-grid field--full" style="padding:0;">${selectsDe(fechaId)}</div>
+      <div class="modal__actions field--full">
+        <button type="button" class="btn btn--ghost" id="btn-cancelar-cambio">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar ese día</button>
+      </div>
+    </form>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancelar-cambio").addEventListener("click", closeModal);
+        const form = root.querySelector("#form-cambio-fecha");
+        // Al cambiar la fecha, los tres platos se repintan con lo que toca
+        // ESE día (su plantilla + sus cambios ya guardados, si los hay).
+        form.fecha.addEventListener("change", () => {
+          if (form.fecha.value) root.querySelector("#cambio-selects").innerHTML = selectsDe(form.fecha.value);
+        });
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const fid = form.fecha.value;
+          if (!fid) return;
+          // Solo lo que difiere de la plantilla es un cambio de verdad:
+          // dejar un plato como estaba no apunta nada.
+          const cambio = {};
+          for (const m of MOMENTOS) {
+            const sel = form.querySelector(`select[name="${m.momento}"]`);
+            if (sel.value && sel.value !== sel.dataset.plantilla) cambio[m.momento] = sel.value;
+          }
+          await guardarCambiosDeFecha(fid, cambio).catch(() => {});
           closeModal();
           efectoAlGuardar();
         });

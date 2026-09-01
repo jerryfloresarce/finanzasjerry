@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=108";
-import { fechaISO } from "./db.js?v=108";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=108";
+import { db } from "./firebase-init.js?v=109";
+import { fechaISO } from "./db.js?v=109";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=109";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -1822,16 +1822,36 @@ export function menuDeHoy(fecha = new Date()) {
   const menu = vida.menu;
   if (!menu?.lunes) return null;
   const dia = ((fecha.getDay() + 6) % 7) + 1; // lunes = 1 … domingo = 7
+  // Los cambios de ESA fecha concreta ("las hamburguesas mejor mañana, que
+  // se ponen malas") pisan a la plantilla semanal sin tocarla.
+  const cambio = cambiosDeFecha(fechaISO(fecha)) || {};
   return {
-    desayuno: recetaPorId(menu.desayunos?.[dia]),
+    desayuno: recetaPorId(cambio.desayuno || menu.desayunos?.[dia]),
     // "Sobró de ayer": la comida de UNA fecha concreta puede ser lo que
     // quedó del día anterior, sin tocar la plantilla de la semana.
-    comida: comidaEsSobras(fechaISO(fecha)) ? recetaSobrasAyer(fecha) : recetaPorId(menu.comidas?.[dia]),
+    comida: comidaEsSobras(fechaISO(fecha)) ? recetaSobrasAyer(fecha) : recetaPorId(cambio.comida || menu.comidas?.[dia]),
     // "Nos ha sobrado del mediodía": la cena de UNA fecha concreta se marca
     // como sobras sin tocar la plantilla de la semana. Es de casa: lo ven
     // los dos perfiles.
-    cena: cenaEsSobras(fechaISO(fecha)) ? recetaPorId("esp_sobras") : recetaPorId(menu.cenas?.[dia]),
+    cena: cenaEsSobras(fechaISO(fecha)) ? recetaPorId("esp_sobras") : recetaPorId(cambio.cena || menu.cenas?.[dia]),
   };
+}
+
+// El plato que toca en una fecha por plantilla (sin sobras ni cambios):
+// lo que el editor de cambios enseña como punto de partida.
+export function platoDePlantilla(fechaId, campo) {
+  const dia = ((new Date(fechaId + "T12:00:00").getDay() + 6) % 7) + 1;
+  return vida.menu?.[campo]?.[dia] || "";
+}
+
+// Cambios de menú por fecha concreta: menu.cambios[fechaId] = { desayuno,
+// comida, cena } — solo los momentos cambiados. La plantilla de la semana
+// no se entera, y la fecha siguiente vuelve a mandar la plantilla.
+export const cambiosDeFecha = (fechaId) => vida.menu?.cambios?.[fechaId] || null;
+
+export async function guardarCambiosDeFecha(fechaId, cambio) {
+  const limpio = Object.fromEntries(Object.entries(cambio || {}).filter(([, v]) => v));
+  await guardarMenu({ cambios: { ...(vida.menu?.cambios || {}), [fechaId]: Object.keys(limpio).length ? limpio : null } });
 }
 
 // El plato "Sobras de ayer", con el nombre del plato que tocaba ayer si se
