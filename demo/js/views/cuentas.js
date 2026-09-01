@@ -8,12 +8,12 @@ import {
   formatFecha,
   fromTimestamp,
   nombreDeCuenta,
-} from "../db.js?v=111";
-import { openModal, closeModal, todayISO, esc } from "../modal.js?v=111";
-import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=111";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=111";
-import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=111";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=111";
+} from "../db.js?v=112";
+import { openModal, closeModal, todayISO, esc } from "../modal.js?v=112";
+import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=112";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=112";
+import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=112";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=112";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 
@@ -51,6 +51,7 @@ export function renderCuentas(state) {
           <div class="entity-card__actions">
             ${copyIdButton(c.id)}
             <button class="btn btn--ghost btn--sm" data-historial="${c.id}">Historial</button>
+            <button class="btn btn--ghost btn--sm" data-cuadrar="${c.id}">Cuadrar</button>
           </div>
         </article>`,
         c.id
@@ -64,10 +65,79 @@ export function renderCuentas(state) {
   el.querySelectorAll("[data-historial]").forEach((btn) =>
     btn.addEventListener("click", () => openHistorial(cuentas.find((c) => c.id === btn.dataset.historial), state))
   );
+  el.querySelectorAll("[data-cuadrar]").forEach((btn) =>
+    btn.addEventListener("click", () => openCuadrarForm(cuentas.find((c) => c.id === btn.dataset.cuadrar), state))
+  );
   attachSwipe(el, (id) => deleteCuenta(id), {
     confirmar: "¿Eliminar esta cuenta? No se borrarán sus movimientos.",
   });
   attachCopyId(el);
+}
+
+// "Cuadrar con la realidad": cuentas cuánto tienes DE VERDAD en la cuenta
+// (lo que dice el banco, o el efectivo contado) y la app se ajusta sola.
+// El ajuste se hace moviendo el saldo inicial la diferencia exacta — sin
+// crear movimientos fantasma que ensuciarían los gastos e ingresos del mes.
+// Es el botón para cuando los apuntes se han torcido y no apetece hacer de
+// detective: la verdad manda, la app obedece.
+function openCuadrarForm(cuenta, state) {
+  const saldoApp = calcularSaldoCuenta(cuenta, state.movimientos);
+  const round2 = (n) => Math.round(n * 100) / 100;
+
+  openModal(
+    `
+    <h2 class="modal__title">Cuadrar · ${esc(cuenta.nombre)}</h2>
+    <p class="entity-card__meta" style="margin:-8px 0 12px;">
+      Según la app tienes <strong>${formatEUR(saldoApp)}</strong>. Escribe lo
+      que tienes DE VERDAD (lo que dice el banco o el efectivo contado) y el
+      saldo se ajusta solo. Los movimientos no se tocan.
+    </p>
+    <form id="form-cuadrar" class="form-grid">
+      <label class="field field--full">
+        <span class="field__label">¿Cuánto tienes de verdad?</span>
+        <input type="number" step="0.01" name="real" required value="${saldoApp.toFixed(2)}" />
+      </label>
+      <p class="entity-card__meta field--full" id="cuadrar-resumen"></p>
+      <p class="field-error" id="form-cuadrar-error"></p>
+      <div class="modal__actions field--full">
+        <button type="button" class="btn btn--ghost" id="btn-cancel-cuadrar">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Cuadrar la cuenta</button>
+      </div>
+    </form>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancel-cuadrar").addEventListener("click", closeModal);
+        const form = root.querySelector("#form-cuadrar");
+        const resumen = root.querySelector("#cuadrar-resumen");
+        const pintar = () => {
+          const real = Number(form.real.value || 0);
+          const dif = round2(real - saldoApp);
+          resumen.innerHTML =
+            Math.abs(dif) < 0.005
+              ? "Ya cuadra: no hay nada que ajustar."
+              : `Se ajustará <strong>${dif > 0 ? "+" : "−"}${formatEUR(Math.abs(dif))}</strong> para que el saldo diga ${formatEUR(real)}.`;
+        };
+        pintar();
+        form.real.addEventListener("input", pintar);
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const real = Number(form.real.value);
+          const dif = round2(real - saldoApp);
+          if (Math.abs(dif) < 0.005) {
+            closeModal();
+            return;
+          }
+          try {
+            await updateCuenta(cuenta.id, { saldo_inicial: round2(Number(cuenta.saldo_inicial ?? 0) + dif) });
+            closeModal();
+          } catch (err) {
+            root.querySelector("#form-cuadrar-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
+          }
+        });
+      },
+    }
+  );
 }
 
 export function openHistorial(cuenta, state) {
