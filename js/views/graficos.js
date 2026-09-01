@@ -6,11 +6,11 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=109";
-import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=109";
-import { icon, entityIcon, iconForCuentaTipo, iconForSuscripcion } from "../icons.js?v=109";
-import { openModal, closeModal } from "../modal.js?v=109";
-import { colorTema, paletaTema, conAlfa } from "../tema.js?v=109";
+} from "../db.js?v=110";
+import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=110";
+import { icon, entityIcon, iconForCuentaTipo, iconForSuscripcion } from "../icons.js?v=110";
+import { openModal, closeModal } from "../modal.js?v=110";
+import { colorTema, paletaTema, conAlfa } from "../tema.js?v=110";
 
 // Colores de respaldo (tema Original). Los de verdad los pone el tema
 // activo — ver js/tema.js.

@@ -10,14 +10,14 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   nombreDeCuenta,
-} from "../db.js?v=109";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=109";
-import { seedInitialData } from "../seed.js?v=109";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=109";
-import { openHistorial } from "./cuentas.js?v=109";
-import { esc } from "../modal.js?v=109";
-import { sentidoDeTransferencia } from "./movimientos.js?v=109";
-import { colorTema, paletaTema } from "../tema.js?v=109";
+} from "../db.js?v=110";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=110";
+import { seedInitialData } from "../seed.js?v=110";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=110";
+import { openHistorial } from "./cuentas.js?v=110";
+import { esc } from "../modal.js?v=110";
+import { sentidoDeTransferencia } from "./movimientos.js?v=110";
+import { colorTema, paletaTema } from "../tema.js?v=110";
 
 let chartInstance = null;
 
@@ -288,12 +288,14 @@ function renderPrestamos(prestamos, pagosPrestamos) {
   el.innerHTML = activos
     .map((p) => {
       const planPagos = esPlanDePagos(p);
-      const monto = planPagos ? restantePlanDePagos(p, pagosPrestamos) : Number(p.capital ?? p.capital_inicial ?? 0);
+      // El mismo modelo que la pantalla de préstamos: lo que se enseña es
+      // lo PENDIENTE — total (capital + interés) menos lo ya pagado.
+      const capital = Number(p.capital ?? p.capital_inicial ?? 0);
+      const interes = p.interes_manual != null && p.interes_manual !== "" ? Number(p.interes_manual) : Math.round(capital * (Number(p.interes_porcentaje ?? 0) / 100) * 100) / 100;
+      const monto = planPagos ? restantePlanDePagos(p, pagosPrestamos) : Math.max(0, capital + interes - Number(p.pagado ?? 0));
       const sub = planPagos
         ? "plan de pagos diario"
-        : p.interes_manual != null && p.interes_manual !== ""
-        ? "interés fijo"
-        : `${p.interes_porcentaje ?? 0}% interés`;
+        : `pendiente de ${formatEUR(capital + interes)}${interes > 0 ? " con interés" : ""}`;
       return `
         <div class="mini-row">
           <div class="mini-row__body">

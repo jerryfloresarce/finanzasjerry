@@ -13,11 +13,11 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=109";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=109";
-import { initials, avatarColor, icon } from "../icons.js?v=109";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=109";
-import { efectoDeCelebracion } from "../efectos.js?v=109";
+} from "../db.js?v=110";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=110";
+import { initials, avatarColor, icon } from "../icons.js?v=110";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=110";
+import { efectoDeCelebracion } from "../efectos.js?v=110";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -31,14 +31,14 @@ export function mountPrestamos() {
   document.getElementById("btn-add-prestamo").addEventListener("click", () => openPrestamoForm(null, currentState));
 }
 
-// Un mes exacto después de una fecha ISO ("2026-09-01" → "2026-10-01"),
-// para avanzar la fecha de interés cada vez que se marca pagado o impago.
-function unMesDespues(fechaISO) {
-  const d = new Date(fechaISO + "T00:00:00");
-  d.setMonth(d.getMonth() + 1);
-  // Esa fecha es medianoche LOCAL; por UTC se iría un día atrás.
-  return diaISO(d);
-}
+const round2 = (n) => Math.round(n * 100) / 100;
+
+// El modelo de deuda es UNO y simple: total a devolver = capital + interés.
+// Cada pago (del importe que sea, el día que sea) resta de ese total, y al
+// llegar a cero el préstamo se cierra solo. Ejemplo real de la casa: 100 €
+// prestados al 20 % → debe 120 €; si paga 30 € al día durante 4 días,
+// liquidado. Sin meses que vencen, sin intereses que se congelan o se
+// acumulan: una deuda, un total, pagos hasta el cero.
 
 // El interés se puede fijar a mano (para los préstamos en los que se pactó
 // una cantidad concreta y no un % del capital) o calcularse solo con el %
@@ -48,31 +48,32 @@ function tieneInteresManual(p) {
   return p.interes_manual !== undefined && p.interes_manual !== null && p.interes_manual !== "";
 }
 
-function interesActualDe(p) {
+function interesTotalDe(p) {
   if (tieneInteresManual(p)) return Number(p.interes_manual);
   const capital = Number(p.capital ?? p.capital_inicial ?? 0);
   const pct = Number(p.interes_porcentaje ?? 0);
-  return capital * (pct / 100);
+  return round2(capital * (pct / 100));
+}
+
+function totalDe(p) {
+  return round2(Number(p.capital ?? p.capital_inicial ?? 0) + interesTotalDe(p));
+}
+
+function pagadoDe(p) {
+  return Number(p.pagado ?? 0);
+}
+
+function pendienteDe(p) {
+  return Math.max(0, round2(totalDe(p) - pagadoDe(p)));
 }
 
 // Los pagos que ha hecho una persona: los ingresos que crearon los botones
-// de "Pagó", los días del plan y la liquidación. Los nuevos llevan el id
-// del préstamo grabado; los de antes de que existiera ese campo se
-// reconocen por el texto que siempre les puso la app ("Interés préstamo ·
-// Sandra", etc.), así el historial también enseña lo ya registrado.
+// de pago, los días del plan y la liquidación. SOLO por el id del préstamo:
+// antes también se casaba por el texto ("… · Mama") y dos préstamos a la
+// misma persona se enseñaban los pagos el uno del otro.
 function pagosDelPrestamo(p, movimientos) {
   return movimientos
-    .filter(
-      (m) =>
-        m.tipo === "Ingreso" &&
-        (m.prestamo_id === p.id ||
-          (typeof m.subcategoria === "string" &&
-            m.subcategoria.includes(`· ${p.persona}`) &&
-            (m.subcategoria.startsWith("Interés préstamo") ||
-              m.subcategoria.startsWith("Plan de pagos") ||
-              m.subcategoria.startsWith("Abono préstamo") ||
-              m.subcategoria.startsWith("Préstamo liquidado"))))
-    )
+    .filter((m) => m.tipo === "Ingreso" && m.prestamo_id === p.id)
     .sort((a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0));
 }
 
@@ -140,19 +141,18 @@ export function renderPrestamos(state) {
   const { prestamos, pagosPrestamos, movimientos } = state;
 
   const activos = prestamos.filter((p) => p.estado !== "Pagado");
-  // Un préstamo con plan de pagos diario no tiene un
-  // "capital pendiente" fijo: lo que debe de verdad es lo que quede sin
-  // marcar como pagado en su lista de días. El resto de préstamos siguen
-  // usando su campo `capital` de siempre.
-  const totalCapital = activos.reduce(
-    (acc, p) => acc + (esPlanDePagos(p) ? restantePlanDePagos(p, pagosPrestamos) : Number(p.capital ?? p.capital_inicial ?? 0)),
+  // Un préstamo con plan de pagos diario no tiene un pendiente fijo: lo que
+  // debe de verdad es lo que quede sin marcar como pagado en su lista de
+  // días. El resto usan el modelo simple: total (capital + interés) menos
+  // lo ya pagado.
+  const totalPendiente = activos.reduce(
+    (acc, p) => acc + (esPlanDePagos(p) ? restantePlanDePagos(p, pagosPrestamos) : pendienteDe(p)),
     0
   );
-  // El interés "del próximo mes" no aplica a un plan de pagos diario (su
-  // interés ya está repartido en las cuotas de ese mismo plan), así que
-  // esos préstamos no suman nada aquí.
-  const totalInteres = activos.reduce((acc, p) => acc + (esPlanDePagos(p) ? 0 : interesActualDe(p)), 0);
-  document.getElementById("kpi-prestamos-capital").textContent = formatEUR(totalCapital);
+  // Los intereses a tu favor de los préstamos vivos (los del plan diario ya
+  // van repartidos dentro de sus cuotas, así que no suman aparte).
+  const totalInteres = activos.reduce((acc, p) => acc + (esPlanDePagos(p) ? 0 : interesTotalDe(p)), 0);
+  document.getElementById("kpi-prestamos-capital").textContent = formatEUR(totalPendiente);
   document.getElementById("kpi-prestamos-interes").textContent = formatEUR(totalInteres);
 
   if (prestamos.length === 0) {
@@ -177,10 +177,26 @@ export function renderPrestamos(state) {
       const capital = Number(p.capital ?? p.capital_inicial ?? 0);
       const planPagos = esPlanDePagos(p);
       const pct = Number(p.interes_porcentaje ?? 0);
-      const interesActual = interesActualDe(p);
-      const etiquetaInteres = tieneInteresManual(p) ? "Interés (fijo)" : `Interés (${pct}%)`;
+      const interes = interesTotalDe(p);
+      const total = totalDe(p);
+      const pagado = pagadoDe(p);
+      const pendiente = pendienteDe(p);
       const tagClass = p.estado === "Pagado" ? "entity-card__tag--pagado" : "entity-card__tag--activo";
-      const montoMostrado = planPagos ? restantePlanDePagos(p, pagosPrestamos) : capital;
+      const montoMostrado = planPagos ? restantePlanDePagos(p, pagosPrestamos) : pendiente;
+      // El desglose de la deuda, en una línea: qué se prestó, qué interés
+      // lleva y cuánto ha devuelto ya. La barra es lo pagado sobre el total.
+      const desglose = planPagos
+        ? ""
+        : `<p class="entity-card__meta">Prestado ${formatEUR(capital)}${
+            interes > 0 ? ` + interés ${formatEUR(interes)}${!tieneInteresManual(p) && pct > 0 ? ` (${pct} %)` : ""} = debe ${formatEUR(total)}` : ""
+          }${pagado > 0 ? ` · ya ha pagado ${formatEUR(pagado)}` : ""}${
+            p.fecha_interes && p.estado !== "Pagado" ? ` · para el ${formatFecha(new Date(p.fecha_interes + "T00:00:00"))}` : ""
+          }</p>
+          ${
+            p.estado !== "Pagado" && total > 0
+              ? `<div class="progress-track" style="margin:4px 0 8px;"><div class="progress-fill" style="width:${Math.min(100, Math.round((pagado / total) * 100))}%"></div></div>`
+              : ""
+          }`;
 
       return wrapSwipe(
         `
@@ -195,19 +211,20 @@ export function renderPrestamos(state) {
               <button type="button" class="row-edit-btn" data-edit="${p.id}" title="Editar">${icon("edit", { size: 15 })}</button>
             </div>
           </div>
-          <p class="entity-card__amount">${formatEUR(montoMostrado)} <span style="font-size:0.9rem;color:var(--text-muted);font-family:var(--font-body)">${planPagos ? "pendiente (capital + interés)" : "de capital"}</span></p>
+          <p class="entity-card__amount">${formatEUR(montoMostrado)} <span style="font-size:0.9rem;color:var(--text-muted);font-family:var(--font-body)">${p.estado === "Pagado" ? "— saldado" : "pendiente"}</span></p>
+          ${desglose}
           ${p.notas ? `<p class="entity-card__meta">${esc(p.notas)}</p>` : ""}
 
-          ${p.estado === "Pagado" ? `<p class="entity-card__meta">Préstamo cerrado.</p>` : planPagos ? renderPlanPagos(p, pagosPrestamos) : renderInteresMensual(p, pct, interesActual, etiquetaInteres)}
+          ${p.estado === "Pagado" ? `<p class="entity-card__meta">Préstamo cerrado.</p>` : planPagos ? renderPlanPagos(p, pagosPrestamos) : ""}
           ${renderHistorialPagos(p, movimientos)}
           ${
             p.estado !== "Pagado" && !planPagos
-              ? `<button type="button" class="btn btn--ghost btn--sm btn--block" data-abono="${p.id}">± Ha pagado una parte (abono)</button>`
+              ? `<button type="button" class="btn btn--ghost btn--sm btn--block" data-abono="${p.id}">± Ha pagado una parte</button>`
               : ""
           }
           ${
             p.estado !== "Pagado"
-              ? `<button type="button" class="btn btn--ghost btn--sm btn--block prestamo-liquidar-btn" data-liquidar="${p.id}">💰 Ha pagado capital + interés (liquidar deuda)</button>`
+              ? `<button type="button" class="btn btn--ghost btn--sm btn--block prestamo-liquidar-btn" data-liquidar="${p.id}">💰 Ha pagado todo lo pendiente (liquidar)</button>`
               : ""
           }
         </article>`,
@@ -218,12 +235,6 @@ export function renderPrestamos(state) {
 
   el.querySelectorAll("[data-edit]").forEach((btn) =>
     btn.addEventListener("click", () => openPrestamoForm(prestamos.find((p) => p.id === btn.dataset.edit), state))
-  );
-  el.querySelectorAll("[data-pago-ok]").forEach((btn) =>
-    btn.addEventListener("click", () => openInteresPagadoForm(prestamos.find((p) => p.id === btn.dataset.pagoOk), state))
-  );
-  el.querySelectorAll("[data-pago-no]").forEach((btn) =>
-    btn.addEventListener("click", () => marcarInteresImpago(prestamos.find((p) => p.id === btn.dataset.pagoNo)))
   );
   el.querySelectorAll("[data-liquidar]").forEach((btn) =>
     btn.addEventListener("click", () => openLiquidarForm(prestamos.find((p) => p.id === btn.dataset.liquidar), state))
@@ -266,41 +277,6 @@ async function eliminarPrestamo(prestamo) {
   await deletePrestamo(prestamo.id);
 }
 
-// La cantidad del interés se enseña SIEMPRE que haya un interés puesto, se
-// calcule con el % o esté escrita a mano. Antes toda la caja dependía de
-// que el préstamo tuviera fecha de cobro: si no la tenía, no se veía ni
-// cuánto era el interés, y era fácil quedarse sin ella porque la fecha es
-// un campo aparte que se puede dejar vacío sin que nada avise.
-//
-// La fecha solo hace falta para lo otro: saber cuándo vence y poder marcar
-// si pagó o no. Sin ella se enseña el importe igual y un botón para
-// ponerla (lleva data-edit, que es el mismo que abre el formulario).
-function renderInteresMensual(p, pct, interesActual, etiquetaInteres) {
-  const hayInteres = tieneInteresManual(p) || pct > 0;
-  if (!hayInteres) {
-    return `<p class="entity-card__meta">Sin interés configurado — edita el préstamo para poner el % o una cantidad fija.</p>`;
-  }
-
-  return `
-      <div class="prestamo-interes">
-        <div class="prestamo-interes__info">
-          <span class="prestamo-interes__label">${etiquetaInteres}</span>
-          <span class="prestamo-interes__amount">${formatEUR(interesActual)}</span>
-          <span class="prestamo-interes__fecha">${
-            p.fecha_interes ? `vence ${formatFecha(new Date(p.fecha_interes + "T00:00:00"))}` : "sin fecha de cobro"
-          }</span>
-        </div>
-        <div class="prestamo-interes__actions">
-          ${
-            p.fecha_interes
-              ? `<button type="button" class="btn btn--primary btn--sm" data-pago-ok="${p.id}">✓ Pagó</button>
-          <button type="button" class="btn btn--ghost btn--sm" data-pago-no="${p.id}">✕ No pagó</button>`
-              : `<button type="button" class="btn btn--ghost btn--sm" data-edit="${p.id}">Poner la fecha de cobro</button>`
-          }
-        </div>
-      </div>`;
-}
-
 // Plan de pagos diario: en vez de un interés mensual único, se muestra la
 // lista de días (cada uno con su cuota) para poder marcar/desmarcar día a
 // día lo que de verdad se ha cobrado.
@@ -338,87 +314,6 @@ function renderPlanPagos(prestamo, pagosPrestamos) {
           .join("")}
       </div>
     </div>`;
-}
-
-async function marcarInteresImpago(prestamo) {
-  const capital = Number(prestamo.capital ?? prestamo.capital_inicial ?? 0);
-  const interesActual = interesActualDe(prestamo);
-  const nuevoCapital = capital + interesActual;
-  if (
-    !confirm(
-      `${prestamo.persona} no pagó el interés de ${formatEUR(interesActual)}.\n\nSe sumará al capital: ${formatEUR(capital)} + ${formatEUR(
-        interesActual
-      )} = ${formatEUR(nuevoCapital)}.\n\n¿Confirmas?`
-    )
-  )
-    return;
-  await updatePrestamo(prestamo.id, {
-    capital: nuevoCapital,
-    fecha_interes: unMesDespues(prestamo.fecha_interes),
-    // Igual que al cobrar: si el % es la regla, el mes congelado por un
-    // abono parcial se suelta y el próximo interés se calcula del capital.
-    ...(Number(prestamo.interes_porcentaje ?? 0) > 0 ? { interes_manual: null } : {}),
-  });
-}
-
-function openInteresPagadoForm(prestamo, state) {
-  const interesActual = interesActualDe(prestamo);
-
-  openModal(
-    `
-    <h2 class="modal__title">Interés pagado · ${prestamo.persona}</h2>
-    <form id="form-interes-pago" class="form-grid">
-      <label class="field">
-        <span class="field__label">Importe</span>
-        <input type="number" step="0.01" name="importe" required value="${interesActual.toFixed(2)}" placeholder="0.00" />
-      </label>
-      <label class="field">
-        <span class="field__label">Cuenta</span>
-        <select name="cuenta_id">${optionsFrom(state.cuentas, { selected: prestamo.cuenta_id })}</select>
-      </label>
-      <label class="field field--full">
-        <span class="field__label">Fecha</span>
-        <input type="date" name="fecha" value="${todayISO()}" required />
-      </label>
-      <p class="field-error" id="form-interes-pago-error"></p>
-      <div class="modal__actions field--full">
-        <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
-        <button type="submit" class="btn btn--primary">Confirmar</button>
-      </div>
-    </form>
-  `,
-    {
-      onMount: (root) => {
-        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
-        root.querySelector("#form-interes-pago").addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const f = e.target;
-          try {
-            await addMovimiento({
-              tipo: "Ingreso",
-              importe: Number(f.importe.value),
-              categoria_id: null,
-              cuenta_id: f.cuenta_id.value,
-              cuenta_destino_id: null,
-              fecha: toTimestamp(f.fecha.value),
-              subcategoria: `Interés préstamo · ${prestamo.persona}`,
-              nota: "",
-              prestamo_id: prestamo.id,
-            });
-            await updatePrestamo(prestamo.id, {
-              fecha_interes: unMesDespues(prestamo.fecha_interes),
-              // Si el interés va por % y este mes quedó congelado a mano
-              // (por un abono parcial), al cobrarlo se vuelve al % normal.
-              ...(Number(prestamo.interes_porcentaje ?? 0) > 0 ? { interes_manual: null } : {}),
-            });
-            closeModal();
-          } catch (err) {
-            root.querySelector("#form-interes-pago-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
-          }
-        });
-      },
-    }
-  );
 }
 
 // Marcar un día concreto del plan de pagos diario como cobrado: el importe
@@ -495,36 +390,22 @@ async function deshacerDiaPagado(pago) {
   await updatePagoPrestamo(pago.id, { pagado: false, movimiento_id: null });
 }
 
-const round2 = (n) => Math.round(n * 100) / 100;
-
-// Un abono parcial: la persona paga una parte de lo que debe (30 € de una
-// deuda de 60, por ejemplo) y el resto queda para otro día. El dinero se
-// aplica como se hace siempre con las deudas: primero al interés del mes y
-// lo que sobre baja el capital. Si el interés queda cubierto del todo, el
-// mes se da por resuelto (la fecha salta al siguiente); si queda a medias,
-// el resto del mes se guarda como interés fijo hasta que se cobre. Y si el
-// abono cubre TODO lo pendiente, el préstamo se cierra solo.
+// Un pago: la persona devuelve una parte de lo que debe (30 € de una deuda
+// de 120, por ejemplo). Nada de repartir entre interés y capital — el
+// importe simplemente resta del total pendiente, y si con este pago llega
+// a cero, el préstamo se cierra solo como Pagado.
 function openAbonoForm(prestamo, state) {
-  const capital = Number(prestamo.capital ?? prestamo.capital_inicial ?? 0);
-  const interesActual = interesActualDe(prestamo);
-  const total = capital + interesActual;
-  const pct = Number(prestamo.interes_porcentaje ?? 0);
+  const pendiente = pendienteDe(prestamo);
+  const total = totalDe(prestamo);
 
   const resumenDe = (importe) => {
     if (!(importe > 0)) {
-      return `Debe ${formatEUR(capital)} de capital${interesActual > 0 ? ` + ${formatEUR(interesActual)} de interés = <strong>${formatEUR(total)}</strong>` : ""}. Escribe cuánto ha pagado.`;
+      return `Debe <strong>${formatEUR(pendiente)}</strong>${pagadoDe(prestamo) > 0 ? ` (de ${formatEUR(total)} en total)` : ""}. Escribe cuánto ha pagado.`;
     }
-    if (importe >= total - 0.004) {
+    if (importe >= pendiente - 0.004) {
       return `Con ${formatEUR(importe)} queda <strong>todo saldado</strong>: el préstamo se cerrará como Pagado.`;
     }
-    const cubreInteres = Math.min(importe, interesActual);
-    const aCapital = importe - cubreInteres;
-    const quedaInteres = round2(interesActual - cubreInteres);
-    const quedaCapital = round2(capital - aCapital);
-    const partes = [];
-    if (cubreInteres > 0) partes.push(`${formatEUR(cubreInteres)} al interés`);
-    if (aCapital > 0) partes.push(`${formatEUR(aCapital)} al capital`);
-    return `${partes.join(" y ")} → quedará <strong>${formatEUR(quedaCapital)}</strong> de capital${quedaInteres > 0 ? ` + ${formatEUR(quedaInteres)} de interés` : ""}.`;
+    return `Quedarán por pagar <strong>${formatEUR(round2(pendiente - importe))}</strong>.`;
   };
 
   openModal(
@@ -574,25 +455,15 @@ function openAbonoForm(prestamo, state) {
               nota: "",
               prestamo_id: prestamo.id,
             });
-            if (importe >= total - 0.004) {
-              await updatePrestamo(prestamo.id, { capital: 0, interes_manual: null, estado: "Pagado" });
-              efectoDeCelebracion();
-            } else {
-              const cubreInteres = Math.min(importe, interesActual);
-              const cambios = { capital: round2(capital - (importe - cubreInteres)) };
-              if (interesActual > 0) {
-                const quedaInteres = round2(interesActual - cubreInteres);
-                if (quedaInteres > 0) {
-                  // El resto del interés del mes queda fijado hasta cobrarlo.
-                  cambios.interes_manual = quedaInteres;
-                } else {
-                  // Interés del mes cubierto entero: mes resuelto.
-                  cambios.interes_manual = null;
-                  if (prestamo.fecha_interes) cambios.fecha_interes = unMesDespues(prestamo.fecha_interes);
-                }
-              }
-              await updatePrestamo(prestamo.id, cambios);
-            }
+            // El pago solo suma a "pagado": el capital y el interés del
+            // préstamo no se tocan, así el desglose siempre cuenta la
+            // historia completa (prestado + interés − pagado = pendiente).
+            const saldado = importe >= pendiente - 0.004;
+            await updatePrestamo(prestamo.id, {
+              pagado: round2(pagadoDe(prestamo) + importe),
+              ...(saldado ? { estado: "Pagado" } : {}),
+            });
+            if (saldado) efectoDeCelebracion();
             closeModal();
           } catch (err) {
             root.querySelector("#form-abono-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
@@ -605,14 +476,11 @@ function openAbonoForm(prestamo, state) {
 
 // Cuando la persona paga TODO de golpe (el capital pendiente + el interés
 // actual), no basta con marcar el interés como pagado (eso solo mueve la
-// fecha y deja el capital intacto): aquí se registra un único ingreso por
-// la suma de ambos y el préstamo se cierra del todo (capital a 0, estado
-// Pagado), en vez de seguir esperando el próximo interés.
+// La persona paga de golpe TODO lo que le queda: se registra un único
+// ingreso por el pendiente y el préstamo se cierra como Pagado.
 function openLiquidarForm(prestamo, state) {
   const planPagos = esPlanDePagos(prestamo);
-  const capital = Number(prestamo.capital ?? prestamo.capital_inicial ?? 0);
-  const interesActual = interesActualDe(prestamo);
-  const total = planPagos ? restantePlanDePagos(prestamo, state.pagosPrestamos) : capital + interesActual;
+  const total = planPagos ? restantePlanDePagos(prestamo, state.pagosPrestamos) : pendienteDe(prestamo);
 
   openModal(
     `
@@ -621,7 +489,7 @@ function openLiquidarForm(prestamo, state) {
       ${
         planPagos
           ? `Quedan ${formatEUR(total)} pendientes del plan de pagos diario.`
-          : `Capital (${formatEUR(capital)}) + interés (${formatEUR(interesActual)}) = <strong>${formatEUR(total)}</strong>.`
+          : `Le quedan por pagar <strong>${formatEUR(total)}</strong>${pagadoDe(prestamo) > 0 ? ` (de ${formatEUR(totalDe(prestamo))} en total, ya había pagado ${formatEUR(pagadoDe(prestamo))})` : ` (capital + interés)`}.`
       }
       Esto registra un ingreso por el total y cierra el préstamo como Pagado.
     </p>
@@ -663,7 +531,9 @@ function openLiquidarForm(prestamo, state) {
               nota: "",
               prestamo_id: prestamo.id,
             });
-            await updatePrestamo(prestamo.id, { capital: 0, estado: "Pagado" });
+            // Pagado = el total: el desglose de la tarjeta queda contando
+            // la historia completa aunque el préstamo esté cerrado.
+            await updatePrestamo(prestamo.id, { pagado: planPagos ? pagadoDe(prestamo) : totalDe(prestamo), estado: "Pagado" });
             // El ingreso de arriba ya cubre TODO lo que quedaba, así que los
             // días pendientes del plan se marcan pagados sin crear un
             // ingreso por cada uno (ya está contado en el de golpe).
@@ -703,8 +573,8 @@ function openPrestamoForm(prestamo, state) {
         <input type="text" name="persona" required value="${esc(prestamo?.persona ?? "")}" placeholder="Nombre de la persona" />
       </label>
       <label class="field">
-        <span class="field__label">Capital pendiente</span>
-        <input type="number" step="0.01" name="capital" required value="${capital}" placeholder="500.00" />
+        <span class="field__label">Capital prestado</span>
+        <input type="number" step="0.01" name="capital" required value="${capital}" placeholder="100.00" />
       </label>
       ${
         preguntarOrigen
@@ -731,12 +601,22 @@ function openPrestamoForm(prestamo, state) {
         <input type="number" step="0.01" name="interes_porcentaje" value="${prestamo?.interes_porcentaje ?? 0}" placeholder="20" />
       </label>
       <label class="field">
-        <span class="field__label">Interés manual (€, opcional)</span>
+        <span class="field__label">Interés fijo (€, opcional)</span>
         <input type="number" step="0.01" name="interes_manual" value="${prestamo?.interes_manual ?? ""}" placeholder="Vacío = se calcula con el %" />
       </label>
+      <p class="entity-card__meta field--full" id="prestamo-total-linea" style="margin:-4px 0 4px;"></p>
+      ${
+        isEdit
+          ? `
       <label class="field">
-        <span class="field__label">¿Qué día te paga el interés?</span>
-        <input type="date" name="fecha_interes" value="${prestamo?.fecha_interes ?? unMesDespues(todayISO())}" />
+        <span class="field__label">Ya pagado hasta ahora (€)</span>
+        <input type="number" step="0.01" name="pagado" value="${pagadoDe(prestamo)}" placeholder="0.00" />
+      </label>`
+          : ""
+      }
+      <label class="field">
+        <span class="field__label">¿Para cuándo debería pagarlo? (opcional)</span>
+        <input type="date" name="fecha_interes" value="${prestamo?.fecha_interes ?? ""}" />
       </label>
       <label class="field">
         <span class="field__label">Estado</span>
@@ -756,7 +636,18 @@ function openPrestamoForm(prestamo, state) {
     {
       onMount: (root) => {
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
-        root.querySelector("#form-prestamo").addEventListener("submit", async (e) => {
+        const form = root.querySelector("#form-prestamo");
+        // La línea del total, en vivo: capital + interés = lo que debe.
+        const pintarTotal = () => {
+          const cap = Number(form.capital.value || 0);
+          const manual = form.interes_manual.value !== "" ? Number(form.interes_manual.value) : null;
+          const interes = manual !== null ? manual : round2(cap * (Number(form.interes_porcentaje.value || 0) / 100));
+          root.querySelector("#prestamo-total-linea").innerHTML =
+            cap > 0 ? `Total a devolver: <strong>${formatEUR(round2(cap + interes))}</strong>${interes > 0 ? ` (${formatEUR(cap)} + ${formatEUR(interes)} de interés)` : ""}. Cada pago resta de ahí hasta liquidar.` : "";
+        };
+        pintarTotal();
+        ["capital", "interes_porcentaje", "interes_manual"].forEach((n) => form[n].addEventListener("input", pintarTotal));
+        form.addEventListener("submit", async (e) => {
           e.preventDefault();
           const f = e.target;
           const data = {
@@ -768,6 +659,13 @@ function openPrestamoForm(prestamo, state) {
             estado: f.estado.value,
             notas: f.notas.value.trim(),
           };
+          // Al editar se puede corregir a mano cuánto lleva pagado (para
+          // cuadrar préstamos antiguos); si con eso queda a cero, se cierra.
+          if (isEdit && f.pagado) {
+            data.pagado = Number(f.pagado.value || 0);
+            const interes = data.interes_manual !== null ? data.interes_manual : round2(data.capital * (data.interes_porcentaje / 100));
+            if (data.pagado >= round2(data.capital + interes) - 0.004 && data.pagado > 0) data.estado = "Pagado";
+          }
           try {
             if (isEdit) {
               await updatePrestamo(prestamo.id, data);
