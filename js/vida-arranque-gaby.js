@@ -10,8 +10,8 @@
 //
 // Este archivo es PERSONAL (vida-*): el kit lo excluye entero.
 
-import { addCuenta, addCategoria, addSuscripcion, addMetaAhorro, updateCuenta, updateMovimiento, fechaISO } from "./db.js?v=106";
-import { crudos, esGaby } from "./vida-perfil.js?v=106";
+import { addCuenta, addCategoria, addSuscripcion, addMetaAhorro, updateCuenta, updateMovimiento, fechaISO } from "./db.js?v=107";
+import { crudos, esGaby } from "./vida-perfil.js?v=107";
 
 // ¿Toca ofrecer el arranque? Solo en su perfil, con los datos ya cargados
 // y ni una cuenta suya creada todavía.

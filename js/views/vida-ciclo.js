@@ -28,11 +28,11 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "../firebase-init.js?v=106";
-import { vida, guardarSistema } from "../vida.js?v=106";
-import { openModal, closeModal, esc } from "../modal.js?v=106";
-import { icon } from "../icons.js?v=106";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=106";
+import { db } from "../firebase-init.js?v=107";
+import { vida, guardarSistema } from "../vida.js?v=107";
+import { openModal, closeModal, esc } from "../modal.js?v=107";
+import { icon } from "../icons.js?v=107";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=107";
 
 // ---- Datos: colecciones propias, escuchadas aquí mismo.
 const addCiclos = (data) => addDoc(collection(db, "ciclos"), data);

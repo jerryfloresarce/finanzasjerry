@@ -8,12 +8,12 @@ import {
   formatFecha,
   fromTimestamp,
   nombreDeCuenta,
-} from "../db.js?v=106";
-import { openModal, closeModal, todayISO, esc } from "../modal.js?v=106";
-import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=106";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=106";
-import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=106";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=106";
+} from "../db.js?v=107";
+import { openModal, closeModal, todayISO, esc } from "../modal.js?v=107";
+import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=107";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=107";
+import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=107";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=107";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 

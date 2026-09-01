@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=106";
-import { fechaISO } from "./db.js?v=106";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=106";
+import { db } from "./firebase-init.js?v=107";
+import { fechaISO } from "./db.js?v=107";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=107";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -1183,7 +1183,14 @@ function horarioLaborable(nombreEntreno, fechaId = "") {
   return bloques;
 }
 
-function horarioTardeLibre(queToca, fechaId = "") {
+function horarioTardeLibre(toca, fechaId = "") {
+  // La tarde sin gimnasio fijo: si ese día hay entreno (core, piscina…), el
+  // bloque lleva SU nombre — el mismo que en la pantalla Entreno — para que
+  // el horario y el entreno nunca se contradigan. "Tarde libre" queda solo
+  // para los días que de verdad no toca nada.
+  const descansa = !toca || toca.tipo === "descanso" || toca.tipo === "libre";
+  const tituloTarde = descansa ? "Tarde libre" : toca.nombre;
+  const detalleTarde = descansa ? "Caminata suave si apetece" : "Cuando mejor te venga · el resto de la tarde, libre";
   if (fechaId < CAMBIO_SALIDA_17)
     return [
       { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
@@ -1193,7 +1200,7 @@ function horarioTardeLibre(queToca, fechaId = "") {
       { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
       { h: "15:00", titulo: "Comer", detalle: "Dientes (2) · fruta 2 de postre" },
       { h: "15:40", titulo: "Estudio", detalle: "El bloque de verdad, en la mesa" },
-      { h: "16:10", titulo: "Tarde libre", detalle: queToca },
+      { h: "16:10", titulo: tituloTarde, detalle: detalleTarde },
       { h: "20:45", titulo: "Salir hacia la tienda", detalle: "Como muy tarde" },
       { h: "22:40", titulo: "En casa · cenar", detalle: "La cena ya estaba hecha" },
       { h: "23:15", titulo: "Dormir", detalle: "Dientes (3) · móvil fuera de la cama" },
@@ -1206,7 +1213,7 @@ function horarioTardeLibre(queToca, fechaId = "") {
     { h: "13:30", titulo: "Hueco de cocina", detalle: "Dejar la CENA preparada · lavar los platos" },
     { h: "14:00", titulo: "Comer", detalle: "Con Gaby · dientes (2)" },
     { h: "17:00", titulo: "Salida del trabajo", detalle: "Merienda" },
-    { h: "17:15", titulo: "Tarde libre", detalle: queToca },
+    { h: "17:15", titulo: tituloTarde, detalle: detalleTarde },
     { h: "20:45", titulo: "Salir hacia la tienda", detalle: "Como muy tarde · estudio allí si está tranquila" },
     { h: "22:40", titulo: "En casa · cenar", detalle: "La cena ya estaba hecha" },
     { h: "23:15", titulo: "Dormir", detalle: "Dientes (3) · móvil fuera de la cama" },
@@ -1296,9 +1303,9 @@ function bloquesDeSerie(fecha = new Date()) {
   if (dia === 1 || dia === 3) return horarioLaborable(SEMANA_TIPO[dia].nombre, f);
   if (dia === 2) {
     if (f >= PRIMER_MARTES_OFICINA) return horarioOficina();
-    return horarioTardeLibre("Caminata con elevación (35 min) cuando mejor te venga", f);
+    return horarioTardeLibre(SEMANA_TIPO[2], f);
   }
-  if (dia === 4) return horarioTardeLibre("Piscina con tu hermano", f);
+  if (dia === 4) return horarioTardeLibre(SEMANA_TIPO[4], f);
   if (dia === 5)
     return [
       { h: "07:45", titulo: "Levantarse", detalle: "Cara y dientes (1)" },
