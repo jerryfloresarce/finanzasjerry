@@ -42,13 +42,13 @@ import {
   comidaEsSobras,
   marcarComidaSobras,
   cambiosDeFecha,
-} from "../vida.js?v=113";
-import { abrirReceta, abrirCambioFecha } from "./vida-menu.js?v=113";
-import { pedirVista } from "./vida-agenda.js?v=113";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=113";
-import { fechaISO, formatFecha } from "../db.js?v=113";
-import { efectoDeCelebracion } from "../efectos.js?v=113";
-import { openModal, closeModal, esc } from "../modal.js?v=113";
+} from "../vida.js?v=114";
+import { abrirReceta, abrirCambioFecha } from "./vida-menu.js?v=114";
+import { pedirVista } from "./vida-agenda.js?v=114";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=114";
+import { fechaISO, formatFecha } from "../db.js?v=114";
+import { efectoDeCelebracion } from "../efectos.js?v=114";
+import { openModal, closeModal, esc } from "../modal.js?v=114";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -181,6 +181,14 @@ export function mountVidaHoy() {
     }
     if (e.target.closest("#btn-cambio-menu")) {
       abrirCambioFecha(fechaISO());
+      return;
+    }
+    if (e.target.closest("#btn-aviso-off")) {
+      guardarSistema({ aviso_innegociables: false }).catch(() => {});
+      return;
+    }
+    if (e.target.closest("#btn-aviso-on")) {
+      guardarSistema({ aviso_innegociables: true }).catch(() => {});
       return;
     }
     if (e.target.closest("#btn-editar-horario")) {
@@ -520,9 +528,25 @@ export function renderVidaHoy(state) {
 
   const avisoHueco = editandoAyer ? null : avisoDeEntrenoSinHueco(fecha);
 
+  // El recordatorio de los 4 innegociables: a partir de las 21:00, si el
+  // día sigue abierto con casillas sin marcar, un aviso arriba del todo.
+  // Con su interruptor: silenciar lo apaga (sistema.aviso_innegociables) y
+  // deja a la vista un botón discreto para volver a encenderlo — nada de
+  // ajustes escondidos ni botones sin vuelta atrás.
+  const avisosOn = vida.sistema.aviso_innegociables !== false;
+  const sinMarcar = INNEGOCIABLES.filter((i) => !b.innegociables?.[i.id]);
+  const avisoInnegociables =
+    avisosOn && !editandoAyer && !guardado?.cerrado && rutinaEmpezada() && new Date().getHours() >= 21 && sinMarcar.length > 0
+      ? `<div class="card hoy-aviso"><p class="entity-card__meta" style="margin:0;">
+          🔔 Aún sin marcar: ${sinMarcar.map((i) => esc(i.nombre)).join(" · ")}. Un toque ahora y el día no se escapa.
+          <button type="button" class="btn btn--ghost btn--sm" id="btn-aviso-off">🔕 Silenciar estos avisos</button>
+        </p></div>`
+      : "";
+
   el.innerHTML = `
     ${avisoPermisos}
     ${cardArranque}
+    ${avisoInnegociables}
     ${avisoHueco ? `<div class="card hoy-aviso"><p class="entity-card__meta" style="margin:0;">⚠️ ${avisoHueco}</p></div>` : ""}
     ${
       ayerAbierto
@@ -610,6 +634,12 @@ export function renderVidaHoy(state) {
               </button>`
         }
       </article>
+      ${
+        !avisosOn && !editandoAyer
+          ? `<p class="entity-card__meta" style="margin:2px 4px;">Avisos de innegociables: apagados ·
+              <button type="button" class="btn btn--ghost btn--sm" id="btn-aviso-on">🔔 Encender</button></p>`
+          : ""
+      }
       ${cardQueToca}
     </div>
   `;

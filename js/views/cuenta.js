@@ -1,9 +1,10 @@
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=113";
-import { state } from "../store.js?v=113";
-import { exportarDatos, importarDatos } from "../backup.js?v=113";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=113";
-import { montarSelectorTemas } from "../tema.js?v=113";
+import { auth } from "../firebase-init.js?v=114";
+import { state } from "../store.js?v=114";
+import { exportarDatos, importarDatos } from "../backup.js?v=114";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=114";
+import { montarSelectorTemas } from "../tema.js?v=114";
+import { arrancarTour } from "../tour.js?v=114";
 
 let panel = null;
 let scrim = null;
@@ -38,6 +39,13 @@ export function mountCuentaPanel() {
   document.getElementById("btn-open-cuenta-topbar")?.addEventListener("click", toggle);
   document.getElementById("btn-account-desktop")?.addEventListener("click", toggle);
   scrim.addEventListener("click", closePanel);
+  // La guía de bienvenida se puede repetir cuando haga falta (enseñar la
+  // app a alguien, refrescar dónde estaba algo). Cierra el panel antes,
+  // para que la guía señale la pantalla y no el propio panel.
+  document.getElementById("btn-ver-tour")?.addEventListener("click", () => {
+    closePanel();
+    setTimeout(arrancarTour, 350);
+  });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") closePanel();
   });

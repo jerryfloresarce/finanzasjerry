@@ -1,5 +1,5 @@
-import { updateConfig } from "./db.js?v=113";
-import { state } from "./store.js?v=113";
+import { updateConfig } from "./db.js?v=114";
+import { state } from "./store.js?v=114";
 
 // Temas de la app. El aspecto de cada uno —colores, trama de fondo y la
 // marca del personaje— vive entero en css/temas.css: aquí solo está el
@@ -7,7 +7,12 @@ import { state } from "./store.js?v=113";
 export const TEMAS = [
   {
     id: "original",
-    nombre: "Original",
+    nombre: "Oscuro (original)",
+    grupo: "Por defecto",
+  },
+  {
+    id: "claro",
+    nombre: "Claro",
     grupo: "Por defecto",
   },
   {
@@ -49,6 +54,31 @@ export const TEMAS = [
     id: "rosa",
     nombre: "Rosa pastel",
     grupo: "Aesthetic",
+  },
+  {
+    id: "espana",
+    nombre: "España",
+    grupo: "Países",
+  },
+  {
+    id: "bolivia",
+    nombre: "Bolivia",
+    grupo: "Países",
+  },
+  {
+    id: "brasil",
+    nombre: "Brasil",
+    grupo: "Países",
+  },
+  {
+    id: "italia",
+    nombre: "Italia",
+    grupo: "Países",
+  },
+  {
+    id: "francia",
+    nombre: "Francia",
+    grupo: "Países",
   },
 ];
 

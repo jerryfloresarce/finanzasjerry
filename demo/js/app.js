@@ -1,29 +1,30 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=113";
-import { state, subscribe, initStore } from "./store.js?v=113";
+import { onAuthReady } from "./auth.js?v=114";
+import { tourSiPrimeraVez } from "./tour.js?v=114";
+import { state, subscribe, initStore } from "./store.js?v=114";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=113";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=113";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=113";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=113";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=113";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=113";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=113";
-import { mountMetas, renderMetas } from "./views/metas.js?v=113";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=114";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=114";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=114";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=114";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=114";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=114";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=114";
+import { mountMetas, renderMetas } from "./views/metas.js?v=114";
 // modulo:rutina:inicio
-import { mountRutina, renderRutina } from "./views/rutina.js?v=113";
+import { mountRutina, renderRutina } from "./views/rutina.js?v=114";
 // modulo:rutina:fin
 // modulo:ciclo:inicio
-import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=113";
+import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=114";
 // modulo:ciclo:fin
 // modulo:gimnasio:inicio
-import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=113";
+import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=114";
 // modulo:gimnasio:fin
-import { mountCuentaPanel } from "./views/cuenta.js?v=113";
-import { refreshAnimations } from "./animations.js?v=113";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=113";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=113";
-import { efectoDeEntrada } from "./efectos.js?v=113";
+import { mountCuentaPanel } from "./views/cuenta.js?v=114";
+import { refreshAnimations } from "./animations.js?v=114";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=114";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=114";
+import { efectoDeEntrada } from "./efectos.js?v=114";
 
 const ROUTES = {
   dashboard: renderDashboard,
@@ -300,6 +301,9 @@ onAuthReady((user) => {
 
   if (!mounted) {
     mounted = true;
+    // La primera vez que alguien entra, la guía de bienvenida le enseña la
+    // app paso a paso. Solo la primera: luego vive en Mi cuenta.
+    tourSiPrimeraVez();
     mountDashboard();
     mountGraficos();
     mountMovimientos();

@@ -1,32 +1,33 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=113";
-import { state, subscribe, initStore } from "./store.js?v=113";
+import { onAuthReady } from "./auth.js?v=114";
+import { tourSiPrimeraVez } from "./tour.js?v=114";
+import { state, subscribe, initStore } from "./store.js?v=114";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=113";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=113";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=113";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=113";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=113";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=113";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=113";
-import { mountMetas, renderMetas } from "./views/metas.js?v=113";
-import { mountCuentaPanel } from "./views/cuenta.js?v=113";
-import { refreshAnimations } from "./animations.js?v=113";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=113";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=113";
-import { efectoDeEntrada } from "./efectos.js?v=113";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=114";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=114";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=114";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=114";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=114";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=114";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=114";
+import { mountMetas, renderMetas } from "./views/metas.js?v=114";
+import { mountCuentaPanel } from "./views/cuenta.js?v=114";
+import { refreshAnimations } from "./animations.js?v=114";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=114";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=114";
+import { efectoDeEntrada } from "./efectos.js?v=114";
 // vida:inicio
-import { initPerfil } from "./vida-perfil.js?v=113";
-import { initVida } from "./vida.js?v=113";
-import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=113";
-import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=113";
-import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=113";
-import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=113";
-import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=113";
-import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=113";
-import { mountVidaCiclo, renderVidaCiclo } from "./views/vida-ciclo.js?v=113";
-import { mountVidaOficina, renderVidaOficina } from "./views/vida-oficina.js?v=113";
-import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=113";
+import { initPerfil } from "./vida-perfil.js?v=114";
+import { initVida } from "./vida.js?v=114";
+import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=114";
+import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=114";
+import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=114";
+import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=114";
+import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=114";
+import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=114";
+import { mountVidaCiclo, renderVidaCiclo } from "./views/vida-ciclo.js?v=114";
+import { mountVidaOficina, renderVidaOficina } from "./views/vida-oficina.js?v=114";
+import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=114";
 // vida:fin
 
 const ROUTES = {
@@ -315,6 +316,9 @@ onAuthReady((user) => {
 
   if (!mounted) {
     mounted = true;
+    // La primera vez que alguien entra, la guía de bienvenida le enseña la
+    // app paso a paso. Solo la primera: luego vive en Mi cuenta.
+    tourSiPrimeraVez();
     mountDashboard();
     mountGraficos();
     mountMovimientos();
