@@ -1,30 +1,31 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=114";
-import { tourSiPrimeraVez } from "./tour.js?v=114";
-import { state, subscribe, initStore } from "./store.js?v=114";
+import { onAuthReady } from "./auth.js?v=115";
+import { tourSiPrimeraVez } from "./tour.js?v=115";
+import { arrancarIdioma } from "./idioma.js?v=115";
+import { state, subscribe, initStore } from "./store.js?v=115";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=114";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=114";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=114";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=114";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=114";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=114";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=114";
-import { mountMetas, renderMetas } from "./views/metas.js?v=114";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=115";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=115";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=115";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=115";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=115";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=115";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=115";
+import { mountMetas, renderMetas } from "./views/metas.js?v=115";
 // modulo:rutina:inicio
-import { mountRutina, renderRutina } from "./views/rutina.js?v=114";
+import { mountRutina, renderRutina } from "./views/rutina.js?v=115";
 // modulo:rutina:fin
 // modulo:ciclo:inicio
-import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=114";
+import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=115";
 // modulo:ciclo:fin
 // modulo:gimnasio:inicio
-import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=114";
+import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=115";
 // modulo:gimnasio:fin
-import { mountCuentaPanel } from "./views/cuenta.js?v=114";
-import { refreshAnimations } from "./animations.js?v=114";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=114";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=114";
-import { efectoDeEntrada } from "./efectos.js?v=114";
+import { mountCuentaPanel } from "./views/cuenta.js?v=115";
+import { refreshAnimations } from "./animations.js?v=115";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=115";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=115";
+import { efectoDeEntrada } from "./efectos.js?v=115";
 
 const ROUTES = {
   dashboard: renderDashboard,
@@ -301,6 +302,12 @@ onAuthReady((user) => {
 
   if (!mounted) {
     mounted = true;
+    // El traductor arranca antes que nada: desde este momento, todo texto
+    // que aparezca en pantalla pasa por el diccionario del idioma elegido.
+    arrancarIdioma();
+    // Al cambiar de idioma se repinta la vista: las fechas y las gráficas
+    // se generan en código y necesitan volver a dibujarse en el idioma nuevo.
+    document.addEventListener("idioma-cambiado", () => renderCurrentView());
     // La primera vez que alguien entra, la guía de bienvenida le enseña la
     // app paso a paso. Solo la primera: luego vive en Mi cuenta.
     tourSiPrimeraVez();

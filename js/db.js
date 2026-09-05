@@ -1,3 +1,4 @@
+import { localeActual } from "./idioma.js?v=115";
 import {
   collection,
   doc,
@@ -12,7 +13,7 @@ import {
   disableNetwork,
   enableNetwork,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=114";
+import { db } from "./firebase-init.js?v=115";
 
 // Cuando el iPhone deja la app en segundo plano (o la pantalla se apaga),
 // Safari congela la conexión abierta de Firestore. Al volver, esa conexión
@@ -284,7 +285,7 @@ export function textoPeriodo(movimiento) {
     // vaya al anterior según el país.
     const d = new Date(iso + "T12:00:00");
     if (Number.isNaN(d.getTime())) return "";
-    return new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short" }).format(d).replace(".", "");
+    return new Intl.DateTimeFormat(localeActual(), { day: "numeric", month: "short" }).format(d).replace(".", "");
   };
   if (desde && hasta) return `${corto(desde)} – ${corto(hasta)}`;
   return corto(desde || hasta);
@@ -396,7 +397,7 @@ export function formatEUR(value) {
 
 export function formatFecha(date) {
   if (!date) return "";
-  return new Intl.DateTimeFormat("es-ES", {
+  return new Intl.DateTimeFormat(localeActual(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

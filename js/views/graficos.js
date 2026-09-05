@@ -1,3 +1,4 @@
+import { localeActual, t as tr } from "../idioma.js?v=115";
 import {
   movimientosEnRango,
   totalPorTipo,
@@ -6,11 +7,11 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=114";
-import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=114";
-import { icon, entityIcon, iconForCuentaTipo, iconForSuscripcion } from "../icons.js?v=114";
-import { openModal, closeModal } from "../modal.js?v=114";
-import { colorTema, paletaTema, conAlfa } from "../tema.js?v=114";
+} from "../db.js?v=115";
+import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=115";
+import { icon, entityIcon, iconForCuentaTipo, iconForSuscripcion } from "../icons.js?v=115";
+import { openModal, closeModal } from "../modal.js?v=115";
+import { colorTema, paletaTema, conAlfa } from "../tema.js?v=115";
 
 // Colores de respaldo (tema Original). Los de verdad los pone el tema
 // activo — ver js/tema.js.
@@ -122,7 +123,7 @@ function renderGastosFijosPorCuenta(state) {
 }
 
 function etiquetaMes() {
-  const label = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(mesGastosFijos);
+  const label = new Intl.DateTimeFormat(localeActual(), { month: "long", year: "numeric" }).format(mesGastosFijos);
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
@@ -151,7 +152,7 @@ function renderChartGastosFijosCuenta(labels, valores, esFuturo) {
       labels,
       datasets: [
         {
-          label: esFuturo ? "Estimado" : "Gastos fijos",
+          label: esFuturo ? tr("Estimado") : tr("Gastos fijos"),
           data: valores,
           backgroundColor: conAlfa(colorTema(esFuturo ? "--warning" : "--accent"), esFuturo ? 0.5 : 0.6),
           borderColor: colorTema(esFuturo ? "--warning" : "--accent"),

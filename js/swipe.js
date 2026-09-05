@@ -1,9 +1,10 @@
+import { t as tr } from "./idioma.js?v=115";
 // Gesto compartido de "deslizar para eliminar": envuelve una fila o
 // tarjeta en un contenedor con un botón rojo "Eliminar" detrás, que se
 // revela al arrastrar el contenido hacia la izquierda. Se usa en vez de
 // un botón "Eliminar" siempre visible, en todas las listas de la app.
 
-import { animarFilaAlEliminar } from "./efectos.js?v=114";
+import { animarFilaAlEliminar } from "./efectos.js?v=115";
 
 const REVEAL_PX = 88;
 const DRAG_LOCK_THRESHOLD = 8;
@@ -50,7 +51,7 @@ export function attachSwipe(container, onDelete, { confirmar } = {}) {
     if (!content || !deleteBtn) return;
 
     deleteBtn.addEventListener("click", async () => {
-      if (confirmar && !window.confirm(confirmar)) return;
+      if (confirmar && !window.confirm(tr(confirmar))) return;
       await animarFilaAlEliminar(row);
       onDelete(row.dataset.swipeRow);
     });

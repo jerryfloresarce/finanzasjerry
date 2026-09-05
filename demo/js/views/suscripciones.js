@@ -1,3 +1,4 @@
+import { localeActual } from "../idioma.js?v=115";
 import {
   addSuscripcion,
   updateSuscripcion,
@@ -11,10 +12,10 @@ import {
   toTimestamp,
   fechaISO,
   textoPeriodo,
-} from "../db.js?v=114";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=114";
-import { icon, iconForSuscripcion } from "../icons.js?v=114";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=114";
+} from "../db.js?v=115";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=115";
+import { icon, iconForSuscripcion } from "../icons.js?v=115";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=115";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).
@@ -91,7 +92,7 @@ function mesDelUltimoPagoDelCiclo(suscripcion, movimientos) {
 }
 
 function nombreDeMes(fecha) {
-  const t = new Intl.DateTimeFormat("es-ES", { month: "long" }).format(fecha);
+  const t = new Intl.DateTimeFormat(localeActual(), { month: "long" }).format(fecha);
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
@@ -102,7 +103,7 @@ export function renderSuscripciones(state) {
   const catMap = new Map(categorias.map((c) => [c.id, c.nombre]));
   const cuentaMap = new Map(cuentas.map((c) => [c.id, c.nombre]));
 
-  const mesLabel = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(mesActual);
+  const mesLabel = new Intl.DateTimeFormat(localeActual(), { month: "long", year: "numeric" }).format(mesActual);
   document.getElementById("susc-mes-label").textContent = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1);
 
   if (suscripciones.length === 0) {

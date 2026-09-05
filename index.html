@@ -21,7 +21,7 @@
      Sin esto, al añadirla a la pantalla de inicio se abre DENTRO de Safari
      con su barra de direcciones, y esa barra que aparece y desaparece al
      deslizar es lo que hace que todo se mueva de forma rara. -->
-<link rel="manifest" href="manifest.json?v=114" />
+<link rel="manifest" href="manifest.json?v=115" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <!-- "black-translucent" hace que la app llegue hasta arriba del todo, por
@@ -37,11 +37,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=114" />
+<link rel="stylesheet" href="css/styles.css?v=115" />
 <!-- vida:inicio -->
-<link rel="stylesheet" href="css/vida.css?v=114" />
+<link rel="stylesheet" href="css/vida.css?v=115" />
 <!-- vida:fin -->
-<link rel="stylesheet" href="css/temas.css?v=114" />
+<link rel="stylesheet" href="css/temas.css?v=115" />
 <script>
   /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
      desde un módulo (que se ejecuta al final), la app abriría un instante
@@ -573,6 +573,12 @@
 
   <div class="cuenta-panel__divider"></div>
 
+  <h3 class="cuenta-panel__subtitle">Idioma</h3>
+  <p class="entity-card__meta" style="margin: 0 0 8px;">El idioma de toda la app en este dispositivo.</p>
+  <div id="idioma-selector" class="temas-grid"></div>
+
+  <div class="cuenta-panel__divider"></div>
+
   <h3 class="cuenta-panel__subtitle">Temas</h3>
   <p class="entity-card__meta" style="margin: 0 0 2px;">Cambia el aspecto de toda la app. «Original» la deja como estaba.</p>
   <div id="temas-selector"></div>
@@ -606,6 +612,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=114"></script>
+<script type="module" src="js/app.js?v=115"></script>
 </body>
 </html>

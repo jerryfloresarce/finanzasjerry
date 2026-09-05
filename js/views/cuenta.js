@@ -1,10 +1,11 @@
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=114";
-import { state } from "../store.js?v=114";
-import { exportarDatos, importarDatos } from "../backup.js?v=114";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=114";
-import { montarSelectorTemas } from "../tema.js?v=114";
-import { arrancarTour } from "../tour.js?v=114";
+import { auth } from "../firebase-init.js?v=115";
+import { state } from "../store.js?v=115";
+import { exportarDatos, importarDatos } from "../backup.js?v=115";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=115";
+import { montarSelectorTemas } from "../tema.js?v=115";
+import { arrancarTour } from "../tour.js?v=115";
+import { montarSelectorIdioma } from "../idioma.js?v=115";
 
 let panel = null;
 let scrim = null;
@@ -51,6 +52,7 @@ export function mountCuentaPanel() {
   });
 
   montarSelectorTemas(document.getElementById("temas-selector"));
+  montarSelectorIdioma(document.getElementById("idioma-selector"));
   // Al elegir un tema, el panel se aparta: la animación de entrada ocupa
   // toda la pantalla y con el panel abierto se veía a medias.
   document.addEventListener("tema-cambiado", closePanel);

@@ -1,3 +1,4 @@
+import { localeActual, t as tr } from "../idioma.js?v=115";
 import {
   addMovimiento,
   updateMovimiento,
@@ -10,11 +11,11 @@ import {
   destinoTransferencia,
   textoPeriodo,
   nombreDeCuenta,
-} from "../db.js?v=114";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=114";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=114";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=114";
-import { colorTema } from "../tema.js?v=114";
+} from "../db.js?v=115";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=115";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=115";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=115";
+import { colorTema } from "../tema.js?v=115";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.
@@ -45,7 +46,7 @@ export function renderMovimientos(state) {
   currentState = state;
   const { movimientos, categorias, cuentas } = state;
 
-  const mesLabel = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" }).format(mesActual);
+  const mesLabel = new Intl.DateTimeFormat(localeActual(), { month: "long", year: "numeric" }).format(mesActual);
   document.getElementById("cal-mes-label").textContent = mesLabel.charAt(0).toUpperCase() + mesLabel.slice(1);
 
   const delMes = movimientos.filter((m) => {
@@ -80,10 +81,10 @@ function renderComparativa(ingresos, gastos) {
   chartComparativa = new Chart(canvas, {
     type: "bar",
     data: {
-      labels: ["Este mes"],
+      labels: [tr("Este mes")],
       datasets: [
-        { label: "Ingresos", data: [ingresos], backgroundColor: colorTema("--success", "#7a9b81"), borderRadius: 6, maxBarThickness: 40 },
-        { label: "Gastos", data: [gastos], backgroundColor: colorTema("--danger", "#b06a63"), borderRadius: 6, maxBarThickness: 40 },
+        { label: tr("Ingresos"), data: [ingresos], backgroundColor: colorTema("--success", "#7a9b81"), borderRadius: 6, maxBarThickness: 40 },
+        { label: tr("Gastos"), data: [gastos], backgroundColor: colorTema("--danger", "#b06a63"), borderRadius: 6, maxBarThickness: 40 },
       ],
     },
     options: {

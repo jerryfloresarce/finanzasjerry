@@ -1,3 +1,4 @@
+import { localeActual } from "../idioma.js?v=115";
 import {
   calcularSaldoCuenta,
   calcularSaldoTotal,
@@ -10,14 +11,14 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   nombreDeCuenta,
-} from "../db.js?v=114";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=114";
-import { seedInitialData } from "../seed.js?v=114";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=114";
-import { openHistorial } from "./cuentas.js?v=114";
-import { esc } from "../modal.js?v=114";
-import { sentidoDeTransferencia } from "./movimientos.js?v=114";
-import { colorTema, paletaTema } from "../tema.js?v=114";
+} from "../db.js?v=115";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=115";
+import { seedInitialData } from "../seed.js?v=115";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=115";
+import { openHistorial } from "./cuentas.js?v=115";
+import { esc } from "../modal.js?v=115";
+import { sentidoDeTransferencia } from "./movimientos.js?v=115";
+import { colorTema, paletaTema } from "../tema.js?v=115";
 
 let chartInstance = null;
 
@@ -64,7 +65,7 @@ export function renderDashboard(state) {
   const seedBanner = document.getElementById("seed-banner");
   if (seedBanner) seedBanner.classList.toggle("is-hidden", !(state.ready && cuentas.length === 0));
 
-  document.getElementById("hero-fecha").textContent = new Intl.DateTimeFormat("es-ES", {
+  document.getElementById("hero-fecha").textContent = new Intl.DateTimeFormat(localeActual(), {
     weekday: "long",
     day: "numeric",
     month: "long",
