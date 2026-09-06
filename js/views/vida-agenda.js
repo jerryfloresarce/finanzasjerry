@@ -1,4 +1,7 @@
 // vida:inicio
+import { localeActual } from "../idioma.js?v=117";
+// vida:fin
+// vida:inicio
 // Calendario personal: un calendario de verdad, como el del iPhone, con
 // tres vistas — MES (todos los días, con sus puntitos de citas y tareas),
 // SEMANA (las tarjetas de cada día) y DÍA (la línea hora a hora de "Hoy",
@@ -21,10 +24,10 @@ import {
   alternarBloqueHecho,
   extrasDelDia,
   alternarExtraDelDia,
-} from "../vida.js?v=115";
-import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=115";
-import { openModal, closeModal, esc } from "../modal.js?v=115";
-import { fechaISO } from "../db.js?v=115";
+} from "../vida.js?v=117";
+import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=117";
+import { openModal, closeModal, esc } from "../modal.js?v=117";
+import { fechaISO } from "../db.js?v=117";
 
 // Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
 // que mandan las flechas: en mes salta de mes en mes, en semana de semana
@@ -210,8 +213,8 @@ function vistaMes() {
 function vistaSemana() {
   const lunes = lunesDe(fechaFoco);
   const hoyId = fechaISO();
-  const fmtDia = new Intl.DateTimeFormat("es-ES", { weekday: "long" });
-  const fmtCorto = new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short" });
+  const fmtDia = new Intl.DateTimeFormat(localeActual(), { weekday: "long" });
+  const fmtCorto = new Intl.DateTimeFormat(localeActual(), { day: "numeric", month: "short" });
 
   const dias = Array.from({ length: 7 }, (_, i) => {
     const fecha = sumarDias(lunes, i);
@@ -363,9 +366,9 @@ export function renderVidaAgenda(_state) {
   const el = document.getElementById("agenda-content");
   if (!el) return;
 
-  const fmtMes = new Intl.DateTimeFormat("es-ES", { month: "long", year: "numeric" });
-  const fmtCorto = new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short" });
-  const fmtLargo = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" });
+  const fmtMes = new Intl.DateTimeFormat(localeActual(), { month: "long", year: "numeric" });
+  const fmtCorto = new Intl.DateTimeFormat(localeActual(), { day: "numeric", month: "short" });
+  const fmtLargo = new Intl.DateTimeFormat(localeActual(), { weekday: "long", day: "numeric", month: "long" });
   const esHoyFoco = fechaISO(fechaFoco) === fechaISO();
 
   let titulo;

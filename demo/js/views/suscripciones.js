@@ -1,4 +1,4 @@
-import { localeActual } from "../idioma.js?v=115";
+import { localeActual } from "../idioma.js?v=117";
 import {
   addSuscripcion,
   updateSuscripcion,
@@ -12,10 +12,10 @@ import {
   toTimestamp,
   fechaISO,
   textoPeriodo,
-} from "../db.js?v=115";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=115";
-import { icon, iconForSuscripcion } from "../icons.js?v=115";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=115";
+} from "../db.js?v=117";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=117";
+import { icon, iconForSuscripcion } from "../icons.js?v=117";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=117";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el listado (checklist mensual).

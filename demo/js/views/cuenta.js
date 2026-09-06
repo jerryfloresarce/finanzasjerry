@@ -1,11 +1,11 @@
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=115";
-import { state } from "../store.js?v=115";
-import { exportarDatos, importarDatos } from "../backup.js?v=115";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=115";
-import { montarSelectorTemas } from "../tema.js?v=115";
-import { arrancarTour } from "../tour.js?v=115";
-import { montarSelectorIdioma } from "../idioma.js?v=115";
+import { auth } from "../firebase-init.js?v=117";
+import { state } from "../store.js?v=117";
+import { exportarDatos, importarDatos } from "../backup.js?v=117";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=117";
+import { montarSelectorTemas } from "../tema.js?v=117";
+import { arrancarTour } from "../tour.js?v=117";
+import { montarSelectorIdioma } from "../idioma.js?v=117";
 
 let panel = null;
 let scrim = null;

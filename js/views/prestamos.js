@@ -13,11 +13,12 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=115";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=115";
-import { initials, avatarColor, icon } from "../icons.js?v=115";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=115";
-import { efectoDeCelebracion } from "../efectos.js?v=115";
+} from "../db.js?v=117";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=117";
+import { initials, avatarColor, icon } from "../icons.js?v=117";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=117";
+import { efectoDeCelebracion } from "../efectos.js?v=117";
+import { localeActual } from "../idioma.js?v=117";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -91,6 +92,78 @@ function fechaProximoCobro(p, pagosPrestamos) {
   return p.fecha_interes || "9999-12-31";
 }
 
+// ---------- Lo cobrado este mes, con su desglose ----------
+//
+// Cada cobro se reparte proporcionalmente entre capital e interés según el
+// préstamo al que pertenece: en uno de 100 € al 20 % (total 120), de cada
+// 30 € cobrados, 25 € son capital y 5 € interés — tu ganancia. Los
+// préstamos con plan de pagos diario no declaran su interés por separado,
+// así que sus cobros cuentan enteros como capital. Si el préstamo ya no
+// existe (se borró la tarjeta), el cobro cuenta como capital y la persona
+// se saca del texto del movimiento.
+function cobrosDelMes(prestamos, movimientos) {
+  const ahora = new Date();
+  const y = ahora.getFullYear();
+  const m = ahora.getMonth();
+  const porPersona = new Map();
+  let totalMes = 0;
+  let interesMes = 0;
+  for (const mov of movimientos) {
+    if (mov.tipo !== "Ingreso" || !mov.prestamo_id) continue;
+    const f = fromTimestamp(mov.fecha);
+    if (!f || f.getFullYear() !== y || f.getMonth() !== m) continue;
+    const importe = Number(mov.importe ?? 0);
+    if (!(importe > 0)) continue;
+    const p = prestamos.find((x) => x.id === mov.prestamo_id);
+    const ratio = p && !esPlanDePagos(p) && totalDe(p) > 0 ? interesTotalDe(p) / totalDe(p) : 0;
+    const interes = round2(importe * ratio);
+    const capital = round2(importe - interes);
+    const persona = p?.persona || (typeof mov.subcategoria === "string" ? mov.subcategoria.split("·")[1]?.trim() : "") || "—";
+    if (!porPersona.has(persona)) porPersona.set(persona, { capital: 0, interes: 0 });
+    const acc = porPersona.get(persona);
+    acc.capital = round2(acc.capital + capital);
+    acc.interes = round2(acc.interes + interes);
+    totalMes = round2(totalMes + importe);
+    interesMes = round2(interesMes + interes);
+  }
+  return { totalMes, interesMes, porPersona };
+}
+
+function abrirDesgloseMes(prestamos, movimientos) {
+  const { totalMes, interesMes, porPersona } = cobrosDelMes(prestamos, movimientos);
+  const mesNombre = new Intl.DateTimeFormat(localeActual(), { month: "long", year: "numeric" }).format(new Date());
+  const filas = [...porPersona.entries()]
+    .sort((a, b) => b[1].capital + b[1].interes - (a[1].capital + a[1].interes))
+    .map(
+      ([persona, d]) => `
+      <div class="mini-row">
+        <div class="mini-row__body">
+          <span class="avatar" style="background:${avatarColor(persona)}">${initials(persona)}</span>
+          <div class="mini-row__main">
+            <span class="mini-row__title">${esc(persona)}</span>
+            <span class="mini-row__sub">Capital ${formatEUR(d.capital)}${d.interes > 0 ? ` · interés ${formatEUR(d.interes)}` : ""}</span>
+          </div>
+        </div>
+        <span class="mini-row__amount mini-row__amount--pos">+ ${formatEUR(round2(d.capital + d.interes))}</span>
+      </div>`
+    )
+    .join("");
+  openModal(
+    `
+    <h2 class="modal__title">Cobrado en ${mesNombre}</h2>
+    <p class="entity-card__meta" style="margin:-8px 0 12px;">
+      Total ${formatEUR(totalMes)} — capital ${formatEUR(round2(totalMes - interesMes))} + intereses <strong>${formatEUR(interesMes)}</strong> (tu ganancia).
+      Cada cobro se reparte según su préstamo: en uno de 100 € al 20 %, de cada 30 € cobrados, 5 € son interés.
+    </p>
+    ${filas ? `<div class="pago-list">${filas}</div>` : `<p class="empty-state">Este mes todavía no has cobrado ningún pago.</p>`}
+    <div class="modal__actions">
+      <button type="button" class="btn btn--primary" id="btn-cerrar-desglose">Listo</button>
+    </div>
+  `,
+    { onMount: (root) => root.querySelector("#btn-cerrar-desglose").addEventListener("click", closeModal) }
+  );
+}
+
 // Qué historial está desplegado (se recuerda entre repintados).
 const historialAbierto = new Set();
 
@@ -154,6 +227,15 @@ export function renderPrestamos(state) {
   const totalInteres = activos.reduce((acc, p) => acc + (esPlanDePagos(p) ? 0 : interesTotalDe(p)), 0);
   document.getElementById("kpi-prestamos-capital").textContent = formatEUR(totalPendiente);
   document.getElementById("kpi-prestamos-interes").textContent = formatEUR(totalInteres);
+
+  // Lo cobrado este mes natural: el total (capital + interés) y, aparte,
+  // solo los intereses — la ganancia del mes. Los dos se tocan para ver el
+  // desglose por persona.
+  const mes = cobrosDelMes(prestamos, movimientos);
+  document.getElementById("kpi-prestamos-mes-total").textContent = formatEUR(mes.totalMes);
+  document.getElementById("kpi-prestamos-mes-interes").textContent = formatEUR(mes.interesMes);
+  document.getElementById("kpi-prestamos-mes").onclick = () => abrirDesgloseMes(prestamos, movimientos);
+  document.getElementById("kpi-prestamos-mes-int").onclick = () => abrirDesgloseMes(prestamos, movimientos);
 
   if (prestamos.length === 0) {
     el.innerHTML = `<p class="empty-state">Todavía no has registrado ningún préstamo.</p>`;

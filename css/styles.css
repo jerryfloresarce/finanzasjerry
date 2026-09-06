@@ -1048,6 +1048,18 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
 .grid--kpis { grid-template-columns: repeat(3, 1fr); margin-bottom: 20px; }
 .grid--kpis-2 { grid-template-columns: repeat(2, 1fr); }
 
+/* Un KPI que además es botón (abre su desglose): mismo aspecto que los
+   demás, con la pista de que se puede tocar. */
+.kpi-tile--boton {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s var(--ease-lux), background 0.2s var(--ease-lux);
+}
+.kpi-tile--boton:hover { border-color: var(--border-strong); background: var(--surface-hover); }
+.kpi-tile--boton:active { transform: scale(0.99); }
+
 .kpi-tile {
   background: var(--surface);
   border: 1px solid var(--border);

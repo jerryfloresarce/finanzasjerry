@@ -13,16 +13,33 @@
 // La elección vive en este dispositivo (localStorage): el móvil puede ir
 // en portugués y el ordenador en español sin pelearse.
 
-import { DICCIONARIO_PT, PATRONES_PT } from "./idiomas/pt.js?v=115";
+import { DICCIONARIO_PT, PATRONES_PT } from "./idiomas/pt.js?v=117";
+import { DICCIONARIO_EN, PATRONES_EN } from "./idiomas/en.js?v=117";
+import { DICCIONARIO_FR, PATRONES_FR } from "./idiomas/fr.js?v=117";
+import { DICCIONARIO_IT, PATRONES_IT } from "./idiomas/it.js?v=117";
+import { DICCIONARIO_DE, PATRONES_DE } from "./idiomas/de.js?v=117";
+import { DICCIONARIO_CA, PATRONES_CA } from "./idiomas/ca.js?v=117";
 
 const CLAVE = "fj-idioma";
 
 export const IDIOMAS = [
   { id: "es", nombre: "Español", locale: "es-ES" },
   { id: "pt", nombre: "Português (Brasil)", locale: "pt-BR" },
+  { id: "en", nombre: "English", locale: "en-GB" },
+  { id: "fr", nombre: "Français", locale: "fr-FR" },
+  { id: "it", nombre: "Italiano", locale: "it-IT" },
+  { id: "de", nombre: "Deutsch", locale: "de-DE" },
+  { id: "ca", nombre: "Català", locale: "ca-ES" },
 ];
 
-const DICCIONARIOS = { pt: { exactas: DICCIONARIO_PT, patrones: PATRONES_PT } };
+const DICCIONARIOS = {
+  pt: { exactas: DICCIONARIO_PT, patrones: PATRONES_PT },
+  en: { exactas: DICCIONARIO_EN, patrones: PATRONES_EN },
+  fr: { exactas: DICCIONARIO_FR, patrones: PATRONES_FR },
+  it: { exactas: DICCIONARIO_IT, patrones: PATRONES_IT },
+  de: { exactas: DICCIONARIO_DE, patrones: PATRONES_DE },
+  ca: { exactas: DICCIONARIO_CA, patrones: PATRONES_CA },
+};
 
 let idioma = "es";
 try {

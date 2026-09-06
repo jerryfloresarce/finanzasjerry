@@ -42,13 +42,14 @@ import {
   comidaEsSobras,
   marcarComidaSobras,
   cambiosDeFecha,
-} from "../vida.js?v=115";
-import { abrirReceta, abrirCambioFecha } from "./vida-menu.js?v=115";
-import { pedirVista } from "./vida-agenda.js?v=115";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=115";
-import { fechaISO, formatFecha } from "../db.js?v=115";
-import { efectoDeCelebracion } from "../efectos.js?v=115";
-import { openModal, closeModal, esc } from "../modal.js?v=115";
+} from "../vida.js?v=117";
+import { abrirReceta, abrirCambioFecha } from "./vida-menu.js?v=117";
+import { pedirVista } from "./vida-agenda.js?v=117";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=117";
+import { fechaISO, formatFecha } from "../db.js?v=117";
+import { localeActual } from "../idioma.js?v=117";
+import { efectoDeCelebracion } from "../efectos.js?v=117";
+import { openModal, closeModal, esc } from "../modal.js?v=117";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -333,7 +334,7 @@ export function renderVidaHoy(state) {
   // ANTES de ayer: el primer día de todos no hay ningún ayer que cerrar.
   const ayerAbierto = !diaPorFecha(ayerISO()) && vida.dias.some((d) => d.id < ayerISO()) && !editandoAyer;
 
-  const tituloFecha = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(fecha);
+  const tituloFecha = new Intl.DateTimeFormat(localeActual(), { weekday: "long", day: "numeric", month: "long" }).format(fecha);
   const ahora = new Date();
   const bloques = bloquesDelDia(fecha);
   const indiceAhora = bloqueActual(ahora);
@@ -865,7 +866,7 @@ function abrirParcial(fechaId) {
 export function abrirTareasDia(fechaId) {
   let tareas = [...(diaPorFecha(fechaId)?.tareas || [])];
   const fecha = new Date(fechaId + "T12:00:00");
-  const titulo = new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(fecha);
+  const titulo = new Intl.DateTimeFormat(localeActual(), { weekday: "long", day: "numeric", month: "long" }).format(fecha);
 
   const listaHTML = () =>
     tareas.length
@@ -947,7 +948,7 @@ export function abrirAgendaDia(fechaId) {
   // día actual y se carga la agenda del día elegido.
   let fechaSel = fechaId;
   let agenda = [...(diaPorFecha(fechaSel)?.agenda || [])];
-  const tituloDe = (fid) => new Intl.DateTimeFormat("es-ES", { weekday: "long", day: "numeric", month: "long" }).format(new Date(fid + "T12:00:00"));
+  const tituloDe = (fid) => new Intl.DateTimeFormat(localeActual(), { weekday: "long", day: "numeric", month: "long" }).format(new Date(fid + "T12:00:00"));
   const titulo = tituloDe(fechaSel);
 
   const listaHTML = () =>
