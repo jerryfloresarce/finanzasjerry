@@ -1319,6 +1319,7 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
 
 .chart-wrap { position: relative; flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
 .chart-wrap canvas { max-height: 100%; }
+.chart-hint { margin: 8px 0 0; text-align: center; font-size: 0.78rem; color: var(--text-muted); }
 
 /* Chart.js a veces fija el atributo width/height del <canvas> a un tamaño
    calculado antes de que el layout esté estable (sobre todo en móvil, con

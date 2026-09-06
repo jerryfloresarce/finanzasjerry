@@ -89,6 +89,10 @@ export const DICCIONARIO_PT = {
   // ---------- Dashboard ----------
   "Saldo total": "Saldo total",
   "Gastos por categoría · este mes": "Gastos por categoria · este mês",
+  "Toca una porción para ver de qué gastos sale.": "Toque em uma fatia para ver de quais despesas ela vem.",
+  "Total del mes": "Total do mês",
+  "Si alguno no cuadra (repetido o con la fecha de otro mes), corrígelo tocando su día en Movimientos.":
+    "Se algum não bater (repetido ou com a data de outro mês), corrija tocando no dia dele em Movimentações.",
   "Límites del mes": "Limites do mês",
   "Movimientos recientes": "Movimentações recentes",
   "Préstamos activos": "Empréstimos ativos",
@@ -595,6 +599,7 @@ export const DICCIONARIO_PT = {
 // Patrones: para los textos que llevan datos dentro (números, nombres,
 // fechas). $1, $2… conservan esos datos tal cual.
 export const PATRONES_PT = [
+  [/^Gastos de esta categoría · (.+)$/, "Despesas desta categoria · $1"],
   [/^Hola, (.+)$/, "Olá, $1"],
   [/^Límite mensual (.+)$/, "Limite mensal $1"],
   [/^Saldo inicial (.+) · desde (.+)$/, "Saldo inicial $1 · desde $2"],

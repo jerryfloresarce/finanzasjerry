@@ -76,6 +76,10 @@ export const DICCIONARIO_IT = {
 
   "Saldo total": "Saldo totale",
   "Gastos por categoría · este mes": "Spese per categoria · questo mese",
+  "Toca una porción para ver de qué gastos sale.": "Tocca una fetta per vedere da quali spese proviene.",
+  "Total del mes": "Totale del mese",
+  "Si alguno no cuadra (repetido o con la fecha de otro mes), corrígelo tocando su día en Movimientos.":
+    "Se una non torna (doppia o con la data di un altro mese), correggila toccando il suo giorno in Movimenti.",
   "Límites del mes": "Limiti del mese",
   "Movimientos recientes": "Movimenti recenti",
   "Préstamos activos": "Prestiti attivi",
@@ -563,6 +567,7 @@ export const DICCIONARIO_IT = {
 };
 
 export const PATRONES_IT = [
+  [/^Gastos de esta categoría · (.+)$/, "Spese di questa categoria · $1"],
   [/^Hola, (.+)$/, "Ciao, $1"],
   [/^Límite mensual (.+)$/, "Limite mensile $1"],
   [/^Saldo inicial (.+) · desde (.+)$/, "Saldo iniziale $1 · dal $2"],

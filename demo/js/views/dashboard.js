@@ -1,4 +1,4 @@
-import { localeActual } from "../idioma.js?v=117";
+import { localeActual } from "../idioma.js?v=118";
 import {
   calcularSaldoCuenta,
   calcularSaldoTotal,
@@ -11,14 +11,14 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   nombreDeCuenta,
-} from "../db.js?v=117";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=117";
-import { seedInitialData } from "../seed.js?v=117";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=117";
-import { openHistorial } from "./cuentas.js?v=117";
-import { esc } from "../modal.js?v=117";
-import { sentidoDeTransferencia } from "./movimientos.js?v=117";
-import { colorTema, paletaTema } from "../tema.js?v=117";
+} from "../db.js?v=118";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=118";
+import { seedInitialData } from "../seed.js?v=118";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=118";
+import { openHistorial } from "./cuentas.js?v=118";
+import { esc, openModal, closeModal } from "../modal.js?v=118";
+import { sentidoDeTransferencia } from "./movimientos.js?v=118";
+import { colorTema, paletaTema } from "../tema.js?v=118";
 
 let chartInstance = null;
 
@@ -74,7 +74,7 @@ export function renderDashboard(state) {
 
   countUpTo(document.getElementById("saldo-total"), calcularSaldoTotal(cuentas, movimientos), formatEUR);
 
-  renderChart(movimientos, categorias);
+  renderChart(movimientos, categorias, cuentas);
   renderLimites(movimientos, categorias);
   renderTopLugares(movimientos);
   renderRecientes(movimientos, categorias, cuentas);
@@ -85,11 +85,21 @@ export function renderDashboard(state) {
   initDashboardAnimations();
 }
 
-function renderChart(movimientos, categorias) {
+// Lo último que se pintó en el donut, para que al tocar una porción se pueda
+// abrir su desglose: el gráfico se crea una sola vez (ver más abajo) y su
+// onClick vive más que cada render, así que lee de aquí y no de la clausura.
+let donutDatos = [];
+let donutMovimientos = [];
+let donutCuentas = [];
+
+function renderChart(movimientos, categorias, cuentas) {
   const canvas = document.getElementById("chart-categorias");
   if (!canvas || typeof Chart === "undefined") return;
 
   const datos = gastosPorCategoriaDelMes(movimientos, categorias).filter((d) => d.total > 0);
+  donutDatos = datos;
+  donutMovimientos = movimientos;
+  donutCuentas = cuentas;
 
   if (datos.length === 0) {
     if (chartInstance) {
@@ -139,6 +149,13 @@ function renderChart(movimientos, categorias) {
       responsive: true,
       maintainAspectRatio: false,
       cutout: "70%",
+      onClick: (evt, elements) => {
+        const i = elements?.[0]?.index;
+        if (i != null && donutDatos[i]) abrirDesgloseDonut(donutDatos[i].categoria);
+      },
+      onHover: (evt, elements) => {
+        canvas.style.cursor = elements?.length ? "pointer" : "default";
+      },
       plugins: {
         legend: {
           position: "bottom",
@@ -150,6 +167,65 @@ function renderChart(movimientos, categorias) {
       },
     },
   });
+}
+
+// Al tocar una porción del donut: qué movimientos exactos suman ese total.
+// Es la respuesta a "¿de dónde sale este número?" — se ven las fechas y las
+// cuentas de cada gasto, y si alguno está mal (repetido, o con la fecha de
+// otro mes) se sabe cuál hay que corregir en Movimientos.
+function abrirDesgloseDonut(categoria) {
+  const hoy = new Date();
+  const cuentaMap = new Map(donutCuentas.map((c) => [c.id, c.nombre]));
+  const delMes = donutMovimientos
+    .filter((m) => m.tipo === "Gasto" && m.categoria_id === categoria.id)
+    .filter((m) => {
+      const d = fromTimestamp(m.fecha);
+      return d && d.getMonth() === hoy.getMonth() && d.getFullYear() === hoy.getFullYear();
+    })
+    .sort((a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0));
+  const total = delMes.reduce((acc, m) => acc + Number(m.importe ?? 0), 0);
+  const mesLabel = new Intl.DateTimeFormat(localeActual(), { month: "long", year: "numeric" }).format(hoy);
+
+  const filas = delMes
+    .map((m) => {
+      const cuenta = nombreDeCuenta(cuentaMap, m.cuenta_id);
+      const detalle = m.subcategoria || m.nota || "";
+      return `
+        <div class="mini-row">
+          <div class="mini-row__body">
+            <div class="mini-row__main">
+              <span class="mini-row__title">${formatFecha(fromTimestamp(m.fecha))}${detalle ? ` · ${esc(detalle)}` : ""}</span>
+              <span class="mini-row__sub">${esc(cuenta)}</span>
+            </div>
+          </div>
+          <span class="mini-row__amount mini-row__amount--neg">− ${formatEUR(Number(m.importe ?? 0))}</span>
+        </div>`;
+    })
+    .join("");
+
+  openModal(
+    `
+    <h2 class="modal__title">${esc(categoria.nombre)}</h2>
+    <p class="entity-card__meta" style="margin:-8px 0 12px;">Gastos de esta categoría · ${mesLabel}</p>
+    <div class="pago-list">${filas}
+      <div class="mini-row mini-row--total">
+        <div class="mini-row__body">
+          <div class="mini-row__main"><span class="mini-row__title">Total del mes</span></div>
+        </div>
+        <span class="mini-row__amount mini-row__amount--neg">− ${formatEUR(total)}</span>
+      </div>
+    </div>
+    <p class="entity-card__meta" style="margin-top:12px;">Si alguno no cuadra (repetido o con la fecha de otro mes), corrígelo tocando su día en Movimientos.</p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--primary" id="btn-cerrar-desglose-donut">Cerrar</button>
+    </div>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cerrar-desglose-donut").addEventListener("click", closeModal);
+      },
+    }
+  );
 }
 
 function renderLimites(movimientos, categorias) {

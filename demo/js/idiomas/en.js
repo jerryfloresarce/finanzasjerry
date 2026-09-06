@@ -77,6 +77,10 @@ export const DICCIONARIO_EN = {
 
   "Saldo total": "Total balance",
   "Gastos por categoría · este mes": "Spending by category · this month",
+  "Toca una porción para ver de qué gastos sale.": "Tap a slice to see which expenses it comes from.",
+  "Total del mes": "Month total",
+  "Si alguno no cuadra (repetido o con la fecha de otro mes), corrígelo tocando su día en Movimientos.":
+    "If one looks wrong (duplicated or dated in another month), fix it by tapping its day in Transactions.",
   "Límites del mes": "Monthly limits",
   "Movimientos recientes": "Recent transactions",
   "Préstamos activos": "Active loans",
@@ -564,6 +568,7 @@ export const DICCIONARIO_EN = {
 };
 
 export const PATRONES_EN = [
+  [/^Gastos de esta categoría · (.+)$/, "This category's expenses · $1"],
   [/^Hola, (.+)$/, "Hi, $1"],
   [/^Límite mensual (.+)$/, "Monthly limit $1"],
   [/^Saldo inicial (.+) · desde (.+)$/, "Starting balance $1 · since $2"],

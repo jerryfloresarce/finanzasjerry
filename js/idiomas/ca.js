@@ -76,6 +76,10 @@ export const DICCIONARIO_CA = {
 
   "Saldo total": "Saldo total",
   "Gastos por categoría · este mes": "Despeses per categoria · aquest mes",
+  "Toca una porción para ver de qué gastos sale.": "Toca una porció per veure de quines despeses surt.",
+  "Total del mes": "Total del mes",
+  "Si alguno no cuadra (repetido o con la fecha de otro mes), corrígelo tocando su día en Movimientos.":
+    "Si algun no quadra (repetit o amb la data d'un altre mes), corregeix-lo tocant el seu dia a Moviments.",
   "Límites del mes": "Límits del mes",
   "Movimientos recientes": "Moviments recents",
   "Préstamos activos": "Préstecs actius",
@@ -563,6 +567,7 @@ export const DICCIONARIO_CA = {
 };
 
 export const PATRONES_CA = [
+  [/^Gastos de esta categoría · (.+)$/, "Despeses d'aquesta categoria · $1"],
   [/^Hola, (.+)$/, "Hola, $1"],
   [/^Límite mensual (.+)$/, "Límit mensual $1"],
   [/^Saldo inicial (.+) · desde (.+)$/, "Saldo inicial $1 · des de $2"],
