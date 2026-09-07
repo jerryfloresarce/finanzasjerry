@@ -29,6 +29,31 @@ export const DICCIONARIO_IT = {
   "Gráficos": "Grafici",
   "Categorías": "Categorie",
   "Cartera": "Portafoglio",
+  // ---------- Préstamos · avisos de cobro ----------
+  "💰 Cobros que te deben":
+    "💰 Pagamenti che ti devono",
+  "± Apuntar el pago":
+    "± Annotare il pagamento",
+  "Pasar a la siguiente fecha":
+    "Passare alla data successiva",
+  "Quitar el aviso":
+    "Togliere l'avviso",
+  "márcalo en su plan de abajo":
+    "segnalo nel suo piano qui sotto",
+  "¿Qué día te tiene que pagar? (opcional)":
+    "Che giorno ti deve pagare? (opzionale)",
+  "¿Ese cobro se repite?":
+    "Quel pagamento si ripete?",
+  "No, es un cobro único":
+    "No, è un pagamento unico",
+  "Cada semana":
+    "Ogni settimana",
+  "Cada mes":
+    "Ogni mese",
+  "El día del cobro te sale un aviso en Préstamos y en el Dashboard. Al apuntar el pago, la fecha salta sola a la siguiente.":
+    "Il giorno del pagamento compare un avviso in Prestiti e nella Dashboard. Quando annoti il pagamento, la data salta da sola alla successiva.",
+  "Toca para apuntarlo en Préstamos":
+    "Tocca per annotarlo in Prestiti",
   // ---------- Cartera · glosario y avisos ----------
   "Posición": "Posizione",
   "Último precio": "Ultimo prezzo",
@@ -678,6 +703,11 @@ export const DICCIONARIO_IT = {
 };
 
 export const PATRONES_IT = [
+  [/^💰 A (.+) le toca pagarte hoy$/, "💰 Oggi $1 deve pagarti"],
+  [/^💰 (.+) tenía que pagarte el (.+)$/, "💰 $1 doveva pagarti il $2"],
+  [/^A (.+) le toca pagarte hoy$/, "Oggi $1 deve pagarti"],
+  [/^(.+) tenía que pagarte el (.+)$/, "$1 doveva pagarti il $2"],
+  [/^· quedan (.+)$/, "· restano $1"],
   [/^"(.+)" es el (\d+) % de tu cartera\. Mucho peso en una sola cosa: si cae, cae todo contigo\.$/, "\"$1\" è il $2 % del tuo portafoglio. Molto peso su una cosa sola: se cade, cade tutto con te."],
   [/^Más de la mitad de la cartera es cripto \((\d+) %\)\. Es lo más volátil que hay: que no sea dinero que puedas necesitar\.$/, "Più della metà del portafoglio è cripto ($1 %). È la cosa più volatile che c'è: che non siano soldi di cui potresti aver bisogno."],
   [/^"(.+)" cae un (\d+) %\. Antes de vender por miedo, recuerda por qué la compraste: vender abajo convierte una caída en una pérdida\.$/, "\"$1\" perde il $2 %. Prima di vendere per paura, ricorda perché l'hai comprata: vendere in basso trasforma un calo in una perdita."],

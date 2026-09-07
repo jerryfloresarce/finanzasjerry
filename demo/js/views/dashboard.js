@@ -1,4 +1,4 @@
-import { localeActual } from "../idioma.js?v=119";
+import { localeActual } from "../idioma.js?v=120";
 import {
   calcularSaldoCuenta,
   calcularSaldoTotal,
@@ -7,18 +7,20 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
+  fechaISO,
   destinoTransferencia,
   esPlanDePagos,
   restantePlanDePagos,
   nombreDeCuenta,
-} from "../db.js?v=119";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=119";
-import { seedInitialData } from "../seed.js?v=119";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=119";
-import { openHistorial } from "./cuentas.js?v=119";
-import { esc, openModal, closeModal } from "../modal.js?v=119";
-import { sentidoDeTransferencia } from "./movimientos.js?v=119";
-import { colorTema, paletaTema } from "../tema.js?v=119";
+} from "../db.js?v=120";
+import { avisosDeCobro } from "./prestamos.js?v=120";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=120";
+import { seedInitialData } from "../seed.js?v=120";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=120";
+import { openHistorial } from "./cuentas.js?v=120";
+import { esc, openModal, closeModal } from "../modal.js?v=120";
+import { sentidoDeTransferencia } from "./movimientos.js?v=120";
+import { colorTema, paletaTema } from "../tema.js?v=120";
 
 let chartInstance = null;
 
@@ -362,7 +364,27 @@ function renderPrestamos(prestamos, pagosPrestamos) {
     return;
   }
 
-  el.innerHTML = activos
+  // Los avisos de cobro del día, arriba del todo: quién te tenía que pagar
+  // ya. Tocar el aviso lleva a Préstamos, donde está el botón de apuntarlo.
+  const avisos = avisosDeCobro(prestamos, pagosPrestamos);
+  const hoy = fechaISO();
+  const avisosHTML = avisos
+    .map(
+      ({ p, fecha }) => `
+        <a href="#/prestamos" class="mini-row aviso-cobro-mini">
+          <div class="mini-row__body">
+            <div class="mini-row__main">
+              <span class="mini-row__title">💰 ${
+                fecha === hoy ? `A ${esc(p.persona)} le toca pagarte hoy` : `${esc(p.persona)} tenía que pagarte el ${formatFecha(new Date(fecha + "T12:00:00"))}`
+              }</span>
+              <span class="mini-row__sub">Toca para apuntarlo en Préstamos</span>
+            </div>
+          </div>
+        </a>`
+    )
+    .join("");
+
+  el.innerHTML = avisosHTML + activos
     .map((p) => {
       const planPagos = esPlanDePagos(p);
       // El mismo modelo que la pantalla de préstamos: lo que se enseña es

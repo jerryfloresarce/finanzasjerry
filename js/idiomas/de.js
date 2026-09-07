@@ -29,6 +29,31 @@ export const DICCIONARIO_DE = {
   "Gráficos": "Diagramme",
   "Categorías": "Kategorien",
   "Cartera": "Portfolio",
+  // ---------- Préstamos · avisos de cobro ----------
+  "💰 Cobros que te deben":
+    "💰 Zahlungen, die man dir schuldet",
+  "± Apuntar el pago":
+    "± Zahlung eintragen",
+  "Pasar a la siguiente fecha":
+    "Zum nächsten Termin springen",
+  "Quitar el aviso":
+    "Hinweis entfernen",
+  "márcalo en su plan de abajo":
+    "hak es unten in seinem Plan ab",
+  "¿Qué día te tiene que pagar? (opcional)":
+    "An welchem Tag muss er dir zahlen? (optional)",
+  "¿Ese cobro se repite?":
+    "Wiederholt sich diese Zahlung?",
+  "No, es un cobro único":
+    "Nein, einmalige Zahlung",
+  "Cada semana":
+    "Jede Woche",
+  "Cada mes":
+    "Jeden Monat",
+  "El día del cobro te sale un aviso en Préstamos y en el Dashboard. Al apuntar el pago, la fecha salta sola a la siguiente.":
+    "Am Zahltag erscheint ein Hinweis bei Darlehen und im Dashboard. Trägst du die Zahlung ein, springt das Datum von selbst zum nächsten.",
+  "Toca para apuntarlo en Préstamos":
+    "Tippe, um es bei Darlehen einzutragen",
   // ---------- Cartera · glosario y avisos ----------
   "Posición": "Position",
   "Último precio": "Letzter Preis",
@@ -678,6 +703,11 @@ export const DICCIONARIO_DE = {
 };
 
 export const PATRONES_DE = [
+  [/^💰 A (.+) le toca pagarte hoy$/, "💰 $1 muss dir heute zahlen"],
+  [/^💰 (.+) tenía que pagarte el (.+)$/, "💰 $1 hätte dir am $2 zahlen sollen"],
+  [/^A (.+) le toca pagarte hoy$/, "$1 muss dir heute zahlen"],
+  [/^(.+) tenía que pagarte el (.+)$/, "$1 hätte dir am $2 zahlen sollen"],
+  [/^· quedan (.+)$/, "· noch $1"],
   [/^"(.+)" es el (\d+) % de tu cartera\. Mucho peso en una sola cosa: si cae, cae todo contigo\.$/, "\"$1\" ist $2 % deines Depots. Viel Gewicht auf einer Sache: Fällt sie, fällt alles mit dir."],
   [/^Más de la mitad de la cartera es cripto \((\d+) %\)\. Es lo más volátil que hay: que no sea dinero que puedas necesitar\.$/, "Mehr als die Hälfte des Depots ist Krypto ($1 %). Das Volatilste überhaupt: Es sollte kein Geld sein, das du brauchen könntest."],
   [/^"(.+)" cae un (\d+) %\. Antes de vender por miedo, recuerda por qué la compraste: vender abajo convierte una caída en una pérdida\.$/, "\"$1\" fällt um $2 %. Bevor du aus Angst verkaufst, erinnere dich, warum du gekauft hast: Unten verkaufen macht aus einem Rückgang einen Verlust."],

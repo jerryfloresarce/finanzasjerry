@@ -13,12 +13,12 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=119";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=119";
-import { initials, avatarColor, icon } from "../icons.js?v=119";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=119";
-import { efectoDeCelebracion } from "../efectos.js?v=119";
-import { localeActual } from "../idioma.js?v=119";
+} from "../db.js?v=120";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=120";
+import { initials, avatarColor, icon } from "../icons.js?v=120";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=120";
+import { efectoDeCelebracion } from "../efectos.js?v=120";
+import { localeActual } from "../idioma.js?v=120";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -76,6 +76,48 @@ function pagosDelPrestamo(p, movimientos) {
   return movimientos
     .filter((m) => m.tipo === "Ingreso" && m.prestamo_id === p.id)
     .sort((a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0));
+}
+
+// ---------- Avisos de cobro ----------
+//
+// El día que toca cobrar (la fecha del próximo cobro del préstamo, o un
+// día pendiente de su plan diario), la app lo dice: un aviso arriba de
+// Préstamos y una línea en el Dashboard. Si el cobro se repite (el interés
+// de cada semana o de cada mes), al apuntar el pago la fecha salta sola a
+// la siguiente.
+
+export function avisosDeCobro(prestamos, pagosPrestamos) {
+  const hoy = todayISO();
+  return prestamos
+    .filter((p) => p.estado !== "Pagado")
+    .map((p) => ({ p, fecha: fechaProximoCobro(p, pagosPrestamos), plan: esPlanDePagos(p) }))
+    .filter((a) => a.fecha !== "9999-12-31" && a.fecha <= hoy)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
+}
+
+// La siguiente fecha de cobro según la repetición pactada. Si el aviso se
+// quedó atrás (varios periodos sin apuntar), salta los que hagan falta
+// hasta caer en el futuro — avisar tres veces del mismo mes no ayuda.
+function siguienteFechaCobro(fechaActual, repite) {
+  if (repite !== "semana" && repite !== "mes") return null;
+  const hoy = todayISO();
+  let d = new Date(fechaActual + "T12:00:00");
+  if (Number.isNaN(d.getTime())) d = new Date();
+  let iso = fechaActual;
+  for (let i = 0; i < 240 && iso <= hoy; i++) {
+    if (repite === "semana") d.setDate(d.getDate() + 7);
+    else d.setMonth(d.getMonth() + 1);
+    iso = diaISO(d);
+  }
+  return iso;
+}
+
+// Tras un cobro apuntado (o al pedir "siguiente fecha"): la fecha del
+// aviso avanza si se repite, o se apaga si era un cobro único.
+async function avanzarAvisoCobro(p) {
+  if (!p.fecha_interes || p.fecha_interes > todayISO()) return;
+  const siguiente = siguienteFechaCobro(p.fecha_interes, p.cobro_repite);
+  await updatePrestamo(p.id, { fecha_interes: siguiente });
 }
 
 // En qué fecha toca el próximo cobro de un préstamo: la del interés, o el
@@ -242,6 +284,39 @@ export function renderPrestamos(state) {
     return;
   }
 
+  // Los avisos de cobro del día: quién te tenía que pagar ya.
+  const avisos = avisosDeCobro(prestamos, pagosPrestamos);
+  const hoyISO = todayISO();
+  const avisosHTML = avisos.length
+    ? `<div class="aviso-cobros">
+        <p class="aviso-cobros__titulo">💰 Cobros que te deben</p>
+        ${avisos
+          .map(({ p, fecha, plan }) => {
+            const texto =
+              fecha === hoyISO
+                ? `A ${esc(p.persona)} le toca pagarte hoy`
+                : `${esc(p.persona)} tenía que pagarte el ${formatFecha(new Date(fecha + "T12:00:00"))}`;
+            return `
+            <div class="aviso-cobros__fila">
+              <span class="aviso-cobros__texto">${texto}${plan ? "" : `<span class="aviso-cobros__pendiente"> · quedan ${formatEUR(pendienteDe(p))}</span>`}</span>
+              <span class="aviso-cobros__acciones">
+                ${
+                  plan
+                    ? `<span class="aviso-cobros__nota">márcalo en su plan de abajo</span>`
+                    : `<button type="button" class="btn btn--primary btn--sm" data-aviso-abono="${p.id}">± Apuntar el pago</button>
+                       ${
+                         p.cobro_repite === "semana" || p.cobro_repite === "mes"
+                           ? `<button type="button" class="btn btn--ghost btn--sm" data-aviso-siguiente="${p.id}">Pasar a la siguiente fecha</button>`
+                           : `<button type="button" class="btn btn--ghost btn--sm" data-aviso-quitar="${p.id}">Quitar el aviso</button>`
+                       }`
+                }
+              </span>
+            </div>`;
+          })
+          .join("")}
+      </div>`
+    : "";
+
   // Orden: a quién le toca pagar antes, primero — por la fecha del próximo
   // cobro. Los que no tienen fecha van después, y los ya pagados al final.
   const ordenados = [...prestamos].sort((a, b) => {
@@ -251,7 +326,7 @@ export function renderPrestamos(state) {
     return fechaProximoCobro(a, pagosPrestamos).localeCompare(fechaProximoCobro(b, pagosPrestamos));
   });
 
-  el.innerHTML = ordenados
+  el.innerHTML = avisosHTML + ordenados
     .map((p) => {
       // capital_inicial es el campo antiguo (de antes de simplificar
       // préstamos): si un préstamo todavía no tiene `capital` fijado, se
@@ -315,6 +390,15 @@ export function renderPrestamos(state) {
     })
     .join("");
 
+  el.querySelectorAll("[data-aviso-abono]").forEach((btn) =>
+    btn.addEventListener("click", () => openAbonoForm(prestamos.find((p) => p.id === btn.dataset.avisoAbono), state))
+  );
+  el.querySelectorAll("[data-aviso-siguiente]").forEach((btn) =>
+    btn.addEventListener("click", () => avanzarAvisoCobro(prestamos.find((p) => p.id === btn.dataset.avisoSiguiente)))
+  );
+  el.querySelectorAll("[data-aviso-quitar]").forEach((btn) =>
+    btn.addEventListener("click", () => updatePrestamo(btn.dataset.avisoQuitar, { fecha_interes: null }))
+  );
   el.querySelectorAll("[data-edit]").forEach((btn) =>
     btn.addEventListener("click", () => openPrestamoForm(prestamos.find((p) => p.id === btn.dataset.edit), state))
   );
@@ -549,9 +633,19 @@ function openAbonoForm(prestamo, state) {
             // préstamo no se tocan, así el desglose siempre cuenta la
             // historia completa (prestado + interés − pagado = pendiente).
             const saldado = importe >= pendiente - 0.004;
+            // Si el aviso de cobro estaba sonando (la fecha ya llegó), este
+            // pago lo atiende: la fecha salta a la siguiente si se repite,
+            // o se apaga si era única. Saldado, ya no hay nada que avisar.
+            const avisoAtendido =
+              prestamo.fecha_interes && prestamo.fecha_interes <= todayISO()
+                ? { fecha_interes: saldado ? null : siguienteFechaCobro(prestamo.fecha_interes, prestamo.cobro_repite) }
+                : saldado
+                  ? { fecha_interes: null }
+                  : {};
             await updatePrestamo(prestamo.id, {
               pagado: round2(pagadoDe(prestamo) + importe),
               ...(saldado ? { estado: "Pagado" } : {}),
+              ...avisoAtendido,
             });
             if (saldado) efectoDeCelebracion();
             closeModal();
@@ -705,9 +799,21 @@ function openPrestamoForm(prestamo, state) {
           : ""
       }
       <label class="field">
-        <span class="field__label">¿Para cuándo debería pagarlo? (opcional)</span>
+        <span class="field__label">¿Qué día te tiene que pagar? (opcional)</span>
         <input type="date" name="fecha_interes" value="${prestamo?.fecha_interes ?? ""}" />
       </label>
+      <label class="field">
+        <span class="field__label">¿Ese cobro se repite?</span>
+        <select name="cobro_repite">
+          <option value="no" ${(prestamo?.cobro_repite ?? "no") === "no" ? "selected" : ""}>No, es un cobro único</option>
+          <option value="semana" ${prestamo?.cobro_repite === "semana" ? "selected" : ""}>Cada semana</option>
+          <option value="mes" ${prestamo?.cobro_repite === "mes" ? "selected" : ""}>Cada mes</option>
+        </select>
+      </label>
+      <p class="entity-card__meta field--full" style="margin:-4px 0 4px;">
+        El día del cobro te sale un aviso en Préstamos y en el Dashboard.
+        Al apuntar el pago, la fecha salta sola a la siguiente.
+      </p>
       <label class="field">
         <span class="field__label">Estado</span>
         <select name="estado">${ESTADOS.map((e) => `<option ${prestamo?.estado === e ? "selected" : ""}>${e}</option>`).join("")}</select>
@@ -746,6 +852,7 @@ function openPrestamoForm(prestamo, state) {
             interes_porcentaje: Number(f.interes_porcentaje.value || 0),
             interes_manual: f.interes_manual.value !== "" ? Number(f.interes_manual.value) : null,
             fecha_interes: f.fecha_interes.value || null,
+            cobro_repite: f.cobro_repite.value,
             estado: f.estado.value,
             notas: f.notas.value.trim(),
           };

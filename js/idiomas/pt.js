@@ -39,6 +39,31 @@ export const DICCIONARIO_PT = {
   "Gráficos": "Gráficos",
   "Categorías": "Categorias",
   "Cartera": "Carteira",
+  // ---------- Préstamos · avisos de cobro ----------
+  "💰 Cobros que te deben":
+    "💰 Pagamentos que te devem",
+  "± Apuntar el pago":
+    "± Anotar o pagamento",
+  "Pasar a la siguiente fecha":
+    "Passar para a próxima data",
+  "Quitar el aviso":
+    "Tirar o aviso",
+  "márcalo en su plan de abajo":
+    "marque no plano dele abaixo",
+  "¿Qué día te tiene que pagar? (opcional)":
+    "Em que dia ele tem de te pagar? (opcional)",
+  "¿Ese cobro se repite?":
+    "Essa cobrança se repete?",
+  "No, es un cobro único":
+    "Não, é uma cobrança única",
+  "Cada semana":
+    "Toda semana",
+  "Cada mes":
+    "Todo mês",
+  "El día del cobro te sale un aviso en Préstamos y en el Dashboard. Al apuntar el pago, la fecha salta sola a la siguiente.":
+    "No dia da cobrança aparece um aviso em Empréstimos e no Dashboard. Ao anotar o pagamento, a data pula sozinha para a seguinte.",
+  "Toca para apuntarlo en Préstamos":
+    "Toque para anotar em Empréstimos",
   // ---------- Cartera · glosario y avisos ----------
   "Posición": "Posição",
   "Último precio": "Último preço",
@@ -710,6 +735,11 @@ export const DICCIONARIO_PT = {
 // Patrones: para los textos que llevan datos dentro (números, nombres,
 // fechas). $1, $2… conservan esos datos tal cual.
 export const PATRONES_PT = [
+  [/^💰 A (.+) le toca pagarte hoy$/, "💰 $1 tem de te pagar hoje"],
+  [/^💰 (.+) tenía que pagarte el (.+)$/, "💰 $1 tinha de te pagar em $2"],
+  [/^A (.+) le toca pagarte hoy$/, "$1 tem de te pagar hoje"],
+  [/^(.+) tenía que pagarte el (.+)$/, "$1 tinha de te pagar em $2"],
+  [/^· quedan (.+)$/, "· faltam $1"],
   [/^"(.+)" es el (\d+) % de tu cartera\. Mucho peso en una sola cosa: si cae, cae todo contigo\.$/, "\"$1\" é $2 % da sua carteira. Muito peso em uma coisa só: se ela cai, cai tudo com você."],
   [/^Más de la mitad de la cartera es cripto \((\d+) %\)\. Es lo más volátil que hay: que no sea dinero que puedas necesitar\.$/, "Mais da metade da carteira é cripto ($1 %). É o mais volátil que existe: que não seja dinheiro de que você possa precisar."],
   [/^"(.+)" cae un (\d+) %\. Antes de vender por miedo, recuerda por qué la compraste: vender abajo convierte una caída en una pérdida\.$/, "\"$1\" cai $2 %. Antes de vender por medo, lembre por que comprou: vender embaixo transforma uma queda em uma perda."],

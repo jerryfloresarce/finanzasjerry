@@ -29,6 +29,31 @@ export const DICCIONARIO_FR = {
   "Gráficos": "Graphiques",
   "Categorías": "Catégories",
   "Cartera": "Portefeuille",
+  // ---------- Préstamos · avisos de cobro ----------
+  "💰 Cobros que te deben":
+    "💰 Paiements qu'on vous doit",
+  "± Apuntar el pago":
+    "± Noter le paiement",
+  "Pasar a la siguiente fecha":
+    "Passer à la date suivante",
+  "Quitar el aviso":
+    "Retirer le rappel",
+  "márcalo en su plan de abajo":
+    "cochez-le dans son plan ci-dessous",
+  "¿Qué día te tiene que pagar? (opcional)":
+    "Quel jour doit-il vous payer ? (optionnel)",
+  "¿Ese cobro se repite?":
+    "Ce paiement se répète-t-il ?",
+  "No, es un cobro único":
+    "Non, c'est un paiement unique",
+  "Cada semana":
+    "Chaque semaine",
+  "Cada mes":
+    "Chaque mois",
+  "El día del cobro te sale un aviso en Préstamos y en el Dashboard. Al apuntar el pago, la fecha salta sola a la siguiente.":
+    "Le jour du paiement, un rappel apparaît dans Prêts et sur le Dashboard. Quand vous notez le paiement, la date passe toute seule à la suivante.",
+  "Toca para apuntarlo en Préstamos":
+    "Touchez pour le noter dans Prêts",
   // ---------- Cartera · glosario y avisos ----------
   "Posición": "Position",
   "Último precio": "Dernier prix",
@@ -678,6 +703,11 @@ export const DICCIONARIO_FR = {
 };
 
 export const PATRONES_FR = [
+  [/^💰 A (.+) le toca pagarte hoy$/, "💰 $1 doit vous payer aujourd'hui"],
+  [/^💰 (.+) tenía que pagarte el (.+)$/, "💰 $1 devait vous payer le $2"],
+  [/^A (.+) le toca pagarte hoy$/, "$1 doit vous payer aujourd'hui"],
+  [/^(.+) tenía que pagarte el (.+)$/, "$1 devait vous payer le $2"],
+  [/^· quedan (.+)$/, "· il reste $1"],
   [/^"(.+)" es el (\d+) % de tu cartera\. Mucho peso en una sola cosa: si cae, cae todo contigo\.$/, "« $1 » représente $2 % de votre portefeuille. Beaucoup de poids sur une seule chose : si elle tombe, tout tombe avec vous."],
   [/^Más de la mitad de la cartera es cripto \((\d+) %\)\. Es lo más volátil que hay: que no sea dinero que puedas necesitar\.$/, "Plus de la moitié du portefeuille est en crypto ($1 %). C'est ce qu'il y a de plus volatil : que ce ne soit pas de l'argent dont vous pourriez avoir besoin."],
   [/^"(.+)" cae un (\d+) %\. Antes de vender por miedo, recuerda por qué la compraste: vender abajo convierte una caída en una pérdida\.$/, "« $1 » perd $2 %. Avant de vendre par peur, rappelez-vous pourquoi vous l'avez acheté : vendre en bas transforme une baisse en perte."],

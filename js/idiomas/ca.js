@@ -29,6 +29,31 @@ export const DICCIONARIO_CA = {
   "Gráficos": "Gràfics",
   "Categorías": "Categories",
   "Cartera": "Cartera",
+  // ---------- Préstamos · avisos de cobro ----------
+  "💰 Cobros que te deben":
+    "💰 Cobraments que et deuen",
+  "± Apuntar el pago":
+    "± Apuntar el pagament",
+  "Pasar a la siguiente fecha":
+    "Passar a la següent data",
+  "Quitar el aviso":
+    "Treure l'avís",
+  "márcalo en su plan de abajo":
+    "marca-ho al seu pla de sota",
+  "¿Qué día te tiene que pagar? (opcional)":
+    "Quin dia t'ha de pagar? (opcional)",
+  "¿Ese cobro se repite?":
+    "Aquest cobrament es repeteix?",
+  "No, es un cobro único":
+    "No, és un cobrament únic",
+  "Cada semana":
+    "Cada setmana",
+  "Cada mes":
+    "Cada mes",
+  "El día del cobro te sale un aviso en Préstamos y en el Dashboard. Al apuntar el pago, la fecha salta sola a la siguiente.":
+    "El dia del cobrament et surt un avís a Préstecs i al Dashboard. En apuntar el pagament, la data salta sola a la següent.",
+  "Toca para apuntarlo en Préstamos":
+    "Toca per apuntar-ho a Préstecs",
   // ---------- Cartera · glosario y avisos ----------
   "Posición": "Posició",
   "Último precio": "Últim preu",
@@ -678,6 +703,11 @@ export const DICCIONARIO_CA = {
 };
 
 export const PATRONES_CA = [
+  [/^💰 A (.+) le toca pagarte hoy$/, "💰 Avui a $1 li toca pagar-te"],
+  [/^💰 (.+) tenía que pagarte el (.+)$/, "💰 $1 t'havia de pagar el $2"],
+  [/^A (.+) le toca pagarte hoy$/, "Avui a $1 li toca pagar-te"],
+  [/^(.+) tenía que pagarte el (.+)$/, "$1 t'havia de pagar el $2"],
+  [/^· quedan (.+)$/, "· queden $1"],
   [/^"(.+)" es el (\d+) % de tu cartera\. Mucho peso en una sola cosa: si cae, cae todo contigo\.$/, "\"$1\" és el $2 % de la teva cartera. Molt de pes en una sola cosa: si cau, cau tot amb tu."],
   [/^Más de la mitad de la cartera es cripto \((\d+) %\)\. Es lo más volátil que hay: que no sea dinero que puedas necesitar\.$/, "Més de la meitat de la cartera és cripto ($1 %). És el més volàtil que hi ha: que no siguin diners que puguis necessitar."],
   [/^"(.+)" cae un (\d+) %\. Antes de vender por miedo, recuerda por qué la compraste: vender abajo convierte una caída en una pérdida\.$/, "\"$1\" cau un $2 %. Abans de vendre per por, recorda per què la vas comprar: vendre a baix converteix una caiguda en una pèrdua."],

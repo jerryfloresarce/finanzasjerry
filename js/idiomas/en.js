@@ -30,6 +30,31 @@ export const DICCIONARIO_EN = {
   "Gráficos": "Charts",
   "Categorías": "Categories",
   "Cartera": "Portfolio",
+  // ---------- Préstamos · avisos de cobro ----------
+  "💰 Cobros que te deben":
+    "💰 Payments owed to you",
+  "± Apuntar el pago":
+    "± Log the payment",
+  "Pasar a la siguiente fecha":
+    "Skip to the next date",
+  "Quitar el aviso":
+    "Remove the reminder",
+  "márcalo en su plan de abajo":
+    "mark it in its plan below",
+  "¿Qué día te tiene que pagar? (opcional)":
+    "What day are they due to pay you? (optional)",
+  "¿Ese cobro se repite?":
+    "Does that payment repeat?",
+  "No, es un cobro único":
+    "No, it's a one-off",
+  "Cada semana":
+    "Every week",
+  "Cada mes":
+    "Every month",
+  "El día del cobro te sale un aviso en Préstamos y en el Dashboard. Al apuntar el pago, la fecha salta sola a la siguiente.":
+    "On the due day a reminder shows up in Loans and on the Dashboard. When you log the payment, the date jumps to the next one by itself.",
+  "Toca para apuntarlo en Préstamos":
+    "Tap to log it in Loans",
   // ---------- Cartera · glosario y avisos ----------
   "Posición": "Position",
   "Último precio": "Last price",
@@ -679,6 +704,11 @@ export const DICCIONARIO_EN = {
 };
 
 export const PATRONES_EN = [
+  [/^💰 A (.+) le toca pagarte hoy$/, "💰 $1 is due to pay you today"],
+  [/^💰 (.+) tenía que pagarte el (.+)$/, "💰 $1 was due to pay you on $2"],
+  [/^A (.+) le toca pagarte hoy$/, "$1 is due to pay you today"],
+  [/^(.+) tenía que pagarte el (.+)$/, "$1 was due to pay you on $2"],
+  [/^· quedan (.+)$/, "· $1 left"],
   [/^"(.+)" es el (\d+) % de tu cartera\. Mucho peso en una sola cosa: si cae, cae todo contigo\.$/, "\"$1\" is $2 % of your portfolio. A lot of weight in one thing: if it falls, everything falls with you."],
   [/^Más de la mitad de la cartera es cripto \((\d+) %\)\. Es lo más volátil que hay: que no sea dinero que puedas necesitar\.$/, "More than half the portfolio is crypto ($1 %). It's the most volatile thing there is: make sure it's not money you might need."],
   [/^"(.+)" cae un (\d+) %\. Antes de vender por miedo, recuerda por qué la compraste: vender abajo convierte una caída en una pérdida\.$/, "\"$1\" is down $2 %. Before selling out of fear, remember why you bought it: selling at the bottom turns a dip into a loss."],
