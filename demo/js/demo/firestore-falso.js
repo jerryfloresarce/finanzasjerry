@@ -7,7 +7,7 @@
 // dentro de la misma pestaña (sessionStorage); al cerrarla, la demo vuelve
 // a estar como al principio.
 
-import { datosDeDemostracion } from "./datos-demo.js?v=120";
+import { datosDeDemostracion } from "./datos-demo.js?v=121";
 
 const almacen = new Map();
 const oyentes = new Set();

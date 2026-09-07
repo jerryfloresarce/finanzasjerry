@@ -1,4 +1,4 @@
-import { localeActual, t as tr } from "../idioma.js?v=120";
+import { localeActual, t as tr } from "../idioma.js?v=121";
 import {
   movimientosEnRango,
   totalPorTipo,
@@ -7,11 +7,11 @@ import {
   formatEUR,
   formatFecha,
   fromTimestamp,
-} from "../db.js?v=120";
-import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=120";
-import { icon, entityIcon, iconForCuentaTipo, iconForSuscripcion } from "../icons.js?v=120";
-import { openModal, closeModal } from "../modal.js?v=120";
-import { colorTema, paletaTema, conAlfa } from "../tema.js?v=120";
+} from "../db.js?v=121";
+import { countUpTo, iniciarPaseDeRender } from "../animations.js?v=121";
+import { icon, entityIcon, iconForCuentaTipo, iconForSuscripcion } from "../icons.js?v=121";
+import { openModal, closeModal } from "../modal.js?v=121";
+import { colorTema, paletaTema, conAlfa } from "../tema.js?v=121";
 
 // Colores de respaldo (tema Original). Los de verdad los pone el tema
 // activo — ver js/tema.js.

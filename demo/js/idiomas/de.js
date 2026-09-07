@@ -29,6 +29,29 @@ export const DICCIONARIO_DE = {
   "Gráficos": "Diagramme",
   "Categorías": "Kategorien",
   "Cartera": "Portfolio",
+  // ---------- Ajustes · perfil ----------
+  "Ajustes":
+    "Einstellungen",
+  "Perfil":
+    "Profil",
+  "Sesión":
+    "Sitzung",
+  "Tus datos":
+    "Deine Daten",
+  "Cambiar la foto":
+    "Foto ändern",
+  "Quitar la foto":
+    "Foto entfernen",
+  "Tu nombre":
+    "Dein Name",
+  "Cómo quieres que te llame la app":
+    "Wie die App dich nennen soll",
+  "La foto y el nombre se guardan en tu cuenta y se ven en todos tus dispositivos.":
+    "Foto und Name werden in deinem Konto gespeichert und erscheinen auf allen deinen Geräten.",
+  "No se pudo guardar la foto. Prueba con otra imagen.":
+    "Foto konnte nicht gespeichert werden. Versuch ein anderes Bild.",
+  "Esto añadirá todo lo que haya en el archivo a tus datos actuales (no borra nada existente). ¿Continuar?":
+    "Das fügt alles aus der Datei zu deinen aktuellen Daten hinzu (nichts Bestehendes wird gelöscht). Fortfahren?",
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Zahlungen, die man dir schuldet",

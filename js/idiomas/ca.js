@@ -29,6 +29,29 @@ export const DICCIONARIO_CA = {
   "Gráficos": "Gràfics",
   "Categorías": "Categories",
   "Cartera": "Cartera",
+  // ---------- Ajustes · perfil ----------
+  "Ajustes":
+    "Ajustos",
+  "Perfil":
+    "Perfil",
+  "Sesión":
+    "Sessió",
+  "Tus datos":
+    "Les teves dades",
+  "Cambiar la foto":
+    "Canviar la foto",
+  "Quitar la foto":
+    "Treure la foto",
+  "Tu nombre":
+    "El teu nom",
+  "Cómo quieres que te llame la app":
+    "Com vols que et digui l'app",
+  "La foto y el nombre se guardan en tu cuenta y se ven en todos tus dispositivos.":
+    "La foto i el nom es guarden al teu compte i es veuen a tots els teus dispositius.",
+  "No se pudo guardar la foto. Prueba con otra imagen.":
+    "No s'ha pogut desar la foto. Prova amb una altra imatge.",
+  "Esto añadirá todo lo que haya en el archivo a tus datos actuales (no borra nada existente). ¿Continuar?":
+    "Això afegirà tot el que hi hagi a l'arxiu a les teves dades actuals (no esborra res existent). Vols continuar?",
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Cobraments que et deuen",

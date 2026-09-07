@@ -1,31 +1,31 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=120";
-import { tourSiPrimeraVez } from "./tour.js?v=120";
-import { arrancarIdioma } from "./idioma.js?v=120";
-import { state, subscribe, initStore } from "./store.js?v=120";
+import { onAuthReady } from "./auth.js?v=121";
+import { tourSiPrimeraVez } from "./tour.js?v=121";
+import { arrancarIdioma } from "./idioma.js?v=121";
+import { state, subscribe, initStore } from "./store.js?v=121";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=120";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=120";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=120";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=120";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=120";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=120";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=120";
-import { mountMetas, renderMetas } from "./views/metas.js?v=120";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=121";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=121";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=121";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=121";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=121";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=121";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=121";
+import { mountMetas, renderMetas } from "./views/metas.js?v=121";
 // modulo:rutina:inicio
-import { mountRutina, renderRutina } from "./views/rutina.js?v=120";
+import { mountRutina, renderRutina } from "./views/rutina.js?v=121";
 // modulo:rutina:fin
 // modulo:ciclo:inicio
-import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=120";
+import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=121";
 // modulo:ciclo:fin
 // modulo:gimnasio:inicio
-import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=120";
+import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=121";
 // modulo:gimnasio:fin
-import { mountCuentaPanel } from "./views/cuenta.js?v=120";
-import { refreshAnimations } from "./animations.js?v=120";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=120";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=120";
-import { efectoDeEntrada } from "./efectos.js?v=120";
+import { mountCuentaPanel, renderAjustes } from "./views/cuenta.js?v=121";
+import { refreshAnimations } from "./animations.js?v=121";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=121";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=121";
+import { efectoDeEntrada } from "./efectos.js?v=121";
 
 const ROUTES = {
   dashboard: renderDashboard,
@@ -36,6 +36,7 @@ const ROUTES = {
   prestamos: renderPrestamos,
   suscripciones: renderSuscripciones,
   metas: renderMetas,
+  ajustes: renderAjustes,
 // modulo:rutina:inicio
   rutina: renderRutina,
 // modulo:rutina:fin

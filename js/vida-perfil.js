@@ -11,8 +11,8 @@
 //
 // Este archivo es PERSONAL (vida-*): el kit lo excluye entero.
 
-import { registrarGanchosDeDatos, refiltrarColeccion } from "./db.js?v=120";
-import { usarClaveDeTema, aplicarTema, temaGuardadoEnLocal } from "./tema.js?v=120";
+import { registrarGanchosDeDatos, refiltrarColeccion } from "./db.js?v=121";
+import { usarClaveDeTema, aplicarTema, temaGuardadoEnLocal } from "./tema.js?v=121";
 
 export const PERFILES = {
   jerry: {

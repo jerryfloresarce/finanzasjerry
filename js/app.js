@@ -1,34 +1,34 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=120";
-import { tourSiPrimeraVez } from "./tour.js?v=120";
-import { arrancarIdioma } from "./idioma.js?v=120";
-import { state, subscribe, initStore } from "./store.js?v=120";
+import { onAuthReady } from "./auth.js?v=121";
+import { tourSiPrimeraVez } from "./tour.js?v=121";
+import { arrancarIdioma } from "./idioma.js?v=121";
+import { state, subscribe, initStore } from "./store.js?v=121";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=120";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=120";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=120";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=120";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=120";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=120";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=120";
-import { mountMetas, renderMetas } from "./views/metas.js?v=120";
-import { mountCuentaPanel } from "./views/cuenta.js?v=120";
-import { refreshAnimations } from "./animations.js?v=120";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=120";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=120";
-import { efectoDeEntrada } from "./efectos.js?v=120";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=121";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=121";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=121";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=121";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=121";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=121";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=121";
+import { mountMetas, renderMetas } from "./views/metas.js?v=121";
+import { mountCuentaPanel, renderAjustes } from "./views/cuenta.js?v=121";
+import { refreshAnimations } from "./animations.js?v=121";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=121";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=121";
+import { efectoDeEntrada } from "./efectos.js?v=121";
 // vida:inicio
-import { initPerfil } from "./vida-perfil.js?v=120";
-import { initVida } from "./vida.js?v=120";
-import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=120";
-import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=120";
-import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=120";
-import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=120";
-import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=120";
-import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=120";
-import { mountVidaCiclo, renderVidaCiclo } from "./views/vida-ciclo.js?v=120";
-import { mountVidaOficina, renderVidaOficina } from "./views/vida-oficina.js?v=120";
-import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=120";
+import { initPerfil } from "./vida-perfil.js?v=121";
+import { initVida } from "./vida.js?v=121";
+import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=121";
+import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=121";
+import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=121";
+import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=121";
+import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=121";
+import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=121";
+import { mountVidaCiclo, renderVidaCiclo } from "./views/vida-ciclo.js?v=121";
+import { mountVidaOficina, renderVidaOficina } from "./views/vida-oficina.js?v=121";
+import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=121";
 // vida:fin
 
 const ROUTES = {
@@ -51,6 +51,7 @@ const ROUTES = {
   prestamos: renderPrestamos,
   suscripciones: renderSuscripciones,
   metas: renderMetas,
+  ajustes: renderAjustes,
 };
 
 let DEFAULT_ROUTE = "dashboard";

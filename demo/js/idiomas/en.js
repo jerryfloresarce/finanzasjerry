@@ -30,6 +30,29 @@ export const DICCIONARIO_EN = {
   "Gráficos": "Charts",
   "Categorías": "Categories",
   "Cartera": "Portfolio",
+  // ---------- Ajustes · perfil ----------
+  "Ajustes":
+    "Settings",
+  "Perfil":
+    "Profile",
+  "Sesión":
+    "Session",
+  "Tus datos":
+    "Your data",
+  "Cambiar la foto":
+    "Change photo",
+  "Quitar la foto":
+    "Remove photo",
+  "Tu nombre":
+    "Your name",
+  "Cómo quieres que te llame la app":
+    "What the app should call you",
+  "La foto y el nombre se guardan en tu cuenta y se ven en todos tus dispositivos.":
+    "Your photo and name are saved to your account and show on all your devices.",
+  "No se pudo guardar la foto. Prueba con otra imagen.":
+    "Couldn't save the photo. Try another image.",
+  "Esto añadirá todo lo que haya en el archivo a tus datos actuales (no borra nada existente). ¿Continuar?":
+    "This will add everything in the file to your current data (nothing existing is deleted). Continue?",
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Payments owed to you",

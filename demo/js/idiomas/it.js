@@ -29,6 +29,29 @@ export const DICCIONARIO_IT = {
   "Gráficos": "Grafici",
   "Categorías": "Categorie",
   "Cartera": "Portafoglio",
+  // ---------- Ajustes · perfil ----------
+  "Ajustes":
+    "Impostazioni",
+  "Perfil":
+    "Profilo",
+  "Sesión":
+    "Sessione",
+  "Tus datos":
+    "I tuoi dati",
+  "Cambiar la foto":
+    "Cambiare la foto",
+  "Quitar la foto":
+    "Togliere la foto",
+  "Tu nombre":
+    "Il tuo nome",
+  "Cómo quieres que te llame la app":
+    "Come vuoi che l'app ti chiami",
+  "La foto y el nombre se guardan en tu cuenta y se ven en todos tus dispositivos.":
+    "La foto e il nome si salvano nel tuo account e compaiono su tutti i tuoi dispositivi.",
+  "No se pudo guardar la foto. Prueba con otra imagen.":
+    "Impossibile salvare la foto. Prova un'altra immagine.",
+  "Esto añadirá todo lo que haya en el archivo a tus datos actuales (no borra nada existente). ¿Continuar?":
+    "Questo aggiungerà tutto ciò che c'è nel file ai tuoi dati attuali (non cancella nulla di esistente). Continuare?",
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Pagamenti che ti devono",

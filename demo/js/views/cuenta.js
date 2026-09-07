@@ -1,61 +1,72 @@
+// La pantalla de Ajustes: el perfil (foto, nombre, email, contraseña), el
+// idioma, los temas, los datos (exportar/importar) y la sesión. Antes era
+// un panel lateral; ahora es una vista propia y el botón del avatar (arriba
+// a la derecha) navega hasta ella.
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=120";
-import { state } from "../store.js?v=120";
-import { exportarDatos, importarDatos } from "../backup.js?v=120";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "../scroll-lock.js?v=120";
-import { montarSelectorTemas } from "../tema.js?v=120";
-import { arrancarTour } from "../tour.js?v=120";
-import { montarSelectorIdioma } from "../idioma.js?v=120";
+import { auth } from "../firebase-init.js?v=121";
+import { state, subscribe } from "../store.js?v=121";
+import { updateConfig } from "../db.js?v=121";
+import { exportarDatos, importarDatos } from "../backup.js?v=121";
+import { montarSelectorTemas } from "../tema.js?v=121";
+import { arrancarTour } from "../tour.js?v=121";
+import { montarSelectorIdioma, t } from "../idioma.js?v=121";
 
-let panel = null;
-let scrim = null;
+const ICONO_AVATAR = '<i class="ph-thin ph-user-circle" aria-hidden="true"></i>';
 
-function openPanel() {
-  const emailEl = document.getElementById("cuenta-panel-email");
-  if (emailEl) emailEl.textContent = auth.currentUser?.email || "—";
-  panel.classList.add("is-open");
-  scrim.classList.remove("is-hidden");
-  // El panel se abre siempre por arriba: si se quedara donde lo dejaste la
-  // vez anterior, aparecería a media lista de temas sin venir a cuento.
-  panel.scrollTop = 0;
-  bloquearScrollFondo("panel");
+function irAAjustes() {
+  window.location.hash = "#/ajustes";
 }
 
-function closePanel() {
-  panel.classList.remove("is-open");
-  scrim.classList.add("is-hidden");
-  desbloquearScrollFondo("panel");
+// La foto del perfil, donde toque: los dos botones del avatar (escritorio y
+// móvil) y la vista previa grande de Ajustes. Sin foto, el icono de siempre.
+function aplicarFotoPerfil() {
+  const foto = state.config?.foto_perfil || null;
+  for (const id of ["btn-account-desktop", "btn-open-cuenta-topbar"]) {
+    const btn = document.getElementById(id);
+    if (!btn) continue;
+    const conFoto = Boolean(foto);
+    btn.classList.toggle("tiene-foto", conFoto);
+    btn.innerHTML = conFoto ? `<img src="${foto}" alt="" class="avatar-foto" />` : ICONO_AVATAR;
+  }
+  const preview = document.getElementById("ajustes-avatar");
+  if (preview) preview.innerHTML = foto ? `<img src="${foto}" alt="" class="avatar-foto" />` : ICONO_AVATAR;
+  document.getElementById("btn-quitar-foto")?.classList.toggle("is-hidden", !foto);
 }
 
-function toggle() {
-  if (panel.classList.contains("is-open")) closePanel();
-  else openPanel();
+// La foto se recorta a un cuadrado de 256 px y se guarda como JPEG dentro
+// del documento de configuración: pesa unas decenas de KB, sobra para un
+// avatar, y viaja con la cuenta a todos los dispositivos sin montar nada
+// más (ni Storage ni subidas aparte).
+async function procesarFoto(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const lado = 256;
+    const min = Math.min(img.naturalWidth, img.naturalHeight);
+    const sx = (img.naturalWidth - min) / 2;
+    const sy = (img.naturalHeight - min) / 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = lado;
+    canvas.height = lado;
+    canvas.getContext("2d").drawImage(img, sx, sy, min, min, 0, 0, lado, lado);
+    return canvas.toDataURL("image/jpeg", 0.85);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 export function mountCuentaPanel() {
-  panel = document.getElementById("cuenta-panel");
-  scrim = document.getElementById("cuenta-panel-scrim");
-  if (!panel || !scrim) return;
-
-  document.getElementById("btn-open-cuenta-topbar")?.addEventListener("click", toggle);
-  document.getElementById("btn-account-desktop")?.addEventListener("click", toggle);
-  scrim.addEventListener("click", closePanel);
-  // La guía de bienvenida se puede repetir cuando haga falta (enseñar la
-  // app a alguien, refrescar dónde estaba algo). Cierra el panel antes,
-  // para que la guía señale la pantalla y no el propio panel.
-  document.getElementById("btn-ver-tour")?.addEventListener("click", () => {
-    closePanel();
-    setTimeout(arrancarTour, 350);
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closePanel();
-  });
+  document.getElementById("btn-open-cuenta-topbar")?.addEventListener("click", irAAjustes);
+  document.getElementById("btn-account-desktop")?.addEventListener("click", irAAjustes);
 
   montarSelectorTemas(document.getElementById("temas-selector"));
   montarSelectorIdioma(document.getElementById("idioma-selector"));
-  // Al elegir un tema, el panel se aparta: la animación de entrada ocupa
-  // toda la pantalla y con el panel abierto se veía a medias.
-  document.addEventListener("tema-cambiado", closePanel);
+
+  // La guía de bienvenida se puede repetir cuando haga falta (enseñar la
+  // app a alguien, refrescar dónde estaba algo).
+  document.getElementById("btn-ver-tour")?.addEventListener("click", () => arrancarTour());
 
   document.getElementById("btn-cuenta-logout")?.addEventListener("click", () => signOut(auth));
 
@@ -78,6 +89,38 @@ export function mountCuentaPanel() {
     }
   });
 
+  // La foto de perfil.
+  const inputFoto = document.getElementById("input-foto-perfil");
+  document.getElementById("btn-foto-perfil")?.addEventListener("click", () => inputFoto?.click());
+  inputFoto?.addEventListener("change", async () => {
+    const file = inputFoto.files[0];
+    inputFoto.value = "";
+    if (!file) return;
+    const msg = document.getElementById("ajustes-foto-msg");
+    msg.textContent = "";
+    try {
+      const dataURL = await procesarFoto(file);
+      await updateConfig({ foto_perfil: dataURL });
+      // El listener de configuración tarda un latido: se aplica ya para que
+      // el cambio se vea al instante.
+      state.config = { ...state.config, foto_perfil: dataURL };
+      aplicarFotoPerfil();
+    } catch (err) {
+      msg.textContent = t("No se pudo guardar la foto. Prueba con otra imagen.");
+    }
+  });
+  document.getElementById("btn-quitar-foto")?.addEventListener("click", async () => {
+    await updateConfig({ foto_perfil: null });
+    state.config = { ...state.config, foto_perfil: null };
+    aplicarFotoPerfil();
+  });
+
+  // El nombre: se guarda al salir del campo.
+  const inputNombre = document.getElementById("input-nombre-perfil");
+  inputNombre?.addEventListener("change", () => {
+    updateConfig({ nombre_usuario: inputNombre.value.trim() || null });
+  });
+
   document.getElementById("btn-exportar-datos")?.addEventListener("click", () => {
     exportarDatos(state);
   });
@@ -90,7 +133,7 @@ export function mountCuentaPanel() {
     if (!file) return;
     const msg = document.getElementById("cuenta-import-msg");
     msg.style.color = "var(--text-secondary)";
-    if (!confirm("Esto añadirá todo lo que haya en el archivo a tus datos actuales (no borra nada existente). ¿Continuar?")) return;
+    if (!confirm(t("Esto añadirá todo lo que haya en el archivo a tus datos actuales (no borra nada existente). ¿Continuar?"))) return;
     msg.textContent = "Importando…";
     try {
       const text = await file.text();
@@ -104,4 +147,19 @@ export function mountCuentaPanel() {
       msg.textContent = "No se pudo importar el archivo. ¿Es una copia válida exportada desde aquí?";
     }
   });
+
+  // La foto del avatar de arriba se pone al día con cada cambio de datos
+  // (llega de este dispositivo o del otro por el listener de configuración).
+  subscribe(() => aplicarFotoPerfil());
+}
+
+export function renderAjustes() {
+  const emailEl = document.getElementById("cuenta-panel-email");
+  if (emailEl) emailEl.textContent = auth.currentUser?.email || "—";
+  // El nombre no se pisa mientras se está escribiendo en él.
+  const inputNombre = document.getElementById("input-nombre-perfil");
+  if (inputNombre && document.activeElement !== inputNombre) {
+    inputNombre.value = state.config?.nombre_usuario || "";
+  }
+  aplicarFotoPerfil();
 }
