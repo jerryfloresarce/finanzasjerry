@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=118";
-import { fechaISO } from "./db.js?v=118";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=118";
+import { db } from "./firebase-init.js?v=119";
+import { fechaISO } from "./db.js?v=119";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=119";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -1897,6 +1897,41 @@ export function resumenCartera() {
     return { ...p, invertido: inv, valor: val, pl: val - inv, plPct: inv > 0 ? ((val - inv) / inv) * 100 : 0 };
   });
   return { posiciones, invertido, valor, pl: valor - invertido, plPct: invertido > 0 ? ((valor - invertido) / invertido) * 100 : 0 };
+}
+
+// Una aportación: dinero nuevo metido en una posición que ya existe (la
+// compra periódica de cada mes). Se guarda en el historial de la posición
+// y se recalculan los totales: las unidades se suman y el precio de compra
+// pasa a ser el precio MEDIO, de forma que unidades × precio medio = todo
+// el dinero metido, exacto — que es lo que se quiere saber.
+export async function aportarAInversion(p, { fecha, importe, unidades }) {
+  const aportes = [...(p.aportes ?? []), { fecha, importe, unidades }];
+  const udsPrev = Number(p.unidades ?? 0);
+  const invPrev = udsPrev * Number(p.precio_compra ?? 0);
+  const udsTotal = udsPrev + unidades;
+  const invTotal = invPrev + importe;
+  await updateInversion(p.id, {
+    aportes,
+    unidades: udsTotal,
+    precio_compra: udsTotal > 0 ? invTotal / udsTotal : 0,
+  });
+}
+
+// Quitar una aportación apuntada por error: se saca del historial y se
+// deshace su efecto en los totales (sus unidades y su dinero se restan).
+export async function quitarAporte(p, indice) {
+  const aportes = [...(p.aportes ?? [])];
+  const [quitado] = aportes.splice(indice, 1);
+  if (!quitado) return;
+  const udsPrev = Number(p.unidades ?? 0);
+  const invPrev = udsPrev * Number(p.precio_compra ?? 0);
+  const udsTotal = Math.max(0, udsPrev - Number(quitado.unidades ?? 0));
+  const invTotal = Math.max(0, invPrev - Number(quitado.importe ?? 0));
+  await updateInversion(p.id, {
+    aportes,
+    unidades: udsTotal,
+    precio_compra: udsTotal > 0 ? invTotal / udsTotal : 0,
+  });
 }
 
 // Señales educativas sobre la cartera. Son reglas fijas y transparentes,

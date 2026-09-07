@@ -15,17 +15,23 @@ import {
   addInversion,
   updateInversion,
   deleteInversion,
+  aportarAInversion,
+  quitarAporte,
   guardarSistema,
-} from "../vida.js?v=118";
-import { formatEUR } from "../db.js?v=118";
-import { openModal, closeModal } from "../modal.js?v=118";
-import { colorTema } from "../tema.js?v=118";
-import { efectoAlGuardar } from "../efectos.js?v=118";
-import { initials, avatarColor } from "../icons.js?v=118";
+} from "../vida.js?v=119";
+import { formatEUR, formatFecha, fromTimestamp } from "../db.js?v=119";
+import { t } from "../idioma.js?v=119";
+import { openModal, closeModal } from "../modal.js?v=119";
+import { colorTema } from "../tema.js?v=119";
+import { efectoAlGuardar } from "../efectos.js?v=119";
+import { initials, avatarColor } from "../icons.js?v=119";
 
 // Un porcentaje y unas unidades a la española: coma decimal, no punto.
+// Las unidades se recortan a 4 decimales: al aportar por euros salen
+// divisiones con colas larguísimas (100 € ÷ 127,53 = 0,78413...) que
+// nadie necesita ver enteras.
 const pctTxt = (n) => Math.abs(n).toFixed(1).replace(".", ",");
-const udsTxt = (n) => String(n).replace(".", ",");
+const udsTxt = (n) => String(Number(Number(n).toFixed(4))).replace(".", ",");
 
 let chartProyeccion = null;
 let actualizando = false;
@@ -97,6 +103,10 @@ const GLOSARIO = {
     titulo: "El símbolo",
     texto: "El código con el que la app busca el precio automáticamente. Acciones de EE. UU.: su ticker (AAPL, AMZN…) con la clave de Finnhub. Cripto: su id de CoinGecko en minúsculas (bitcoin, ethereum). Los ETF europeos no están en el plan gratuito: su precio se copia de Trade Republic con el lápiz, y todo lo demás se calcula igual.",
   },
+  aportacion: {
+    titulo: "Aportación",
+    texto: "Dinero nuevo que metes en algo que ya tienes — la compra de cada mes. Apuntas cuánto metes y a qué precio estaba ese día: la app calcula las participaciones (dinero ÷ precio), las suma a tu posición y te lleva la cuenta EXACTA de lo que has puesto en cada sitio. Lo ganado o perdido siempre se compara contra ese total real.",
+  },
 };
 
 function abrirInfo(clave) {
@@ -164,7 +174,7 @@ export function mountVidaCartera() {
       if (actualizando) return;
       actualizando = true;
       const boton = document.getElementById("btn-actualizar-precios");
-      if (boton) boton.textContent = "Actualizando…";
+      if (boton) boton.textContent = t("Actualizando…");
       const { actualizadas, errores } = await actualizarPrecios();
       actualizando = false;
       const aviso = document.getElementById("cartera-aviso");
@@ -181,7 +191,7 @@ export function mountVidaCartera() {
     }
     if (e.target.closest("#btn-clave-finnhub")) {
       const clave = prompt(
-        "Clave de Finnhub (gratis en finnhub.io → Get free API key). Se guarda una vez y sirve para refrescar acciones de EE. UU.:",
+        t("Clave de Finnhub (gratis en finnhub.io → Get free API key). Se guarda una vez y sirve para refrescar acciones de EE. UU.:"),
         vida.sistema.finnhub_key || ""
       );
       if (clave !== null) await guardarSistema({ finnhub_key: clave.trim() || null });
@@ -218,6 +228,7 @@ export function renderVidaCartera(_state) {
           <span class="tr-fila__sub">${udsTxt(p.unidades)} uds · ${formatEUR(Number(p.precio_actual ?? p.precio_compra ?? 0))}${
       p.precio_actualizado ? "" : " (precio de compra)"
     }</span>
+          <span class="tr-fila__sub">Invertido ${formatEUR(p.invertido)}</span>
         </span>
         <span class="tr-fila__fin">
           <span class="tr-fila__valor">${formatEUR(p.valor)}</span>
@@ -235,6 +246,7 @@ export function renderVidaCartera(_state) {
         <p class="tr-cabecera__sub ${positivo ? "cartera-pos" : "cartera-neg"}">
           ${positivo ? "▲" : "▼"} ${formatEUR(Math.abs(r.pl))} (${pctTxt(r.plPct)} %) desde la compra
         </p>
+        ${r.invertido > 0 ? `<p class="tr-cabecera__sub">Has metido ${formatEUR(r.invertido)} en total ${info("aportacion")}</p>` : ""}
       </div>
       <div style="display:flex; gap:8px;">
         <button type="button" class="btn btn--ghost btn--sm" id="btn-actualizar-precios">↻ Actualizar</button>
@@ -334,8 +346,8 @@ function pintarProyeccion(puntos) {
     data: {
       labels: puntos.map((p) => (p.ano === 0 ? "hoy" : `${p.ano} a`)),
       datasets: [
-        { label: "Con el mercado", data: puntos.map((p) => Math.round(p.valor)), borderColor: linea, tension: 0.25, pointRadius: 0, fill: false },
-        { label: "Solo aportado", data: puntos.map((p) => Math.round(p.aportado)), borderColor: eje, borderDash: [6, 6], pointRadius: 0 },
+        { label: t("Con el mercado"), data: puntos.map((p) => Math.round(p.valor)), borderColor: linea, tension: 0.25, pointRadius: 0, fill: false },
+        { label: t("Solo aportado"), data: puntos.map((p) => Math.round(p.aportado)), borderColor: eje, borderDash: [6, 6], pointRadius: 0 },
       ],
     },
     options: {
@@ -348,6 +360,106 @@ function pintarProyeccion(puntos) {
       scales: { x: { grid: { color: rejilla }, ticks: { color: eje } }, y: { grid: { color: rejilla }, ticks: { color: eje, callback: (v) => formatEUR(v).replace(",00", "") } } },
     },
   });
+}
+
+// El historial de aportaciones dentro del editor de una posición. La
+// "posición inicial" es lo que había antes de la primera aportación
+// apuntada (lo que se puso al crearla): se enseña para que las cuentas
+// cuadren a la vista — inicial + aportaciones = total.
+function seccionAportes(inv) {
+  const aportes = inv.aportes ?? [];
+  const udsAportadas = aportes.reduce((acc, a) => acc + Number(a.unidades ?? 0), 0);
+  const invAportado = aportes.reduce((acc, a) => acc + Number(a.importe ?? 0), 0);
+  const udsBase = Number(inv.unidades ?? 0) - udsAportadas;
+  const invBase = Number(inv.unidades ?? 0) * Number(inv.precio_compra ?? 0) - invAportado;
+
+  const filas = [
+    udsBase > 0.000001
+      ? `<div class="mini-row"><div class="mini-row__body"><div class="mini-row__main">
+           <span class="mini-row__title">Posición inicial</span>
+           <span class="mini-row__sub">${udsTxt(udsBase)} uds</span>
+         </div></div><span class="mini-row__amount">${formatEUR(invBase)}</span></div>`
+      : "",
+    ...aportes.map(
+      (a, i) => `<div class="mini-row"><div class="mini-row__body"><div class="mini-row__main">
+           <span class="mini-row__title">${formatFecha(fromTimestamp(a.fecha)) || a.fecha}</span>
+           <span class="mini-row__sub">${udsTxt(Number(a.unidades ?? 0))} uds</span>
+         </div></div>
+         <span class="mini-row__amount">${formatEUR(Number(a.importe ?? 0))}</span>
+         <button type="button" class="row-edit-btn" data-quitar-aporte="${i}" title="Quitar">✕</button></div>`
+    ),
+  ].join("");
+
+  return `
+    <div class="field--full">
+      <h3 style="font:600 0.78rem/1.3 Inter,sans-serif; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin:8px 0 8px;">Aportaciones ${info("aportacion")}</h3>
+      ${
+        filas
+          ? `<div class="pago-list">${filas}</div>`
+          : `<p class="entity-card__meta">Sin aportaciones apuntadas todavía. Cada vez que metas dinero, apúntalo aquí y el total invertido será exacto.</p>`
+      }
+      <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-nueva-aportacion" style="margin-top:8px;">+ Apuntar aportación</button>
+    </div>`;
+}
+
+// La aportación del mes: cuánto metes y a qué precio estaba. Las
+// participaciones salen solas (dinero ÷ precio), como en Trade Republic.
+function openFormAporte(inv) {
+  const hoyISO = new Date().toISOString().slice(0, 10);
+  const precioSugerido = inv.precio_actual ?? inv.precio_compra ?? "";
+  openModal(
+    `
+    <h2 class="modal__title">Aportación a ${inv.nombre}</h2>
+    <form id="form-aporte" class="form-grid">
+      <label class="field">
+        <span class="field__label">Fecha</span>
+        <input type="date" name="fecha" value="${hoyISO}" required />
+      </label>
+      <label class="field">
+        <span class="field__label">Cuánto metes (€)</span>
+        <input type="number" step="0.01" min="0.01" name="importe" required placeholder="100" />
+      </label>
+      <label class="field field--full">
+        <span class="field__label">Precio por unidad ese día (€)</span>
+        <input type="number" step="0.0001" min="0.0001" name="precio" required value="${precioSugerido}" placeholder="127.53" />
+      </label>
+      <p class="entity-card__meta field--full" id="aporte-calculo" style="margin:0;"></p>
+      <p class="field-error" id="form-aporte-error"></p>
+      <div class="modal__actions field--full">
+        <button type="button" class="btn btn--ghost" id="btn-cancel-aporte">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Apuntar</button>
+      </div>
+    </form>
+  `,
+    {
+      onMount: (root) => {
+        const f = root.querySelector("#form-aporte");
+        const calculo = root.querySelector("#aporte-calculo");
+        const repintarCalculo = () => {
+          const importe = Number(f.importe.value);
+          const precio = Number(f.precio.value);
+          calculo.textContent =
+            importe > 0 && precio > 0 ? `Eso son ${udsTxt(importe / precio)} participaciones.` : "";
+        };
+        f.addEventListener("input", repintarCalculo);
+        root.querySelector("#btn-cancel-aporte").addEventListener("click", closeModal);
+        f.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const importe = Number(f.importe.value);
+          const precio = Number(f.precio.value);
+          if (!(importe > 0) || !(precio > 0)) return;
+          try {
+            await aportarAInversion(inv, { fecha: f.fecha.value, importe, unidades: importe / precio });
+            efectoAlGuardar();
+            closeModal();
+            renderVidaCartera(null);
+          } catch (err) {
+            root.querySelector("#form-aporte-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
+          }
+        });
+      },
+    }
+  );
 }
 
 function openFormInversion(inv) {
@@ -402,6 +514,7 @@ function openFormInversion(inv) {
           <option value="EUR" ${inv?.divisa === "EUR" ? "selected" : ""}>Euros</option>
         </select>
       </label>
+      ${isEdit ? seccionAportes(inv) : ""}
       <p class="field-error" id="form-inversion-error"></p>
       <div class="modal__actions field--full">
         ${isEdit ? `<button type="button" class="btn btn--ghost" id="btn-borrar-inversion" style="margin-right:auto;">Eliminar</button>` : ""}
@@ -423,8 +536,20 @@ function openFormInversion(inv) {
         });
         root.querySelectorAll("[data-info]").forEach((b) => b.addEventListener("click", () => abrirInfo(b.dataset.info)));
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        root.querySelector("#btn-nueva-aportacion")?.addEventListener("click", () => {
+          closeModal();
+          openFormAporte(inv);
+        });
+        root.querySelectorAll("[data-quitar-aporte]").forEach((b) =>
+          b.addEventListener("click", async () => {
+            if (!confirm(t("¿Quitar esta aportación? Se restan sus participaciones y su dinero de la posición."))) return;
+            await quitarAporte(inv, Number(b.dataset.quitarAporte));
+            closeModal();
+            renderVidaCartera(null);
+          })
+        );
         root.querySelector("#btn-borrar-inversion")?.addEventListener("click", async () => {
-          if (!confirm("¿Eliminar esta posición de la cartera?")) return;
+          if (!confirm(t("¿Eliminar esta posición de la cartera?"))) return;
           await deleteInversion(inv.id);
           closeModal();
           renderVidaCartera(null);

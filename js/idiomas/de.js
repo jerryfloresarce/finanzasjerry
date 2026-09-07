@@ -29,6 +29,117 @@ export const DICCIONARIO_DE = {
   "Gráficos": "Diagramme",
   "Categorías": "Kategorien",
   "Cartera": "Portfolio",
+  // ---------- Cartera · glosario y avisos ----------
+  "Posición": "Position",
+  "Último precio": "Letzter Preis",
+  "Variación": "Veränderung",
+  "Cuántas participaciones tienes de esa cosa. Puede ser un número con decimales: 0,5 participaciones de un ETF es la mitad de una, y es completamente normal — se compra por euros, no por unidades enteras.":
+    "Wie viele Anteile du von der Sache besitzt. Es kann Dezimalstellen haben: 0,5 Anteile eines ETF sind ein halber, und das ist völlig normal — man kauft nach Euro, nicht nach ganzen Stücken.",
+  "Lo que cuesta UNA participación ahora mismo. Tu dinero es este precio multiplicado por tu posición. Sube y baja constantemente; no hace falta mirarlo cada día.":
+    "Was EIN Anteil gerade kostet. Dein Geld ist dieser Preis mal deine Position. Er bewegt sich ständig; man muss nicht jeden Tag hinschauen.",
+  "Cuánto ha cambiado el precio. 'Hoy' compara con ayer: es ruido, sube y baja sin razón que te importe. 'Desde la compra' compara con lo que pagaste: esa es la única que dice si vas ganando o perdiendo de verdad.":
+    "Wie sehr sich der Preis verändert hat. 'Heute' vergleicht mit gestern: das ist Rauschen, rauf und runter ohne Grund, der dich betrifft. 'Seit dem Kauf' vergleicht mit dem, was du bezahlt hast: nur die sagt, ob du wirklich vorne oder hinten liegst.",
+  "¿Qué es un ETF?":
+    "Was ist ein ETF?",
+  "Una cesta con cientos o miles de empresas dentro. Comprar un ETF 'mundial' es comprar un trocito de las mayores empresas del planeta de golpe. Si una quiebra, ni lo notas. Por eso es la forma más tranquila de empezar: no hay que acertar cuál ganará.":
+    "Ein Korb mit Hunderten oder Tausenden Unternehmen darin. Einen 'Welt'-ETF zu kaufen heißt, auf einen Schlag ein Stückchen der größten Unternehmen des Planeten zu kaufen. Geht eines pleite, merkst du es kaum. Deshalb ist es der ruhigste Einstieg: Man muss nicht erraten, wer gewinnt.",
+  "(Acc) y (Dist)":
+    "(Acc) und (Dist)",
+  "Acc = acumulación: los dividendos que pagan las empresas se reinvierten solos dentro del fondo, y crece más rápido. Dist = distribución: te los pagan en efectivo. Para acumular a largo plazo, Acc suele convenir más en España (no pagas impuestos por dividendos que no cobras).":
+    "Acc = thesaurierend: Die Dividenden der Unternehmen werden im Fonds automatisch wieder angelegt, und er wächst schneller. Dist = ausschüttend: Sie werden dir bar ausgezahlt. Zum langfristigen Ansparen ist Acc in Spanien meist günstiger (keine Steuern auf Dividenden, die du nie erhältst).",
+  "Lo más volátil de esta pantalla: puede caer un 50 % en meses y también subirlo. Regla simple: que sea solo una parte pequeña de la cartera y nunca dinero que puedas necesitar.":
+    "Das Volatilste auf diesem Bildschirm: Es kann in Monaten 50 % fallen und ebenso steigen. Einfache Regel: nur ein kleiner Teil des Depots, und nie Geld, das du brauchen könntest.",
+  "¿Qué es esta estimación?":
+    "Was ist diese Schätzung?",
+  "Parte de lo que tienes invertido AHORA MISMO y calcula qué haría el mercado con ello si diera de media ese % al año (interés compuesto). La aportación mensual es opcional: a 0 ves solo crecer lo tuyo; ponle algo para jugar con '¿y si además aporto?'. La bolsa mundial ha dado ~7 % anual de media histórica, con años de −20 % y de +25 % por el camino. Es para hacerse una idea, no una promesa.":
+    "Sie geht von dem aus, was du JETZT GERADE investiert hast, und rechnet aus, was der Markt daraus machen würde, wenn er im Schnitt diesen % pro Jahr brächte (Zinseszins). Die monatliche Einzahlung ist optional: Bei 0 siehst du nur deines wachsen; trag etwas ein, um mit 'und wenn ich dazu einzahle?' zu spielen. Der Weltmarkt brachte historisch ~7 % pro Jahr im Schnitt, mit Jahren von −20 % und +25 % dazwischen. Zum Einordnen gedacht, kein Versprechen.",
+  "Las señales":
+    "Die Signale",
+  "Reglas fijas sobre TUS números: concentración, caídas grandes, precios sin actualizar. No predicen nada — nadie puede — pero avisan de lo que a cualquiera se le pasaría por alto.":
+    "Feste Regeln über DEINE Zahlen: Konzentration, große Rückgänge, veraltete Preise. Sie sagen nichts voraus — das kann niemand — aber sie zeigen, was jeder übersehen würde.",
+  "El símbolo":
+    "Das Symbol",
+  "El código con el que la app busca el precio automáticamente. Acciones de EE. UU.: su ticker (AAPL, AMZN…) con la clave de Finnhub. Cripto: su id de CoinGecko en minúsculas (bitcoin, ethereum). Los ETF europeos no están en el plan gratuito: su precio se copia de Trade Republic con el lápiz, y todo lo demás se calcula igual.":
+    "Der Code, mit dem die App den Preis automatisch nachschlägt. US-Aktien: ihr Ticker (AAPL, AMZN…) mit dem Finnhub-Schlüssel. Krypto: ihre CoinGecko-Id in Kleinbuchstaben (bitcoin, ethereum). Europäische ETFs sind nicht im Gratisplan: Ihr Preis wird mit dem Stift von Trade Republic übernommen, alles andere rechnet sich gleich.",
+  "Sin criptomonedas apuntadas. Si compras bitcoin en Trade Republic, apúntalo aquí y su precio se refresca solo.":
+    "Noch keine Kryptowährung eingetragen. Wenn du bei Trade Republic Bitcoin kaufst, trag es hier ein und der Preis aktualisiert sich von selbst.",
+  "Todavía nada. Cuando compres tu primer ETF o acción en Trade Republic, apúntalo con + Añadir: qué es, cuántas participaciones y a qué precio.":
+    "Noch nichts. Wenn du deinen ersten ETF oder deine erste Aktie bei Trade Republic kaufst, trag sie mit + Hinzufügen ein: was es ist, wie viele Anteile und zu welchem Preis.",
+  "Todavía no hay nada invertido, así que de momento no hay nada que proyectar. En cuanto apuntes tu primera compra, aquí verás lo que podría llegar a ser con los años. Si quieres jugar mientras tanto, pon una aportación al mes.":
+    "Noch ist nichts investiert, also gibt es vorerst nichts zu projizieren. Sobald du deinen ersten Kauf einträgst, siehst du hier, was mit den Jahren daraus werden könnte. Zum Spielen kannst du solange eine monatliche Einzahlung eintragen.",
+  "Pocas posiciones y ningún fondo indexado. Un ETF mundial (tipo MSCI World) es la forma más simple de diversificar sin pensar.":
+    "Wenige Positionen und kein Indexfonds. Ein Welt-ETF (wie MSCI World) ist der einfachste Weg, ohne Nachdenken zu streuen.",
+  "Hay precios sin actualizar desde hace más de una semana: la ganancia que ves puede no ser la real.":
+    "Manche Preise sind seit über einer Woche nicht aktualisiert: Der angezeigte Gewinn kann vom echten abweichen.",
+  "No se pudo guardar. ¿Están publicadas las reglas nuevas de Firebase?":
+    "Konnte nicht speichern. Sind die neuen Firebase-Regeln veröffentlicht?",
+  "Clave de Finnhub (gratis en finnhub.io → Get free API key). Se guarda una vez y sirve para refrescar acciones de EE. UU.:":
+    "Finnhub-Schlüssel (gratis auf finnhub.io → Get free API key). Wird einmal gespeichert und aktualisiert US-Aktien:",
+  // ---------- Cartera · vista ----------
+  "Editar posición": "Position bearbeiten",
+  "Nueva posición": "Neue Position",
+  "Elegir de la lista (opcional)": "Aus der Liste wählen (optional)",
+  "— Escribir a mano —": "— Von Hand schreiben —",
+  "ETF / fondo": "ETF / Fonds",
+  "Acción": "Aktie",
+  "Cripto": "Krypto",
+  "Símbolo (opcional)": "Symbol (optional)",
+  "Participaciones": "Anteile",
+  "Precio de compra (€/ud)": "Kaufpreis (€/Anteil)",
+  "Precio actual (€/ud)": "Aktueller Preis (€/Anteil)",
+  "Vacío = el de compra": "Leer = der Kaufpreis",
+  "El símbolo cotiza en…": "Das Symbol notiert in…",
+  "Dólares (EE. UU.)": "US-Dollar",
+  "Euros": "Euro",
+  "Cuenta de valores": "Wertpapierkonto",
+  "Criptomonedas": "Kryptowährungen",
+  "Instrumento": "Instrument",
+  "Desde la compra": "Seit dem Kauf",
+  "Variación hoy": "Veränderung heute",
+  "↻ Actualizar": "↻ Aktualisieren",
+  "+ Añadir": "+ Hinzufügen",
+  "Señales": "Signale",
+  "— hoy sin dato": "— heute keine Daten",
+  "Toca una fila para editarla. Último precio": "Tippe auf eine Zeile, um sie zu bearbeiten. Letzter Preis",
+  "· ETF": "· ETF",
+  "· (Acc)/(Dist)": "· (Acc)/(Dist)",
+  "· Cripto": "· Krypto",
+  "poner clave de Finnhub": "Finnhub-Schlüssel eintragen",
+  "¿Cuánto podría llegar a ser?": "Wie viel könnte daraus werden?",
+  "Parte de lo que tienes invertido ahora mismo:": "Es geht von dem aus, was du gerade investiert hast:",
+  ". La aportación al mes es opcional — a 0, ves solo lo que haría el mercado con lo tuyo.": ". Die monatliche Einzahlung ist optional — bei 0 siehst du nur, was der Markt mit deinem machen würde.",
+  "Aportación al mes (€, opcional)": "Einzahlung pro Monat (€, optional)",
+  "Rentabilidad anual estimada": "Geschätzte Jahresrendite",
+  "Con el mercado": "Mit dem Markt",
+  "Solo aportado": "Nur das Eingezahlte",
+  "¿Eliminar esta posición de la cartera?": "Diese Position aus dem Depot entfernen?",
+  "Actualizando…": "Aktualisiere…",
+  "y tendrías": "und du hättest",
+  "¿Qué es esto?": "Was ist das?",
+  "Entendido": "Verstanden",
+  // ---------- Cartera · aportaciones ----------
+  "Aportación":
+    "Einzahlung",
+  "Dinero nuevo que metes en algo que ya tienes — la compra de cada mes. Apuntas cuánto metes y a qué precio estaba ese día: la app calcula las participaciones (dinero ÷ precio), las suma a tu posición y te lleva la cuenta EXACTA de lo que has puesto en cada sitio. Lo ganado o perdido siempre se compara contra ese total real.":
+    "Neues Geld, das du in etwas steckst, das du schon hast — der Kauf jeden Monat. Du trägst ein, wie viel du einzahlst und den Preis an dem Tag: Die App rechnet die Anteile aus (Geld ÷ Preis), zählt sie zu deiner Position und führt die GENAUE Summe dessen, was du wo hineingesteckt hast. Gewinn oder Verlust wird immer an dieser echten Summe gemessen.",
+  "Aportaciones":
+    "Einzahlungen",
+  "+ Apuntar aportación":
+    "+ Einzahlung eintragen",
+  "Posición inicial":
+    "Ausgangsposition",
+  "Sin aportaciones apuntadas todavía. Cada vez que metas dinero, apúntalo aquí y el total invertido será exacto.":
+    "Noch keine Einzahlungen eingetragen. Trag jede Einzahlung hier ein, dann ist die investierte Summe genau.",
+  "Cuánto metes (€)":
+    "Wie viel du einzahlst (€)",
+  "Precio por unidad ese día (€)":
+    "Preis pro Anteil an dem Tag (€)",
+  "Apuntar":
+    "Eintragen",
+  "¿Quitar esta aportación? Se restan sus participaciones y su dinero de la posición.":
+    "Diese Einzahlung entfernen? Ihre Anteile und ihr Geld werden von der Position abgezogen.",
+  "Quitar":
+    "Entfernen",
   "Abrir menú": "Menü öffnen",
   "Mi cuenta": "Mein Konto",
 
@@ -567,6 +678,24 @@ export const DICCIONARIO_DE = {
 };
 
 export const PATRONES_DE = [
+  [/^"(.+)" es el (\d+) % de tu cartera\. Mucho peso en una sola cosa: si cae, cae todo contigo\.$/, "\"$1\" ist $2 % deines Depots. Viel Gewicht auf einer Sache: Fällt sie, fällt alles mit dir."],
+  [/^Más de la mitad de la cartera es cripto \((\d+) %\)\. Es lo más volátil que hay: que no sea dinero que puedas necesitar\.$/, "Mehr als die Hälfte des Depots ist Krypto ($1 %). Das Volatilste überhaupt: Es sollte kein Geld sein, das du brauchen könntest."],
+  [/^"(.+)" cae un (\d+) %\. Antes de vender por miedo, recuerda por qué la compraste: vender abajo convierte una caída en una pérdida\.$/, "\"$1\" fällt um $2 %. Bevor du aus Angst verkaufst, erinnere dich, warum du gekauft hast: Unten verkaufen macht aus einem Rückgang einen Verlust."],
+  [/^(.+ %\)) desde la compra$/, "$1 seit dem Kauf"],
+  [/^(.+) uds · (.+) \(precio de compra\)$/, "$1 Anteile · $2 (Kaufpreis)"],
+  [/^(.+) uds · (.+)$/, "$1 Anteile · $2"],
+  [/^(.+) uds$/, "$1 Anteile"],
+  [/^Años: (\d+)$/, "Jahre: $1"],
+  [/^Partiendo de (.+) y aportando (.+) al mes: en (\d+) años habrías aportado$/, "Ausgehend von $1 und mit $2 im Monat: In $3 Jahren hättest du eingezahlt"],
+  [/^si el mercado diera un (\d+) % anual de media\.$/, "wenn der Markt im Schnitt $1 % pro Jahr brächte."],
+  [/^Tus (.+) de hoy, sin aportar nada más, serían$/, "Deine $1 von heute wären, ohne weitere Einzahlung,"],
+  [/^en (\d+) años si el mercado diera un (\d+) % anual de media\.$/, "in $1 Jahren, wenn der Markt im Schnitt $2 % pro Jahr brächte."],
+  [/^✓ (\d+) precio actualizado\.$/, "✓ $1 Preis aktualisiert."],
+  [/^✓ (\d+) precios actualizados\.$/, "✓ $1 Preise aktualisiert."],
+  [/^Invertido (.+)$/, "Investiert $1"],
+  [/^Has metido (.+) en total$/, "Insgesamt hast du $1 eingezahlt"],
+  [/^Aportación a (.+)$/, "Einzahlung in $1"],
+  [/^Eso son (.+) participaciones\.$/, "Das sind $1 Anteile."],
   [/^Gastos de esta categoría · (.+)$/, "Ausgaben dieser Kategorie · $1"],
   [/^Hola, (.+)$/, "Hallo, $1"],
   [/^Límite mensual (.+)$/, "Monatslimit $1"],

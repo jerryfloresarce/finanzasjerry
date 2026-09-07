@@ -39,6 +39,117 @@ export const DICCIONARIO_PT = {
   "Gráficos": "Gráficos",
   "Categorías": "Categorias",
   "Cartera": "Carteira",
+  // ---------- Cartera · glosario y avisos ----------
+  "Posición": "Posição",
+  "Último precio": "Último preço",
+  "Variación": "Variação",
+  "Cuántas participaciones tienes de esa cosa. Puede ser un número con decimales: 0,5 participaciones de un ETF es la mitad de una, y es completamente normal — se compra por euros, no por unidades enteras.":
+    "Quantas cotas você tem daquilo. Pode ser um número com decimais: 0,5 cota de um ETF é metade de uma, e é completamente normal — compra-se por euros, não por unidades inteiras.",
+  "Lo que cuesta UNA participación ahora mismo. Tu dinero es este precio multiplicado por tu posición. Sube y baja constantemente; no hace falta mirarlo cada día.":
+    "O que custa UMA cota agora mesmo. Seu dinheiro é este preço multiplicado pela sua posição. Sobe e desce o tempo todo; não precisa olhar todo dia.",
+  "Cuánto ha cambiado el precio. 'Hoy' compara con ayer: es ruido, sube y baja sin razón que te importe. 'Desde la compra' compara con lo que pagaste: esa es la única que dice si vas ganando o perdiendo de verdad.":
+    "Quanto o preço mudou. 'Hoje' compara com ontem: é ruído, sobe e desce sem razão que importe. 'Desde a compra' compara com o que você pagou: essa é a única que diz se você está ganhando ou perdendo de verdade.",
+  "¿Qué es un ETF?":
+    "O que é um ETF?",
+  "Una cesta con cientos o miles de empresas dentro. Comprar un ETF 'mundial' es comprar un trocito de las mayores empresas del planeta de golpe. Si una quiebra, ni lo notas. Por eso es la forma más tranquila de empezar: no hay que acertar cuál ganará.":
+    "Uma cesta com centenas ou milhares de empresas dentro. Comprar um ETF 'mundial' é comprar um pedacinho das maiores empresas do planeta de uma vez. Se uma quebra, você nem nota. Por isso é o jeito mais tranquilo de começar: não precisa acertar qual vai ganhar.",
+  "(Acc) y (Dist)":
+    "(Acc) e (Dist)",
+  "Acc = acumulación: los dividendos que pagan las empresas se reinvierten solos dentro del fondo, y crece más rápido. Dist = distribución: te los pagan en efectivo. Para acumular a largo plazo, Acc suele convenir más en España (no pagas impuestos por dividendos que no cobras).":
+    "Acc = acumulação: os dividendos que as empresas pagam são reinvestidos sozinhos dentro do fundo, e ele cresce mais rápido. Dist = distribuição: você os recebe em dinheiro. Para acumular no longo prazo, Acc costuma convir mais na Espanha (você não paga imposto por dividendos que não recebe).",
+  "Lo más volátil de esta pantalla: puede caer un 50 % en meses y también subirlo. Regla simple: que sea solo una parte pequeña de la cartera y nunca dinero que puedas necesitar.":
+    "O mais volátil desta tela: pode cair 50 % em meses e também subir isso. Regra simples: que seja só uma parte pequena da carteira e nunca dinheiro de que você possa precisar.",
+  "¿Qué es esta estimación?":
+    "O que é esta estimativa?",
+  "Parte de lo que tienes invertido AHORA MISMO y calcula qué haría el mercado con ello si diera de media ese % al año (interés compuesto). La aportación mensual es opcional: a 0 ves solo crecer lo tuyo; ponle algo para jugar con '¿y si además aporto?'. La bolsa mundial ha dado ~7 % anual de media histórica, con años de −20 % y de +25 % por el camino. Es para hacerse una idea, no una promesa.":
+    "Parte do que você tem investido AGORA MESMO e calcula o que o mercado faria com isso se desse em média esse % ao ano (juros compostos). O aporte mensal é opcional: em 0 você vê só o seu crescer; coloque algo para brincar com 'e se eu também aportar?'. A bolsa mundial deu ~7 % ao ano de média histórica, com anos de −20 % e de +25 % pelo caminho. É para ter uma ideia, não uma promessa.",
+  "Las señales":
+    "Os sinais",
+  "Reglas fijas sobre TUS números: concentración, caídas grandes, precios sin actualizar. No predicen nada — nadie puede — pero avisan de lo que a cualquiera se le pasaría por alto.":
+    "Regras fixas sobre os SEUS números: concentração, quedas grandes, preços sem atualizar. Não preveem nada — ninguém pode — mas avisam do que qualquer um deixaria passar.",
+  "El símbolo":
+    "O símbolo",
+  "El código con el que la app busca el precio automáticamente. Acciones de EE. UU.: su ticker (AAPL, AMZN…) con la clave de Finnhub. Cripto: su id de CoinGecko en minúsculas (bitcoin, ethereum). Los ETF europeos no están en el plan gratuito: su precio se copia de Trade Republic con el lápiz, y todo lo demás se calcula igual.":
+    "O código com que o app busca o preço automaticamente. Ações dos EUA: seu ticker (AAPL, AMZN…) com a chave do Finnhub. Cripto: seu id do CoinGecko em minúsculas (bitcoin, ethereum). Os ETF europeus não estão no plano gratuito: o preço se copia do Trade Republic com o lápis, e todo o resto se calcula igual.",
+  "Sin criptomonedas apuntadas. Si compras bitcoin en Trade Republic, apúntalo aquí y su precio se refresca solo.":
+    "Nenhuma criptomoeda anotada. Se você comprar bitcoin no Trade Republic, anote aqui e o preço se atualiza sozinho.",
+  "Todavía nada. Cuando compres tu primer ETF o acción en Trade Republic, apúntalo con + Añadir: qué es, cuántas participaciones y a qué precio.":
+    "Nada ainda. Quando comprar seu primeiro ETF ou ação no Trade Republic, anote com + Adicionar: o que é, quantas cotas e a que preço.",
+  "Todavía no hay nada invertido, así que de momento no hay nada que proyectar. En cuanto apuntes tu primera compra, aquí verás lo que podría llegar a ser con los años. Si quieres jugar mientras tanto, pon una aportación al mes.":
+    "Ainda não há nada investido, então por enquanto não há nada para projetar. Assim que anotar sua primeira compra, aqui você verá o que poderia chegar a ser com os anos. Se quiser brincar enquanto isso, coloque um aporte por mês.",
+  "Pocas posiciones y ningún fondo indexado. Un ETF mundial (tipo MSCI World) es la forma más simple de diversificar sin pensar.":
+    "Poucas posições e nenhum fundo indexado. Um ETF mundial (tipo MSCI World) é o jeito mais simples de diversificar sem pensar.",
+  "Hay precios sin actualizar desde hace más de una semana: la ganancia que ves puede no ser la real.":
+    "Há preços sem atualizar há mais de uma semana: o ganho que você vê pode não ser o real.",
+  "No se pudo guardar. ¿Están publicadas las reglas nuevas de Firebase?":
+    "Não foi possível salvar. As regras novas do Firebase estão publicadas?",
+  "Clave de Finnhub (gratis en finnhub.io → Get free API key). Se guarda una vez y sirve para refrescar acciones de EE. UU.:":
+    "Chave do Finnhub (grátis em finnhub.io → Get free API key). Guarda-se uma vez e serve para atualizar ações dos EUA:",
+  // ---------- Cartera · vista ----------
+  "Editar posición": "Editar posição",
+  "Nueva posición": "Nova posição",
+  "Elegir de la lista (opcional)": "Escolher da lista (opcional)",
+  "— Escribir a mano —": "— Escrever à mão —",
+  "ETF / fondo": "ETF / fundo",
+  "Acción": "Ação",
+  "Cripto": "Cripto",
+  "Símbolo (opcional)": "Símbolo (opcional)",
+  "Participaciones": "Cotas",
+  "Precio de compra (€/ud)": "Preço de compra (€/cota)",
+  "Precio actual (€/ud)": "Preço atual (€/cota)",
+  "Vacío = el de compra": "Vazio = o de compra",
+  "El símbolo cotiza en…": "O símbolo cota em…",
+  "Dólares (EE. UU.)": "Dólares (EUA)",
+  "Euros": "Euros",
+  "Cuenta de valores": "Conta de valores",
+  "Criptomonedas": "Criptomoedas",
+  "Instrumento": "Instrumento",
+  "Desde la compra": "Desde a compra",
+  "Variación hoy": "Variação hoje",
+  "↻ Actualizar": "↻ Atualizar",
+  "+ Añadir": "+ Adicionar",
+  "Señales": "Sinais",
+  "— hoy sin dato": "— hoje sem dado",
+  "Toca una fila para editarla. Último precio": "Toque em uma linha para editá-la. Último preço",
+  "· ETF": "· ETF",
+  "· (Acc)/(Dist)": "· (Acc)/(Dist)",
+  "· Cripto": "· Cripto",
+  "poner clave de Finnhub": "colocar chave do Finnhub",
+  "¿Cuánto podría llegar a ser?": "Quanto poderia chegar a ser?",
+  "Parte de lo que tienes invertido ahora mismo:": "Parte do que você tem investido agora mesmo:",
+  ". La aportación al mes es opcional — a 0, ves solo lo que haría el mercado con lo tuyo.": ". O aporte mensal é opcional — em 0, você vê só o que o mercado faria com o seu.",
+  "Aportación al mes (€, opcional)": "Aporte por mês (€, opcional)",
+  "Rentabilidad anual estimada": "Rentabilidade anual estimada",
+  "Con el mercado": "Com o mercado",
+  "Solo aportado": "Só o aportado",
+  "¿Eliminar esta posición de la cartera?": "Excluir esta posição da carteira?",
+  "Actualizando…": "Atualizando…",
+  "y tendrías": "e você teria",
+  "¿Qué es esto?": "O que é isto?",
+  "Entendido": "Entendi",
+  // ---------- Cartera · aportaciones ----------
+  "Aportación":
+    "Aporte",
+  "Dinero nuevo que metes en algo que ya tienes — la compra de cada mes. Apuntas cuánto metes y a qué precio estaba ese día: la app calcula las participaciones (dinero ÷ precio), las suma a tu posición y te lleva la cuenta EXACTA de lo que has puesto en cada sitio. Lo ganado o perdido siempre se compara contra ese total real.":
+    "Dinheiro novo que você coloca em algo que já tem — a compra de cada mês. Você anota quanto colocou e o preço daquele dia: o app calcula as cotas (dinheiro ÷ preço), soma à sua posição e mantém a conta EXATA do que você colocou em cada lugar. O ganho ou a perda sempre se compara com esse total real.",
+  "Aportaciones":
+    "Aportes",
+  "+ Apuntar aportación":
+    "+ Anotar aporte",
+  "Posición inicial":
+    "Posição inicial",
+  "Sin aportaciones apuntadas todavía. Cada vez que metas dinero, apúntalo aquí y el total invertido será exacto.":
+    "Nenhum aporte anotado ainda. Cada vez que colocar dinheiro, anote aqui e o total investido será exato.",
+  "Cuánto metes (€)":
+    "Quanto você coloca (€)",
+  "Precio por unidad ese día (€)":
+    "Preço por cota naquele dia (€)",
+  "Apuntar":
+    "Anotar",
+  "¿Quitar esta aportación? Se restan sus participaciones y su dinero de la posición.":
+    "Tirar este aporte? Suas cotas e seu dinheiro serão subtraídos da posição.",
+  "Quitar":
+    "Tirar",
   "Abrir menú": "Abrir menu",
   "Mi cuenta": "Minha conta",
 
@@ -599,6 +710,24 @@ export const DICCIONARIO_PT = {
 // Patrones: para los textos que llevan datos dentro (números, nombres,
 // fechas). $1, $2… conservan esos datos tal cual.
 export const PATRONES_PT = [
+  [/^"(.+)" es el (\d+) % de tu cartera\. Mucho peso en una sola cosa: si cae, cae todo contigo\.$/, "\"$1\" é $2 % da sua carteira. Muito peso em uma coisa só: se ela cai, cai tudo com você."],
+  [/^Más de la mitad de la cartera es cripto \((\d+) %\)\. Es lo más volátil que hay: que no sea dinero que puedas necesitar\.$/, "Mais da metade da carteira é cripto ($1 %). É o mais volátil que existe: que não seja dinheiro de que você possa precisar."],
+  [/^"(.+)" cae un (\d+) %\. Antes de vender por miedo, recuerda por qué la compraste: vender abajo convierte una caída en una pérdida\.$/, "\"$1\" cai $2 %. Antes de vender por medo, lembre por que comprou: vender embaixo transforma uma queda em uma perda."],
+  [/^(.+ %\)) desde la compra$/, "$1 desde a compra"],
+  [/^(.+) uds · (.+) \(precio de compra\)$/, "$1 cotas · $2 (preço de compra)"],
+  [/^(.+) uds · (.+)$/, "$1 cotas · $2"],
+  [/^(.+) uds$/, "$1 cotas"],
+  [/^Años: (\d+)$/, "Anos: $1"],
+  [/^Partiendo de (.+) y aportando (.+) al mes: en (\d+) años habrías aportado$/, "Partindo de $1 e aportando $2 por mês: em $3 anos você teria aportado"],
+  [/^si el mercado diera un (\d+) % anual de media\.$/, "se o mercado desse $1 % ao ano em média."],
+  [/^Tus (.+) de hoy, sin aportar nada más, serían$/, "Seus $1 de hoje, sem aportar mais nada, seriam"],
+  [/^en (\d+) años si el mercado diera un (\d+) % anual de media\.$/, "em $1 anos se o mercado desse $2 % ao ano em média."],
+  [/^✓ (\d+) precio actualizado\.$/, "✓ $1 preço atualizado."],
+  [/^✓ (\d+) precios actualizados\.$/, "✓ $1 preços atualizados."],
+  [/^Invertido (.+)$/, "Investido $1"],
+  [/^Has metido (.+) en total$/, "Você colocou $1 no total"],
+  [/^Aportación a (.+)$/, "Aporte em $1"],
+  [/^Eso son (.+) participaciones\.$/, "Isso dá $1 cotas."],
   [/^Gastos de esta categoría · (.+)$/, "Despesas desta categoria · $1"],
   [/^Hola, (.+)$/, "Olá, $1"],
   [/^Límite mensual (.+)$/, "Limite mensal $1"],

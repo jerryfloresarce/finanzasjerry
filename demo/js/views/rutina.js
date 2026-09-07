@@ -11,11 +11,11 @@ import {
   deleteHabitos,
   addHabitosHechos,
   deleteHabitosHechos,
-} from "../db.js?v=118";
-import { openModal, closeModal } from "../modal.js?v=118";
-import { icon } from "../icons.js?v=118";
-import { emojiFieldHTML, attachEmojiPicker } from "../emoji-picker.js?v=118";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=118";
+} from "../db.js?v=119";
+import { openModal, closeModal } from "../modal.js?v=119";
+import { icon } from "../icons.js?v=119";
+import { emojiFieldHTML, attachEmojiPicker } from "../emoji-picker.js?v=119";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=119";
 
 const EMOJIS = ["💪", "🏃", "📖", "🧘", "💧", "🥗", "😴", "🦷", "🧹", "✍️", "🎸", "🌱", "☎️", "🧴", "🚭", "🧊"];
 const DIAS = ["L", "M", "X", "J", "V", "S", "D"];

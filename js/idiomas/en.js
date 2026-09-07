@@ -30,6 +30,117 @@ export const DICCIONARIO_EN = {
   "Gráficos": "Charts",
   "Categorías": "Categories",
   "Cartera": "Portfolio",
+  // ---------- Cartera · glosario y avisos ----------
+  "Posición": "Position",
+  "Último precio": "Last price",
+  "Variación": "Change",
+  "Cuántas participaciones tienes de esa cosa. Puede ser un número con decimales: 0,5 participaciones de un ETF es la mitad de una, y es completamente normal — se compra por euros, no por unidades enteras.":
+    "How many shares of that thing you own. It can have decimals: 0.5 shares of an ETF is half of one, and that's completely normal — you buy by euros, not whole units.",
+  "Lo que cuesta UNA participación ahora mismo. Tu dinero es este precio multiplicado por tu posición. Sube y baja constantemente; no hace falta mirarlo cada día.":
+    "What ONE share costs right now. Your money is this price times your position. It moves constantly; no need to check it every day.",
+  "Cuánto ha cambiado el precio. 'Hoy' compara con ayer: es ruido, sube y baja sin razón que te importe. 'Desde la compra' compara con lo que pagaste: esa es la única que dice si vas ganando o perdiendo de verdad.":
+    "How much the price has changed. 'Today' compares with yesterday: it's noise, up and down for no reason that matters to you. 'Since purchase' compares with what you paid: that's the only one that says whether you're truly up or down.",
+  "¿Qué es un ETF?":
+    "What is an ETF?",
+  "Una cesta con cientos o miles de empresas dentro. Comprar un ETF 'mundial' es comprar un trocito de las mayores empresas del planeta de golpe. Si una quiebra, ni lo notas. Por eso es la forma más tranquila de empezar: no hay que acertar cuál ganará.":
+    "A basket with hundreds or thousands of companies inside. Buying a 'world' ETF is buying a little piece of the planet's biggest companies at once. If one goes bankrupt, you barely notice. That's why it's the calmest way to start: you don't have to guess the winner.",
+  "(Acc) y (Dist)":
+    "(Acc) and (Dist)",
+  "Acc = acumulación: los dividendos que pagan las empresas se reinvierten solos dentro del fondo, y crece más rápido. Dist = distribución: te los pagan en efectivo. Para acumular a largo plazo, Acc suele convenir más en España (no pagas impuestos por dividendos que no cobras).":
+    "Acc = accumulating: the dividends companies pay are reinvested automatically inside the fund, and it grows faster. Dist = distributing: they're paid out to you in cash. For long-term saving, Acc usually works out better in Spain (you don't pay tax on dividends you never receive).",
+  "Lo más volátil de esta pantalla: puede caer un 50 % en meses y también subirlo. Regla simple: que sea solo una parte pequeña de la cartera y nunca dinero que puedas necesitar.":
+    "The most volatile thing on this screen: it can drop 50 % in months and rise as much. Simple rule: keep it a small part of the portfolio and never money you might need.",
+  "¿Qué es esta estimación?":
+    "What is this estimate?",
+  "Parte de lo que tienes invertido AHORA MISMO y calcula qué haría el mercado con ello si diera de media ese % al año (interés compuesto). La aportación mensual es opcional: a 0 ves solo crecer lo tuyo; ponle algo para jugar con '¿y si además aporto?'. La bolsa mundial ha dado ~7 % anual de media histórica, con años de −20 % y de +25 % por el camino. Es para hacerse una idea, no una promesa.":
+    "It takes what you have invested RIGHT NOW and works out what the market would do with it at that average % per year (compound interest). The monthly amount is optional: at 0 you watch only yours grow; add something to play with 'what if I also contribute?'. The world market has averaged ~7 % a year historically, with −20 % and +25 % years along the way. It's to get an idea, not a promise.",
+  "Las señales":
+    "The signals",
+  "Reglas fijas sobre TUS números: concentración, caídas grandes, precios sin actualizar. No predicen nada — nadie puede — pero avisan de lo que a cualquiera se le pasaría por alto.":
+    "Fixed rules about YOUR numbers: concentration, big drops, stale prices. They predict nothing — nobody can — but they flag what anyone would overlook.",
+  "El símbolo":
+    "The symbol",
+  "El código con el que la app busca el precio automáticamente. Acciones de EE. UU.: su ticker (AAPL, AMZN…) con la clave de Finnhub. Cripto: su id de CoinGecko en minúsculas (bitcoin, ethereum). Los ETF europeos no están en el plan gratuito: su precio se copia de Trade Republic con el lápiz, y todo lo demás se calcula igual.":
+    "The code the app uses to look up the price automatically. US stocks: their ticker (AAPL, AMZN…) with the Finnhub key. Crypto: their CoinGecko id in lowercase (bitcoin, ethereum). European ETFs aren't in the free plan: their price is copied from Trade Republic with the pencil, and everything else is calculated the same.",
+  "Sin criptomonedas apuntadas. Si compras bitcoin en Trade Republic, apúntalo aquí y su precio se refresca solo.":
+    "No crypto logged. If you buy bitcoin on Trade Republic, log it here and its price refreshes on its own.",
+  "Todavía nada. Cuando compres tu primer ETF o acción en Trade Republic, apúntalo con + Añadir: qué es, cuántas participaciones y a qué precio.":
+    "Nothing yet. When you buy your first ETF or stock on Trade Republic, log it with + Add: what it is, how many shares and at what price.",
+  "Todavía no hay nada invertido, así que de momento no hay nada que proyectar. En cuanto apuntes tu primera compra, aquí verás lo que podría llegar a ser con los años. Si quieres jugar mientras tanto, pon una aportación al mes.":
+    "Nothing invested yet, so there's nothing to project for now. As soon as you log your first buy, here you'll see what it could become over the years. If you want to play meanwhile, set a monthly amount.",
+  "Pocas posiciones y ningún fondo indexado. Un ETF mundial (tipo MSCI World) es la forma más simple de diversificar sin pensar.":
+    "Few positions and no index fund. A world ETF (like MSCI World) is the simplest way to diversify without thinking.",
+  "Hay precios sin actualizar desde hace más de una semana: la ganancia que ves puede no ser la real.":
+    "Some prices haven't been refreshed in over a week: the gain you see may not be the real one.",
+  "No se pudo guardar. ¿Están publicadas las reglas nuevas de Firebase?":
+    "Couldn't save. Are the new Firebase rules published?",
+  "Clave de Finnhub (gratis en finnhub.io → Get free API key). Se guarda una vez y sirve para refrescar acciones de EE. UU.:":
+    "Finnhub key (free at finnhub.io → Get free API key). Saved once, used to refresh US stocks:",
+  // ---------- Cartera · vista ----------
+  "Editar posición": "Edit position",
+  "Nueva posición": "New position",
+  "Elegir de la lista (opcional)": "Pick from the list (optional)",
+  "— Escribir a mano —": "— Type it in —",
+  "ETF / fondo": "ETF / fund",
+  "Acción": "Stock",
+  "Cripto": "Crypto",
+  "Símbolo (opcional)": "Symbol (optional)",
+  "Participaciones": "Shares",
+  "Precio de compra (€/ud)": "Purchase price (€/share)",
+  "Precio actual (€/ud)": "Current price (€/share)",
+  "Vacío = el de compra": "Empty = purchase price",
+  "El símbolo cotiza en…": "The symbol trades in…",
+  "Dólares (EE. UU.)": "US dollars",
+  "Euros": "Euros",
+  "Cuenta de valores": "Securities account",
+  "Criptomonedas": "Crypto",
+  "Instrumento": "Instrument",
+  "Desde la compra": "Since purchase",
+  "Variación hoy": "Change today",
+  "↻ Actualizar": "↻ Refresh",
+  "+ Añadir": "+ Add",
+  "Señales": "Signals",
+  "— hoy sin dato": "— no data today",
+  "Toca una fila para editarla. Último precio": "Tap a row to edit it. Last price",
+  "· ETF": "· ETF",
+  "· (Acc)/(Dist)": "· (Acc)/(Dist)",
+  "· Cripto": "· Crypto",
+  "poner clave de Finnhub": "set Finnhub key",
+  "¿Cuánto podría llegar a ser?": "How much could it become?",
+  "Parte de lo que tienes invertido ahora mismo:": "It starts from what you have invested right now:",
+  ". La aportación al mes es opcional — a 0, ves solo lo que haría el mercado con lo tuyo.": ". The monthly amount is optional — at 0 you see only what the market would do with what's yours.",
+  "Aportación al mes (€, opcional)": "Monthly amount (€, optional)",
+  "Rentabilidad anual estimada": "Estimated annual return",
+  "Con el mercado": "With the market",
+  "Solo aportado": "Just what you put in",
+  "¿Eliminar esta posición de la cartera?": "Remove this position from the portfolio?",
+  "Actualizando…": "Refreshing…",
+  "y tendrías": "and you'd have",
+  "¿Qué es esto?": "What is this?",
+  "Entendido": "Got it",
+  // ---------- Cartera · aportaciones ----------
+  "Aportación":
+    "Contribution",
+  "Dinero nuevo que metes en algo que ya tienes — la compra de cada mes. Apuntas cuánto metes y a qué precio estaba ese día: la app calcula las participaciones (dinero ÷ precio), las suma a tu posición y te lleva la cuenta EXACTA de lo que has puesto en cada sitio. Lo ganado o perdido siempre se compara contra ese total real.":
+    "New money you put into something you already own — the monthly buy. You log how much you put in and that day's price: the app works out the shares (money ÷ price), adds them to your position and keeps an EXACT count of what you've put in each place. Gains or losses are always measured against that real total.",
+  "Aportaciones":
+    "Contributions",
+  "+ Apuntar aportación":
+    "+ Log a contribution",
+  "Posición inicial":
+    "Starting position",
+  "Sin aportaciones apuntadas todavía. Cada vez que metas dinero, apúntalo aquí y el total invertido será exacto.":
+    "No contributions logged yet. Every time you put money in, log it here and the invested total will be exact.",
+  "Cuánto metes (€)":
+    "How much you're putting in (€)",
+  "Precio por unidad ese día (€)":
+    "Price per share that day (€)",
+  "Apuntar":
+    "Log it",
+  "¿Quitar esta aportación? Se restan sus participaciones y su dinero de la posición.":
+    "Remove this contribution? Its shares and its money will be subtracted from the position.",
+  "Quitar":
+    "Remove",
   "Abrir menú": "Open menu",
   "Mi cuenta": "My account",
 
@@ -568,6 +679,24 @@ export const DICCIONARIO_EN = {
 };
 
 export const PATRONES_EN = [
+  [/^"(.+)" es el (\d+) % de tu cartera\. Mucho peso en una sola cosa: si cae, cae todo contigo\.$/, "\"$1\" is $2 % of your portfolio. A lot of weight in one thing: if it falls, everything falls with you."],
+  [/^Más de la mitad de la cartera es cripto \((\d+) %\)\. Es lo más volátil que hay: que no sea dinero que puedas necesitar\.$/, "More than half the portfolio is crypto ($1 %). It's the most volatile thing there is: make sure it's not money you might need."],
+  [/^"(.+)" cae un (\d+) %\. Antes de vender por miedo, recuerda por qué la compraste: vender abajo convierte una caída en una pérdida\.$/, "\"$1\" is down $2 %. Before selling out of fear, remember why you bought it: selling at the bottom turns a dip into a loss."],
+  [/^(.+ %\)) desde la compra$/, "$1 since purchase"],
+  [/^(.+) uds · (.+) \(precio de compra\)$/, "$1 shares · $2 (purchase price)"],
+  [/^(.+) uds · (.+)$/, "$1 shares · $2"],
+  [/^(.+) uds$/, "$1 shares"],
+  [/^Años: (\d+)$/, "Years: $1"],
+  [/^Partiendo de (.+) y aportando (.+) al mes: en (\d+) años habrías aportado$/, "Starting from $1 and adding $2 a month: in $3 years you'd have put in"],
+  [/^si el mercado diera un (\d+) % anual de media\.$/, "if the market averaged $1 % a year."],
+  [/^Tus (.+) de hoy, sin aportar nada más, serían$/, "Your $1 today, without adding anything more, would be"],
+  [/^en (\d+) años si el mercado diera un (\d+) % anual de media\.$/, "in $1 years if the market averaged $2 % a year."],
+  [/^✓ (\d+) precio actualizado\.$/, "✓ $1 price refreshed."],
+  [/^✓ (\d+) precios actualizados\.$/, "✓ $1 prices refreshed."],
+  [/^Invertido (.+)$/, "Invested $1"],
+  [/^Has metido (.+) en total$/, "You've put in $1 in total"],
+  [/^Aportación a (.+)$/, "Contribution to $1"],
+  [/^Eso son (.+) participaciones\.$/, "That's $1 shares."],
   [/^Gastos de esta categoría · (.+)$/, "This category's expenses · $1"],
   [/^Hola, (.+)$/, "Hi, $1"],
   [/^Límite mensual (.+)$/, "Monthly limit $1"],
