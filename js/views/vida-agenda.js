@@ -1,5 +1,5 @@
 // vida:inicio
-import { localeActual } from "../idioma.js?v=123";
+import { localeActual } from "../idioma.js?v=124";
 // vida:fin
 // vida:inicio
 // Calendario personal: un calendario de verdad, como el del iPhone, con
@@ -24,10 +24,10 @@ import {
   alternarBloqueHecho,
   extrasDelDia,
   alternarExtraDelDia,
-} from "../vida.js?v=123";
-import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=123";
-import { openModal, closeModal, esc } from "../modal.js?v=123";
-import { fechaISO } from "../db.js?v=123";
+} from "../vida.js?v=124";
+import { abrirEditorHorario, abrirAgendaDia, abrirTareasDia } from "./vida-hoy.js?v=124";
+import { openModal, closeModal, esc } from "../modal.js?v=124";
+import { fechaISO } from "../db.js?v=124";
 
 // Qué vista está puesta y qué fecha tiene el foco. La fecha del foco es la
 // que mandan las flechas: en mes salta de mes en mes, en semana de semana

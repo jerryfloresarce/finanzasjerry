@@ -1444,6 +1444,8 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
   cursor: pointer;
 }
 .ajuste-desplegable__actual { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 0.9rem; }
+/* Los botones apilados de Ajustes (Tus datos, Sesión…) respiran entre sí. */
+.ajustes-grid .card > .btn--block { margin-top: 12px; }
 .ajuste-desplegable__actual i { transition: transform 0.2s; }
 .ajuste-desplegable.is-abierto .ajuste-desplegable__actual i { transform: rotate(180deg); }
 .avatar-foto { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }

@@ -11,8 +11,9 @@
 //
 // Este archivo es PERSONAL (vida-*): el kit lo excluye entero.
 
-import { registrarGanchosDeDatos, refiltrarColeccion } from "./db.js?v=123";
-import { usarClaveDeTema, aplicarTema, temaGuardadoEnLocal } from "./tema.js?v=123";
+import { registrarGanchosDeDatos, refiltrarColeccion } from "./db.js?v=124";
+import { usarClaveDeTema, aplicarTema, temaGuardadoEnLocal } from "./tema.js?v=124";
+import { usarSufijoDePerfil } from "./views/cuenta.js?v=124";
 
 export const PERFILES = {
   jerry: {
@@ -122,15 +123,26 @@ registrarGanchosDeDatos({
 if (esGaby()) {
   usarClaveDeTema({ config: "tema_gaby", local: "fj-tema-gaby", porDefecto: "rosa" });
   aplicarTema(temaGuardadoEnLocal(), { guardar: false });
+  // Su nombre y su foto de perfil, en sus propias claves: sin esto, en su
+  // Ajustes salían el nombre y la foto de Jerry (la configuración es un
+  // solo documento para la casa).
+  usarSufijoDePerfil("_gaby");
 
   // El banner de "importar mis datos iniciales" del Dashboard es el de los
   // datos de JERRY (seed.js): en el perfil de Gaby no pinta nada — lo suyo
   // se crea desde su tarjeta de arranque en Hoy.
   const estilo = document.createElement("style");
-  // Además del banner de datos de Jerry, en su app se esconde Préstamos:
-  // ella no presta dinero, y un apartado que no se usa solo estorba. La
-  // ruta sigue existiendo por si algún día lo quiere.
-  estilo.textContent = "#seed-banner{display:none!important} .nav__link[data-route=\"prestamos\"]{display:none!important} .nav__link[data-route=\"oficina\"]{display:none!important}";
+  // Además del banner de datos de Jerry, en su app se esconde todo lo de
+  // Préstamos: ella no presta dinero, y un apartado que no se usa solo
+  // estorba — el enlace del menú, la tarjeta del Dashboard y el interruptor
+  // de avisos de cobro en Ajustes. La ruta sigue existiendo por si algún
+  // día lo quiere.
+  estilo.textContent =
+    "#seed-banner{display:none!important}" +
+    ' .nav__link[data-route="prestamos"]{display:none!important}' +
+    ' .nav__link[data-route="oficina"]{display:none!important}' +
+    " #card-prestamos-dashboard{display:none!important}" +
+    " #ajuste-aviso-cobros{display:none!important}";
   document.head.appendChild(estilo);
 } else {
   // Y al revés: el apartado Ciclo (su regla) es de Gaby. En la app de

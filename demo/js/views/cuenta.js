@@ -3,16 +3,28 @@
 // un panel lateral; ahora es una vista propia y el botón del avatar (arriba
 // a la derecha) navega hasta ella.
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=123";
-import { state, subscribe } from "../store.js?v=123";
-import { updateConfig } from "../db.js?v=123";
-import { exportarDatos, importarDatos } from "../backup.js?v=123";
-import { montarSelectorTemas, nombreTemaActual } from "../tema.js?v=123";
-import { arrancarTour } from "../tour.js?v=123";
-import { montarSelectorIdioma, nombreIdiomaActual, t } from "../idioma.js?v=123";
-import { openModal, closeModal } from "../modal.js?v=123";
+import { auth } from "../firebase-init.js?v=124";
+import { state, subscribe } from "../store.js?v=124";
+import { updateConfig } from "../db.js?v=124";
+import { exportarDatos, importarDatos } from "../backup.js?v=124";
+import { montarSelectorTemas, nombreTemaActual } from "../tema.js?v=124";
+import { arrancarTour } from "../tour.js?v=124";
+import { montarSelectorIdioma, nombreIdiomaActual, t } from "../idioma.js?v=124";
+import { openModal, closeModal } from "../modal.js?v=124";
 
 const ICONO_AVATAR = '<i class="ph-thin ph-user-circle" aria-hidden="true"></i>';
+
+// El nombre y la foto se guardan en el documento de configuración bajo una
+// clave con sufijo de perfil: en una casa con dos perfiles, cada uno tiene
+// los suyos y no se pisan (igual que hace el tema con usarClaveDeTema). Un
+// módulo externo pone el sufijo; si nadie lo toca, todo como siempre.
+let SUFIJO_PERFIL = "";
+export function usarSufijoDePerfil(sufijo) {
+  SUFIJO_PERFIL = sufijo || "";
+}
+const claveFoto = () => "foto_perfil" + SUFIJO_PERFIL;
+const claveNombre = () => "nombre_usuario" + SUFIJO_PERFIL;
+const fotoActual = () => state.config?.[claveFoto()] || null;
 
 function irAAjustes() {
   window.location.hash = "#/ajustes";
@@ -21,7 +33,7 @@ function irAAjustes() {
 // La foto del perfil, donde toque: los dos botones del avatar (escritorio y
 // móvil) y la vista previa grande de Ajustes. Sin foto, el icono de siempre.
 function aplicarFotoPerfil() {
-  const foto = state.config?.foto_perfil || null;
+  const foto = fotoActual();
   for (const id of ["btn-account-desktop", "btn-open-cuenta-topbar"]) {
     const btn = document.getElementById(id);
     if (!btn) continue;
@@ -37,7 +49,7 @@ function aplicarFotoPerfil() {
 // debajo, sus dos acciones — cambiarla o quitarla. Todo lo de la foto vive
 // aquí dentro, no suelto en la tarjeta.
 function abrirFotoPerfil() {
-  const foto = state.config?.foto_perfil || null;
+  const foto = fotoActual();
   openModal(
     `
     <h2 class="modal__title">Tu foto de perfil</h2>
@@ -56,8 +68,8 @@ function abrirFotoPerfil() {
           document.getElementById("input-foto-perfil")?.click();
         });
         root.querySelector("#btn-quitar-foto")?.addEventListener("click", async () => {
-          await updateConfig({ foto_perfil: null });
-          state.config = { ...state.config, foto_perfil: null };
+          await updateConfig({ [claveFoto()]: null });
+          state.config = { ...state.config, [claveFoto()]: null };
           aplicarFotoPerfil();
           abrirFotoPerfil();
         });
@@ -166,11 +178,11 @@ export function mountCuentaPanel() {
     if (msg) msg.textContent = "";
     try {
       const dataURL = await procesarFoto(file);
-      await updateConfig({ foto_perfil: dataURL });
+      await updateConfig({ [claveFoto()]: dataURL });
       // El listener de configuración tarda un latido: se aplica ya para que
       // el cambio se vea al instante — también dentro del visor, si está
       // abierto.
-      state.config = { ...state.config, foto_perfil: dataURL };
+      state.config = { ...state.config, [claveFoto()]: dataURL };
       aplicarFotoPerfil();
       if (document.getElementById("foto-grande")) abrirFotoPerfil();
     } catch (err) {
@@ -181,7 +193,7 @@ export function mountCuentaPanel() {
   // El nombre: se guarda al salir del campo.
   const inputNombre = document.getElementById("input-nombre-perfil");
   inputNombre?.addEventListener("change", () => {
-    updateConfig({ nombre_usuario: inputNombre.value.trim() || null });
+    updateConfig({ [claveNombre()]: inputNombre.value.trim() || null });
   });
 
   document.getElementById("btn-exportar-datos")?.addEventListener("click", () => {
@@ -232,7 +244,7 @@ export function renderAjustes() {
   // El nombre no se pisa mientras se está escribiendo en él.
   const inputNombre = document.getElementById("input-nombre-perfil");
   if (inputNombre && document.activeElement !== inputNombre) {
-    inputNombre.value = state.config?.nombre_usuario || "";
+    inputNombre.value = state.config?.[claveNombre()] || "";
   }
   const checkCobros = document.getElementById("check-aviso-cobros");
   if (checkCobros) checkCobros.checked = state.config?.aviso_cobros !== false;

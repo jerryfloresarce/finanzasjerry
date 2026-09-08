@@ -1,5 +1,5 @@
-import { updateConfig } from "./db.js?v=123";
-import { state } from "./store.js?v=123";
+import { updateConfig } from "./db.js?v=124";
+import { state } from "./store.js?v=124";
 
 // Temas de la app. El aspecto de cada uno —colores, trama de fondo y la
 // marca del personaje— vive entero en css/temas.css: aquí solo está el

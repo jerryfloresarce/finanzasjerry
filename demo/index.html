@@ -15,9 +15,9 @@
 <script type="importmap">
 {
   "imports": {
-    "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js": "./js/demo/app-falso.js?v=123",
-    "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js": "./js/demo/auth-falso.js?v=123",
-    "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js": "./js/demo/firestore-falso.js?v=123"
+    "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js": "./js/demo/app-falso.js?v=124",
+    "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js": "./js/demo/auth-falso.js?v=124",
+    "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js": "./js/demo/firestore-falso.js?v=124"
   }
 }
 </script>
@@ -30,7 +30,7 @@
      Sin esto, al añadirla a la pantalla de inicio se abre DENTRO de Safari
      con su barra de direcciones, y esa barra que aparece y desaparece al
      deslizar es lo que hace que todo se mueva de forma rara. -->
-<link rel="manifest" href="manifest.json?v=123" />
+<link rel="manifest" href="manifest.json?v=124" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <!-- "black-translucent" hace que la app llegue hasta arriba del todo, por
@@ -46,9 +46,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=123" />
-<link rel="stylesheet" href="css/temas.css?v=123" />
-<link rel="stylesheet" href="css/paletas.css?v=123" />
+<link rel="stylesheet" href="css/styles.css?v=124" />
+<link rel="stylesheet" href="css/temas.css?v=124" />
+<link rel="stylesheet" href="css/paletas.css?v=124" />
 <script>
   /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
      desde un módulo (que se ejecuta al final), la app abriría un instante
@@ -68,7 +68,7 @@
 </script>
 <link rel="icon" href="data:,">
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
-<link rel="stylesheet" href="css/visita.css?v=123" />
+<link rel="stylesheet" href="css/visita.css?v=124" />
 </head>
 <body>
 
@@ -289,7 +289,7 @@
           <p class="chart-hint">Toca una porción para ver de qué gastos sale.</p>
         </article>
 
-        <article class="card gd-r1 reveal">
+        <article class="card gd-r1 reveal" id="card-prestamos-dashboard">
           <div class="card__header">
             <h2 class="card__title">Préstamos activos</h2>
             <a href="#/prestamos" class="card__link">Ver todos</a>
@@ -517,7 +517,7 @@
 
         <article class="card">
           <h2 class="card__title">Avisos</h2>
-          <label class="ajuste-interruptor">
+          <label class="ajuste-interruptor" id="ajuste-aviso-cobros">
             <span class="ajuste-interruptor__texto">Avisos de cobro de préstamos
               <small>En el Dashboard, cuando a alguien le toca pagarte o se acerca su fecha.</small></span>
             <input type="checkbox" id="check-aviso-cobros" />
@@ -617,9 +617,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=123"></script>
+<script type="module" src="js/app.js?v=124"></script>
 <script type="module">
-  import { montarBotonDeVisita } from "./js/demo/visita.js?v=123";
+  import { montarBotonDeVisita } from "./js/demo/visita.js?v=124";
   montarBotonDeVisita();
 </script>
 </body>
