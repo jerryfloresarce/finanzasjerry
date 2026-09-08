@@ -13,12 +13,12 @@
 // La elección vive en este dispositivo (localStorage): el móvil puede ir
 // en portugués y el ordenador en español sin pelearse.
 
-import { DICCIONARIO_PT, PATRONES_PT } from "./idiomas/pt.js?v=122";
-import { DICCIONARIO_EN, PATRONES_EN } from "./idiomas/en.js?v=122";
-import { DICCIONARIO_FR, PATRONES_FR } from "./idiomas/fr.js?v=122";
-import { DICCIONARIO_IT, PATRONES_IT } from "./idiomas/it.js?v=122";
-import { DICCIONARIO_DE, PATRONES_DE } from "./idiomas/de.js?v=122";
-import { DICCIONARIO_CA, PATRONES_CA } from "./idiomas/ca.js?v=122";
+import { DICCIONARIO_PT, PATRONES_PT } from "./idiomas/pt.js?v=123";
+import { DICCIONARIO_EN, PATRONES_EN } from "./idiomas/en.js?v=123";
+import { DICCIONARIO_FR, PATRONES_FR } from "./idiomas/fr.js?v=123";
+import { DICCIONARIO_IT, PATRONES_IT } from "./idiomas/it.js?v=123";
+import { DICCIONARIO_DE, PATRONES_DE } from "./idiomas/de.js?v=123";
+import { DICCIONARIO_CA, PATRONES_CA } from "./idiomas/ca.js?v=123";
 
 const CLAVE = "fj-idioma";
 

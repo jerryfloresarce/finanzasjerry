@@ -42,14 +42,14 @@ import {
   comidaEsSobras,
   marcarComidaSobras,
   cambiosDeFecha,
-} from "../vida.js?v=122";
-import { abrirReceta, abrirCambioFecha } from "./vida-menu.js?v=122";
-import { pedirVista } from "./vida-agenda.js?v=122";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=122";
-import { fechaISO, formatFecha } from "../db.js?v=122";
-import { localeActual } from "../idioma.js?v=122";
-import { efectoDeCelebracion } from "../efectos.js?v=122";
-import { openModal, closeModal, esc } from "../modal.js?v=122";
+} from "../vida.js?v=123";
+import { abrirReceta, abrirCambioFecha } from "./vida-menu.js?v=123";
+import { pedirVista } from "./vida-agenda.js?v=123";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=123";
+import { fechaISO, formatFecha } from "../db.js?v=123";
+import { localeActual } from "../idioma.js?v=123";
+import { efectoDeCelebracion } from "../efectos.js?v=123";
+import { openModal, closeModal, esc } from "../modal.js?v=123";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.

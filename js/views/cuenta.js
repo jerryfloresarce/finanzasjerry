@@ -3,13 +3,14 @@
 // un panel lateral; ahora es una vista propia y el botón del avatar (arriba
 // a la derecha) navega hasta ella.
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=122";
-import { state, subscribe } from "../store.js?v=122";
-import { updateConfig } from "../db.js?v=122";
-import { exportarDatos, importarDatos } from "../backup.js?v=122";
-import { montarSelectorTemas, nombreTemaActual } from "../tema.js?v=122";
-import { arrancarTour } from "../tour.js?v=122";
-import { montarSelectorIdioma, nombreIdiomaActual, t } from "../idioma.js?v=122";
+import { auth } from "../firebase-init.js?v=123";
+import { state, subscribe } from "../store.js?v=123";
+import { updateConfig } from "../db.js?v=123";
+import { exportarDatos, importarDatos } from "../backup.js?v=123";
+import { montarSelectorTemas, nombreTemaActual } from "../tema.js?v=123";
+import { arrancarTour } from "../tour.js?v=123";
+import { montarSelectorIdioma, nombreIdiomaActual, t } from "../idioma.js?v=123";
+import { openModal, closeModal } from "../modal.js?v=123";
 
 const ICONO_AVATAR = '<i class="ph-thin ph-user-circle" aria-hidden="true"></i>';
 
@@ -30,7 +31,39 @@ function aplicarFotoPerfil() {
   }
   const preview = document.getElementById("ajustes-avatar");
   if (preview) preview.innerHTML = foto ? `<img src="${foto}" alt="" class="avatar-foto" />` : ICONO_AVATAR;
-  document.getElementById("btn-quitar-foto")?.classList.toggle("is-hidden", !foto);
+}
+
+// El visor de la foto: al tocar el avatar de Ajustes, la foto en grande y,
+// debajo, sus dos acciones — cambiarla o quitarla. Todo lo de la foto vive
+// aquí dentro, no suelto en la tarjeta.
+function abrirFotoPerfil() {
+  const foto = state.config?.foto_perfil || null;
+  openModal(
+    `
+    <h2 class="modal__title">Tu foto de perfil</h2>
+    <div class="foto-grande" id="foto-grande">${foto ? `<img src="${foto}" alt="" />` : ICONO_AVATAR}</div>
+    <p class="field-error" id="ajustes-foto-msg" style="text-align:center;"></p>
+    <div class="modal__actions" style="justify-content:center; flex-wrap:wrap;">
+      <button type="button" class="btn btn--primary btn--sm" id="btn-foto-cambiar">Cambiar la foto</button>
+      ${foto ? `<button type="button" class="btn btn--ghost btn--sm" id="btn-quitar-foto">Quitar la foto</button>` : ""}
+      <button type="button" class="btn btn--ghost btn--sm" id="btn-foto-cerrar">Cerrar</button>
+    </div>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-foto-cerrar").addEventListener("click", closeModal);
+        root.querySelector("#btn-foto-cambiar").addEventListener("click", () => {
+          document.getElementById("input-foto-perfil")?.click();
+        });
+        root.querySelector("#btn-quitar-foto")?.addEventListener("click", async () => {
+          await updateConfig({ foto_perfil: null });
+          state.config = { ...state.config, foto_perfil: null };
+          aplicarFotoPerfil();
+          abrirFotoPerfil();
+        });
+      },
+    }
+  );
 }
 
 // La foto se recorta a un cuadrado de 256 px y se guarda como JPEG dentro
@@ -121,30 +154,28 @@ export function mountCuentaPanel() {
     }
   });
 
-  // La foto de perfil.
+  // La foto de perfil: el avatar abre el visor, y el selector de archivo
+  // (que vive oculto en la tarjeta) se dispara desde el botón del visor.
+  document.getElementById("btn-foto-ver")?.addEventListener("click", abrirFotoPerfil);
   const inputFoto = document.getElementById("input-foto-perfil");
-  document.getElementById("btn-foto-perfil")?.addEventListener("click", () => inputFoto?.click());
   inputFoto?.addEventListener("change", async () => {
     const file = inputFoto.files[0];
     inputFoto.value = "";
     if (!file) return;
     const msg = document.getElementById("ajustes-foto-msg");
-    msg.textContent = "";
+    if (msg) msg.textContent = "";
     try {
       const dataURL = await procesarFoto(file);
       await updateConfig({ foto_perfil: dataURL });
       // El listener de configuración tarda un latido: se aplica ya para que
-      // el cambio se vea al instante.
+      // el cambio se vea al instante — también dentro del visor, si está
+      // abierto.
       state.config = { ...state.config, foto_perfil: dataURL };
       aplicarFotoPerfil();
+      if (document.getElementById("foto-grande")) abrirFotoPerfil();
     } catch (err) {
-      msg.textContent = t("No se pudo guardar la foto. Prueba con otra imagen.");
+      if (msg) msg.textContent = t("No se pudo guardar la foto. Prueba con otra imagen.");
     }
-  });
-  document.getElementById("btn-quitar-foto")?.addEventListener("click", async () => {
-    await updateConfig({ foto_perfil: null });
-    state.config = { ...state.config, foto_perfil: null };
-    aplicarFotoPerfil();
   });
 
   // El nombre: se guarda al salir del campo.

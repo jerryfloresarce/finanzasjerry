@@ -47,6 +47,7 @@ export const DICCIONARIO_CA = {
   "mañana":
     "demà",
   // ---------- Ajustes · perfil ----------
+  "Tu foto de perfil": "La teva foto de perfil",
   "Ajustes":
     "Ajustos",
   "Perfil":

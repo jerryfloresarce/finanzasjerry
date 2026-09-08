@@ -47,6 +47,7 @@ export const DICCIONARIO_IT = {
   "mañana":
     "domani",
   // ---------- Ajustes · perfil ----------
+  "Tu foto de perfil": "La tua foto profilo",
   "Ajustes":
     "Impostazioni",
   "Perfil":
