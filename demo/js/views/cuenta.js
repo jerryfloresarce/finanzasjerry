@@ -3,14 +3,14 @@
 // un panel lateral; ahora es una vista propia y el botón del avatar (arriba
 // a la derecha) navega hasta ella.
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=125";
-import { state, subscribe } from "../store.js?v=125";
-import { updateConfig } from "../db.js?v=125";
-import { exportarDatos, importarDatos } from "../backup.js?v=125";
-import { montarSelectorTemas, nombreTemaActual } from "../tema.js?v=125";
-import { arrancarTour } from "../tour.js?v=125";
-import { montarSelectorIdioma, nombreIdiomaActual, t } from "../idioma.js?v=125";
-import { openModal, closeModal } from "../modal.js?v=125";
+import { auth } from "../firebase-init.js?v=126";
+import { state, subscribe } from "../store.js?v=126";
+import { updateConfig } from "../db.js?v=126";
+import { exportarDatos, importarDatos } from "../backup.js?v=126";
+import { montarSelectorTemas, nombreTemaActual } from "../tema.js?v=126";
+import { arrancarTour } from "../tour.js?v=126";
+import { montarSelectorIdioma, nombreIdiomaActual, t } from "../idioma.js?v=126";
+import { openModal, closeModal } from "../modal.js?v=126";
 
 const ICONO_AVATAR = '<i class="ph-thin ph-user-circle" aria-hidden="true"></i>';
 
@@ -26,8 +26,18 @@ const claveFoto = () => "foto_perfil" + SUFIJO_PERFIL;
 const claveNombre = () => "nombre_usuario" + SUFIJO_PERFIL;
 const fotoActual = () => state.config?.[claveFoto()] || null;
 
+// El botón del avatar es un conmutador: desde cualquier pantalla lleva a
+// Ajustes, y desde Ajustes devuelve a la pantalla en la que se estaba
+// antes de entrar (o al inicio, si se entró directo).
+let rutaAnterior = null;
 function irAAjustes() {
-  window.location.hash = "#/ajustes";
+  const hash = window.location.hash;
+  if (hash.startsWith("#/ajustes")) {
+    window.location.hash = rutaAnterior && !rutaAnterior.startsWith("#/ajustes") ? rutaAnterior : "#/";
+  } else {
+    rutaAnterior = hash || null;
+    window.location.hash = "#/ajustes";
+  }
 }
 
 // La foto del perfil, donde toque: los dos botones del avatar (escritorio y
