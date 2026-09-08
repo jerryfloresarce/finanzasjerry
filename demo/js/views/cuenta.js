@@ -3,14 +3,14 @@
 // un panel lateral; ahora es una vista propia y el botón del avatar (arriba
 // a la derecha) navega hasta ella.
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=126";
-import { state, subscribe } from "../store.js?v=126";
-import { updateConfig } from "../db.js?v=126";
-import { exportarDatos, importarDatos } from "../backup.js?v=126";
-import { montarSelectorTemas, nombreTemaActual } from "../tema.js?v=126";
-import { arrancarTour } from "../tour.js?v=126";
-import { montarSelectorIdioma, nombreIdiomaActual, t } from "../idioma.js?v=126";
-import { openModal, closeModal } from "../modal.js?v=126";
+import { auth } from "../firebase-init.js?v=127";
+import { state, subscribe } from "../store.js?v=127";
+import { updateConfig } from "../db.js?v=127";
+import { exportarDatos, importarDatos } from "../backup.js?v=127";
+import { montarSelectorTemas, nombreTemaActual } from "../tema.js?v=127";
+import { arrancarTour } from "../tour.js?v=127";
+import { montarSelectorIdioma, nombreIdiomaActual, t } from "../idioma.js?v=127";
+import { openModal, closeModal, esc } from "../modal.js?v=127";
 
 const ICONO_AVATAR = '<i class="ph-thin ph-user-circle" aria-hidden="true"></i>';
 
@@ -82,6 +82,43 @@ function abrirFotoPerfil() {
           state.config = { ...state.config, [claveFoto()]: null };
           aplicarFotoPerfil();
           abrirFotoPerfil();
+        });
+      },
+    }
+  );
+}
+
+// El editor del nombre: al tocar el nombre grande de la tarjeta de
+// Perfil se abre este modal — el campo ya no vive suelto en la tarjeta.
+function abrirNombrePerfil() {
+  const actual = state.config?.[claveNombre()] || "";
+  openModal(
+    `
+    <h2 class="modal__title">Tu nombre</h2>
+    <form id="form-nombre-perfil" class="form-grid">
+      <label class="field field--full">
+        <span class="field__label">Tu nombre</span>
+        <input type="text" id="input-nombre-perfil" value="${esc(actual)}" placeholder="Cómo quieres que te llame la app" />
+      </label>
+      <p class="entity-card__meta field--full" style="margin:0;">La foto y el nombre se guardan en tu cuenta y se ven en todos tus dispositivos.</p>
+      <div class="modal__actions field--full">
+        <button type="button" class="btn btn--ghost" id="btn-nombre-cancelar">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>
+  `,
+    {
+      onMount: (root) => {
+        const input = root.querySelector("#input-nombre-perfil");
+        input.focus();
+        root.querySelector("#btn-nombre-cancelar").addEventListener("click", closeModal);
+        root.querySelector("#form-nombre-perfil").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const nombre = input.value.trim();
+          await updateConfig({ [claveNombre()]: nombre || null });
+          state.config = { ...state.config, [claveNombre()]: nombre || null };
+          pintarNombrePerfil(nombre);
+          closeModal();
         });
       },
     }
@@ -200,13 +237,8 @@ export function mountCuentaPanel() {
     }
   });
 
-  // El nombre: se guarda al salir del campo, y el grande de al lado de la
-  // foto se va poniendo al día mientras se escribe.
-  const inputNombre = document.getElementById("input-nombre-perfil");
-  inputNombre?.addEventListener("input", () => pintarNombrePerfil(inputNombre.value));
-  inputNombre?.addEventListener("change", () => {
-    updateConfig({ [claveNombre()]: inputNombre.value.trim() || null });
-  });
+  // El nombre: tocarlo abre su editor.
+  document.getElementById("btn-nombre-editar")?.addEventListener("click", abrirNombrePerfil);
 
   document.getElementById("btn-exportar-datos")?.addEventListener("click", () => {
     exportarDatos(state);
@@ -263,11 +295,6 @@ function pintarNombrePerfil(valor) {
 export function renderAjustes() {
   const emailEl = document.getElementById("cuenta-panel-email");
   if (emailEl) emailEl.textContent = auth.currentUser?.email || "—";
-  // El nombre no se pisa mientras se está escribiendo en él.
-  const inputNombre = document.getElementById("input-nombre-perfil");
-  if (inputNombre && document.activeElement !== inputNombre) {
-    inputNombre.value = state.config?.[claveNombre()] || "";
-  }
   pintarNombrePerfil(state.config?.[claveNombre()] || "");
   const checkCobros = document.getElementById("check-aviso-cobros");
   if (checkCobros) checkCobros.checked = state.config?.aviso_cobros !== false;

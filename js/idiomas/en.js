@@ -48,6 +48,7 @@ export const DICCIONARIO_EN = {
   "mañana":
     "tomorrow",
   // ---------- Ajustes · perfil ----------
+  "Toca la foto o el nombre para cambiarlos.": "Tap the photo or the name to change them.",
   "Correo de la cuenta": "Account email",
   "Toca la foto para verla o cambiarla.": "Tap the photo to view or change it.",
   "Tu foto de perfil": "Your profile photo",

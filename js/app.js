@@ -1,34 +1,34 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=126";
-import { tourSiPrimeraVez } from "./tour.js?v=126";
-import { arrancarIdioma } from "./idioma.js?v=126";
-import { state, subscribe, initStore } from "./store.js?v=126";
+import { onAuthReady } from "./auth.js?v=127";
+import { tourSiPrimeraVez } from "./tour.js?v=127";
+import { arrancarIdioma } from "./idioma.js?v=127";
+import { state, subscribe, initStore } from "./store.js?v=127";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=126";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=126";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=126";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=126";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=126";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=126";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=126";
-import { mountMetas, renderMetas } from "./views/metas.js?v=126";
-import { mountCuentaPanel, renderAjustes } from "./views/cuenta.js?v=126";
-import { refreshAnimations } from "./animations.js?v=126";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=126";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=126";
-import { efectoDeEntrada } from "./efectos.js?v=126";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=127";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=127";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=127";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=127";
+import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=127";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=127";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=127";
+import { mountMetas, renderMetas } from "./views/metas.js?v=127";
+import { mountCuentaPanel, renderAjustes } from "./views/cuenta.js?v=127";
+import { refreshAnimations } from "./animations.js?v=127";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=127";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=127";
+import { efectoDeEntrada } from "./efectos.js?v=127";
 // vida:inicio
-import { initPerfil } from "./vida-perfil.js?v=126";
-import { initVida } from "./vida.js?v=126";
-import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=126";
-import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=126";
-import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=126";
-import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=126";
-import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=126";
-import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=126";
-import { mountVidaCiclo, renderVidaCiclo } from "./views/vida-ciclo.js?v=126";
-import { mountVidaOficina, renderVidaOficina } from "./views/vida-oficina.js?v=126";
-import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=126";
+import { initPerfil } from "./vida-perfil.js?v=127";
+import { initVida } from "./vida.js?v=127";
+import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=127";
+import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=127";
+import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=127";
+import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=127";
+import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=127";
+import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=127";
+import { mountVidaCiclo, renderVidaCiclo } from "./views/vida-ciclo.js?v=127";
+import { mountVidaOficina, renderVidaOficina } from "./views/vida-oficina.js?v=127";
+import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=127";
 // vida:fin
 
 const ROUTES = {

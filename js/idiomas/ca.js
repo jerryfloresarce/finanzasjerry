@@ -47,6 +47,7 @@ export const DICCIONARIO_CA = {
   "mañana":
     "demà",
   // ---------- Ajustes · perfil ----------
+  "Toca la foto o el nombre para cambiarlos.": "Toca la foto o el nom per canviar-los.",
   "Correo de la cuenta": "Correu del compte",
   "Toca la foto para verla o cambiarla.": "Toca la foto per veure-la o canviar-la.",
   "Tu foto de perfil": "La teva foto de perfil",

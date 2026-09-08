@@ -1392,6 +1392,8 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
 }
 .foto-grande img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .perfil-nombre--vacio { color: var(--text-muted); font-weight: 400; }
+.perfil-nombre-boton { background: none; border: none; padding: 0; display: flex; align-items: center; gap: 8px; color: inherit; font: inherit; cursor: pointer; text-align: left; }
+.perfil-nombre-boton i { color: var(--text-muted); font-size: 0.85rem; }
 .dato-cuenta { margin-bottom: 4px; }
 .ajuste-interruptor {
   display: flex;
