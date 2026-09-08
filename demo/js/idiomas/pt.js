@@ -39,6 +39,23 @@ export const DICCIONARIO_PT = {
   "Gráficos": "Gráficos",
   "Categorías": "Categorias",
   "Cartera": "Carteira",
+  // ---------- Ajustes · avisos y próximos cobros ----------
+  "Avisos":
+    "Avisos",
+  "Avisos de cobro de préstamos":
+    "Avisos de cobrança de empréstimos",
+  "En el Dashboard, cuando a alguien le toca pagarte o se acerca su fecha.":
+    "No Dashboard, quando alguém tem de te pagar ou a data dele se aproxima.",
+  "Aviso de innegociables":
+    "Aviso dos inegociáveis",
+  "En Hoy, a partir de las 21:00, si falta alguno por marcar.":
+    "Em Hoje, a partir das 21:00, se faltar algum por marcar.",
+  "Próximos cobros":
+    "Próximas cobranças",
+  "💰 Próximos cobros":
+    "💰 Próximas cobranças",
+  "mañana":
+    "amanhã",
   // ---------- Ajustes · perfil ----------
   "Ajustes":
     "Ajustes",
@@ -758,6 +775,9 @@ export const DICCIONARIO_PT = {
 // Patrones: para los textos que llevan datos dentro (números, nombres,
 // fechas). $1, $2… conservan esos datos tal cual.
 export const PATRONES_PT = [
+  [/^· Te paga el (.+)$/, "· Te paga em $1"],
+  [/^en (\d+) días$/, "em $1 dias"],
+  [/^Próximo cobro: (.+) · (.+)$/, "Próxima cobrança: $1 · $2"],
   [/^💰 A (.+) le toca pagarte hoy$/, "💰 $1 tem de te pagar hoje"],
   [/^💰 (.+) tenía que pagarte el (.+)$/, "💰 $1 tinha de te pagar em $2"],
   [/^A (.+) le toca pagarte hoy$/, "$1 tem de te pagar hoje"],

@@ -3,13 +3,13 @@
 // un panel lateral; ahora es una vista propia y el botón del avatar (arriba
 // a la derecha) navega hasta ella.
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=121";
-import { state, subscribe } from "../store.js?v=121";
-import { updateConfig } from "../db.js?v=121";
-import { exportarDatos, importarDatos } from "../backup.js?v=121";
-import { montarSelectorTemas } from "../tema.js?v=121";
-import { arrancarTour } from "../tour.js?v=121";
-import { montarSelectorIdioma, t } from "../idioma.js?v=121";
+import { auth } from "../firebase-init.js?v=122";
+import { state, subscribe } from "../store.js?v=122";
+import { updateConfig } from "../db.js?v=122";
+import { exportarDatos, importarDatos } from "../backup.js?v=122";
+import { montarSelectorTemas, nombreTemaActual } from "../tema.js?v=122";
+import { arrancarTour } from "../tour.js?v=122";
+import { montarSelectorIdioma, nombreIdiomaActual, t } from "../idioma.js?v=122";
 
 const ICONO_AVATAR = '<i class="ph-thin ph-user-circle" aria-hidden="true"></i>';
 
@@ -63,6 +63,38 @@ export function mountCuentaPanel() {
 
   montarSelectorTemas(document.getElementById("temas-selector"));
   montarSelectorIdioma(document.getElementById("idioma-selector"));
+
+  // Idioma y Temas van plegados, con el valor actual a la vista; un toque
+  // los abre. Al elegir, se actualiza la etiqueta y se vuelven a plegar.
+  const desplegables = [
+    { boton: "btn-desplegar-idioma", zona: "zona-idioma" },
+    { boton: "btn-desplegar-temas", zona: "zona-temas" },
+  ];
+  for (const { boton, zona } of desplegables) {
+    document.getElementById(boton)?.addEventListener("click", () => {
+      const z = document.getElementById(zona);
+      z.classList.toggle("is-hidden");
+      document.getElementById(boton).classList.toggle("is-abierto", !z.classList.contains("is-hidden"));
+    });
+  }
+  const plegar = (zona, boton) => {
+    document.getElementById(zona)?.classList.add("is-hidden");
+    document.getElementById(boton)?.classList.remove("is-abierto");
+  };
+  document.addEventListener("idioma-cambiado", () => {
+    actualizarEtiquetasAjustes();
+    plegar("zona-idioma", "btn-desplegar-idioma");
+  });
+  document.addEventListener("tema-cambiado", () => {
+    actualizarEtiquetasAjustes();
+    plegar("zona-temas", "btn-desplegar-temas");
+  });
+
+  // El interruptor de los avisos de cobro de préstamos (los del Dashboard).
+  document.getElementById("check-aviso-cobros")?.addEventListener("change", (e) => {
+    updateConfig({ aviso_cobros: e.target.checked });
+    state.config = { ...state.config, aviso_cobros: e.target.checked };
+  });
 
   // La guía de bienvenida se puede repetir cuando haga falta (enseñar la
   // app a alguien, refrescar dónde estaba algo).
@@ -153,6 +185,16 @@ export function mountCuentaPanel() {
   subscribe(() => aplicarFotoPerfil());
 }
 
+// Las etiquetas "actual" de los desplegables. El nombre del idioma es un
+// nombre propio (Español, Deutsch…): se marca para que el traductor no lo
+// toque al cambiar de idioma.
+function actualizarEtiquetasAjustes() {
+  const idioma = document.getElementById("idioma-actual");
+  if (idioma) idioma.textContent = nombreIdiomaActual();
+  const tema = document.getElementById("tema-actual");
+  if (tema) tema.textContent = nombreTemaActual();
+}
+
 export function renderAjustes() {
   const emailEl = document.getElementById("cuenta-panel-email");
   if (emailEl) emailEl.textContent = auth.currentUser?.email || "—";
@@ -161,5 +203,11 @@ export function renderAjustes() {
   if (inputNombre && document.activeElement !== inputNombre) {
     inputNombre.value = state.config?.nombre_usuario || "";
   }
+  const checkCobros = document.getElementById("check-aviso-cobros");
+  if (checkCobros) checkCobros.checked = state.config?.aviso_cobros !== false;
+  // El interruptor de innegociables es del módulo de vida: se le avisa de
+  // que la pantalla está a la vista para que se ponga al día.
+  document.dispatchEvent(new CustomEvent("ajustes-abiertos"));
+  actualizarEtiquetasAjustes();
   aplicarFotoPerfil();
 }

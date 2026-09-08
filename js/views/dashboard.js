@@ -1,4 +1,4 @@
-import { localeActual } from "../idioma.js?v=121";
+import { localeActual } from "../idioma.js?v=122";
 import {
   calcularSaldoCuenta,
   calcularSaldoTotal,
@@ -12,15 +12,15 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   nombreDeCuenta,
-} from "../db.js?v=121";
-import { avisosDeCobro } from "./prestamos.js?v=121";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=121";
-import { seedInitialData } from "../seed.js?v=121";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=121";
-import { openHistorial } from "./cuentas.js?v=121";
-import { esc, openModal, closeModal } from "../modal.js?v=121";
-import { sentidoDeTransferencia } from "./movimientos.js?v=121";
-import { colorTema, paletaTema } from "../tema.js?v=121";
+} from "../db.js?v=122";
+import { avisosDeCobro, proximosCobros, textoEnDias, avisosCobroActivos } from "./prestamos.js?v=122";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=122";
+import { seedInitialData } from "../seed.js?v=122";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=122";
+import { openHistorial } from "./cuentas.js?v=122";
+import { esc, openModal, closeModal } from "../modal.js?v=122";
+import { sentidoDeTransferencia } from "./movimientos.js?v=122";
+import { colorTema, paletaTema } from "../tema.js?v=122";
 
 let chartInstance = null;
 
@@ -80,7 +80,7 @@ export function renderDashboard(state) {
   renderLimites(movimientos, categorias);
   renderTopLugares(movimientos);
   renderRecientes(movimientos, categorias, cuentas);
-  renderPrestamos(prestamos, pagosPrestamos);
+  renderPrestamos(prestamos, pagosPrestamos, state.config);
   renderSuscripciones(suscripciones, cuentas);
   renderCuentasResumen(state);
 
@@ -355,7 +355,7 @@ function renderRecientes(movimientos, categorias, cuentas) {
         </div>`);
 }
 
-function renderPrestamos(prestamos, pagosPrestamos) {
+function renderPrestamos(prestamos, pagosPrestamos, config) {
   const el = document.getElementById("prestamos-activos");
   const activos = prestamos.filter((p) => p.estado !== "Pagado");
 
@@ -364,9 +364,12 @@ function renderPrestamos(prestamos, pagosPrestamos) {
     return;
   }
 
-  // Los avisos de cobro del día, arriba del todo: quién te tenía que pagar
-  // ya. Tocar el aviso lleva a Préstamos, donde está el botón de apuntarlo.
-  const avisos = avisosDeCobro(prestamos, pagosPrestamos);
+  // Los avisos de cobro, arriba del todo: quién te tenía que pagar ya, y
+  // quién es el siguiente. Tocar el aviso lleva a Préstamos. El interruptor
+  // de Ajustes ("Avisos de cobro de préstamos") apaga todo este bloque.
+  const avisosOn = avisosCobroActivos(config);
+  const avisos = avisosOn ? avisosDeCobro(prestamos, pagosPrestamos) : [];
+  const siguiente = avisosOn ? proximosCobros(prestamos, pagosPrestamos)[0] : null;
   const hoy = fechaISO();
   const avisosHTML = avisos
     .map(
@@ -382,7 +385,20 @@ function renderPrestamos(prestamos, pagosPrestamos) {
           </div>
         </a>`
     )
-    .join("");
+    .join("")
+    .concat(
+      siguiente
+        ? `
+        <a href="#/prestamos" class="mini-row aviso-cobro-mini aviso-cobro-mini--proximo">
+          <div class="mini-row__body">
+            <div class="mini-row__main">
+              <span class="mini-row__title">Próximo cobro: ${esc(siguiente.p.persona)} · ${formatFecha(new Date(siguiente.fecha + "T12:00:00"))}</span>
+              <span class="mini-row__sub">${textoEnDias(siguiente.fecha)}</span>
+            </div>
+          </div>
+        </a>`
+        : ""
+    );
 
   el.innerHTML = avisosHTML + activos
     .map((p) => {

@@ -1340,6 +1340,10 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
 .aviso-cobros__texto { font-size: 0.92rem; }
 .aviso-cobros__acciones { display: flex; gap: 8px; flex-wrap: wrap; }
 .aviso-cobros__nota { font-size: 0.85rem; color: var(--text-muted); }
+.aviso-cobros__titulo--proximos { margin-top: 4px; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+.aviso-cobros__fila--proximo { opacity: 0.85; }
+.aviso-cobros__cuando { font-size: 0.85rem; color: var(--text-muted); white-space: nowrap; }
+.aviso-cobro-mini--proximo { border-style: dashed; background: transparent; }
 /* Ajustes: la antigua "Mi cuenta" convertida en pantalla, con su perfil. */
 .ajustes-grid { display: grid; gap: 16px; max-width: 640px; }
 .perfil-cabecera { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
@@ -1357,6 +1361,58 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
   background: color-mix(in srgb, currentColor 10%, transparent);
 }
 .perfil-acciones { display: flex; gap: 8px; flex-wrap: wrap; }
+.ajuste-interruptor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 10px 0;
+  cursor: pointer;
+}
+.ajuste-interruptor + .ajuste-interruptor { border-top: 1px dashed var(--border); }
+.ajuste-interruptor__texto { font-size: 0.95rem; }
+.ajuste-interruptor__texto small { display: block; color: var(--text-muted); font-size: 0.82rem; }
+.ajuste-interruptor input[type="checkbox"] {
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+  appearance: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.ajuste-interruptor input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg, #fff);
+  transition: left 0.2s;
+}
+.ajuste-interruptor input[type="checkbox"]:checked { background: var(--accent, #7a9b81); }
+.ajuste-interruptor input[type="checkbox"]:checked::after { left: 21px; }
+
+.ajuste-desplegable {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.ajuste-desplegable__actual { display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 0.9rem; }
+.ajuste-desplegable__actual i { transition: transform 0.2s; }
+.ajuste-desplegable.is-abierto .ajuste-desplegable__actual i { transform: rotate(180deg); }
 .avatar-foto { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
 .icon-btn.tiene-foto { padding: 0; overflow: hidden; }
 .icon-btn.tiene-foto .avatar-foto { border-radius: calc(var(--radius-sm) - 1px); }

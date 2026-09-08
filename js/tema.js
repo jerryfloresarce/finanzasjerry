@@ -1,5 +1,5 @@
-import { updateConfig } from "./db.js?v=121";
-import { state } from "./store.js?v=121";
+import { updateConfig } from "./db.js?v=122";
+import { state } from "./store.js?v=122";
 
 // Temas de la app. El aspecto de cada uno —colores, trama de fondo y la
 // marca del personaje— vive entero en css/temas.css: aquí solo está el
@@ -55,31 +55,6 @@ export const TEMAS = [
     nombre: "Rosa pastel",
     grupo: "Aesthetic",
   },
-  {
-    id: "espana",
-    nombre: "España",
-    grupo: "Países",
-  },
-  {
-    id: "bolivia",
-    nombre: "Bolivia",
-    grupo: "Países",
-  },
-  {
-    id: "brasil",
-    nombre: "Brasil",
-    grupo: "Países",
-  },
-  {
-    id: "italia",
-    nombre: "Italia",
-    grupo: "Países",
-  },
-  {
-    id: "francia",
-    nombre: "Francia",
-    grupo: "Países",
-  },
 ];
 
 export const TEMA_POR_DEFECTO = "original";
@@ -103,6 +78,12 @@ export function esTemaValido(id) {
 export function temaActual() {
   const id = document.documentElement.dataset.tema;
   return esTemaValido(id) ? id : TEMA_POR_DEFECTO;
+}
+
+// El nombre del tema activo, para enseñarlo al lado del desplegable de
+// Ajustes ("Temas · Claro") sin tener que abrirlo.
+export function nombreTemaActual() {
+  return TEMAS.find((t) => t.id === temaActual())?.nombre || "Oscuro (original)";
 }
 
 // Se guarda también en localStorage —además de en Firestore— para poder

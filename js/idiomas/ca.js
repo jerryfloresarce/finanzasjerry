@@ -29,6 +29,23 @@ export const DICCIONARIO_CA = {
   "Gráficos": "Gràfics",
   "Categorías": "Categories",
   "Cartera": "Cartera",
+  // ---------- Ajustes · avisos y próximos cobros ----------
+  "Avisos":
+    "Avisos",
+  "Avisos de cobro de préstamos":
+    "Avisos de cobrament dels préstecs",
+  "En el Dashboard, cuando a alguien le toca pagarte o se acerca su fecha.":
+    "Al Dashboard, quan a algú li toca pagar-te o s'acosta la seva data.",
+  "Aviso de innegociables":
+    "Avís dels innegociables",
+  "En Hoy, a partir de las 21:00, si falta alguno por marcar.":
+    "A Avui, a partir de les 21:00, si en falta algun per marcar.",
+  "Próximos cobros":
+    "Propers cobraments",
+  "💰 Próximos cobros":
+    "💰 Propers cobraments",
+  "mañana":
+    "demà",
   // ---------- Ajustes · perfil ----------
   "Ajustes":
     "Ajustos",
@@ -726,6 +743,9 @@ export const DICCIONARIO_CA = {
 };
 
 export const PATRONES_CA = [
+  [/^· Te paga el (.+)$/, "· Et paga el $1"],
+  [/^en (\d+) días$/, "en $1 dies"],
+  [/^Próximo cobro: (.+) · (.+)$/, "Proper cobrament: $1 · $2"],
   [/^💰 A (.+) le toca pagarte hoy$/, "💰 Avui a $1 li toca pagar-te"],
   [/^💰 (.+) tenía que pagarte el (.+)$/, "💰 $1 t'havia de pagar el $2"],
   [/^A (.+) le toca pagarte hoy$/, "Avui a $1 li toca pagar-te"],

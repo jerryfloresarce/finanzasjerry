@@ -29,6 +29,23 @@ export const DICCIONARIO_DE = {
   "Gráficos": "Diagramme",
   "Categorías": "Kategorien",
   "Cartera": "Portfolio",
+  // ---------- Ajustes · avisos y próximos cobros ----------
+  "Avisos":
+    "Hinweise",
+  "Avisos de cobro de préstamos":
+    "Hinweise zu Darlehenszahlungen",
+  "En el Dashboard, cuando a alguien le toca pagarte o se acerca su fecha.":
+    "Im Dashboard, wenn dir jemand zahlen muss oder sein Termin naht.",
+  "Aviso de innegociables":
+    "Hinweis zu den Unverhandelbaren",
+  "En Hoy, a partir de las 21:00, si falta alguno por marcar.":
+    "In Heute, ab 21:00, wenn noch eines offen ist.",
+  "Próximos cobros":
+    "Anstehende Zahlungen",
+  "💰 Próximos cobros":
+    "💰 Anstehende Zahlungen",
+  "mañana":
+    "morgen",
   // ---------- Ajustes · perfil ----------
   "Ajustes":
     "Einstellungen",
@@ -726,6 +743,9 @@ export const DICCIONARIO_DE = {
 };
 
 export const PATRONES_DE = [
+  [/^· Te paga el (.+)$/, "· Zahlt dir am $1"],
+  [/^en (\d+) días$/, "in $1 Tagen"],
+  [/^Próximo cobro: (.+) · (.+)$/, "Nächste Zahlung: $1 · $2"],
   [/^💰 A (.+) le toca pagarte hoy$/, "💰 $1 muss dir heute zahlen"],
   [/^💰 (.+) tenía que pagarte el (.+)$/, "💰 $1 hätte dir am $2 zahlen sollen"],
   [/^A (.+) le toca pagarte hoy$/, "$1 muss dir heute zahlen"],

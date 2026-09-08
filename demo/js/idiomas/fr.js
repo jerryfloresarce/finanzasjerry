@@ -29,6 +29,23 @@ export const DICCIONARIO_FR = {
   "Gráficos": "Graphiques",
   "Categorías": "Catégories",
   "Cartera": "Portefeuille",
+  // ---------- Ajustes · avisos y próximos cobros ----------
+  "Avisos":
+    "Rappels",
+  "Avisos de cobro de préstamos":
+    "Rappels de paiement des prêts",
+  "En el Dashboard, cuando a alguien le toca pagarte o se acerca su fecha.":
+    "Sur le Dashboard, quand quelqu'un doit vous payer ou que sa date approche.",
+  "Aviso de innegociables":
+    "Rappel des non-négociables",
+  "En Hoy, a partir de las 21:00, si falta alguno por marcar.":
+    "Dans Aujourd'hui, à partir de 21 h, s'il en reste à cocher.",
+  "Próximos cobros":
+    "Prochains paiements",
+  "💰 Próximos cobros":
+    "💰 Prochains paiements",
+  "mañana":
+    "demain",
   // ---------- Ajustes · perfil ----------
   "Ajustes":
     "Réglages",
@@ -726,6 +743,9 @@ export const DICCIONARIO_FR = {
 };
 
 export const PATRONES_FR = [
+  [/^· Te paga el (.+)$/, "· Vous paie le $1"],
+  [/^en (\d+) días$/, "dans $1 jours"],
+  [/^Próximo cobro: (.+) · (.+)$/, "Prochain paiement : $1 · $2"],
   [/^💰 A (.+) le toca pagarte hoy$/, "💰 $1 doit vous payer aujourd'hui"],
   [/^💰 (.+) tenía que pagarte el (.+)$/, "💰 $1 devait vous payer le $2"],
   [/^A (.+) le toca pagarte hoy$/, "$1 doit vous payer aujourd'hui"],

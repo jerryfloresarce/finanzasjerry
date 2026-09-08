@@ -13,12 +13,12 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=121";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=121";
-import { initials, avatarColor, icon } from "../icons.js?v=121";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=121";
-import { efectoDeCelebracion } from "../efectos.js?v=121";
-import { localeActual } from "../idioma.js?v=121";
+} from "../db.js?v=122";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=122";
+import { initials, avatarColor, icon } from "../icons.js?v=122";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=122";
+import { efectoDeCelebracion } from "../efectos.js?v=122";
+import { localeActual } from "../idioma.js?v=122";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -94,6 +94,27 @@ export function avisosDeCobro(prestamos, pagosPrestamos) {
     .filter((a) => a.fecha !== "9999-12-31" && a.fecha <= hoy)
     .sort((a, b) => a.fecha.localeCompare(b.fecha));
 }
+
+// Y los que vienen DESPUÉS: todos los préstamos vivos con fecha futura,
+// ordenados por cercanía. Así el bloque de cobros cuenta la foto entera
+// (quién debía pagar ya, y quién es el siguiente), no solo lo atrasado.
+export function proximosCobros(prestamos, pagosPrestamos) {
+  const hoy = todayISO();
+  return prestamos
+    .filter((p) => p.estado !== "Pagado")
+    .map((p) => ({ p, fecha: fechaProximoCobro(p, pagosPrestamos), plan: esPlanDePagos(p) }))
+    .filter((a) => a.fecha !== "9999-12-31" && a.fecha > hoy)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha));
+}
+
+// "mañana" / "en N días" para una fecha futura.
+export function textoEnDias(fechaISOFutura) {
+  const dias = Math.round((new Date(fechaISOFutura + "T12:00:00") - new Date(todayISO() + "T12:00:00")) / 86400000);
+  return dias === 1 ? "mañana" : `en ${dias} días`;
+}
+
+// ¿Están encendidos los avisos de cobro? (interruptor de Ajustes; de serie, sí)
+export const avisosCobroActivos = (config) => config?.aviso_cobros !== false;
 
 // La siguiente fecha de cobro según la repetición pactada. Si el aviso se
 // quedó atrás (varios periodos sin apuntar), salta los que hagan falta
@@ -284,12 +305,27 @@ export function renderPrestamos(state) {
     return;
   }
 
-  // Los avisos de cobro del día: quién te tenía que pagar ya.
+  // Los cobros, la foto entera: quién te tenía que pagar ya (con sus
+  // botones) y quién viene después (todos los préstamos con fecha, por
+  // cercanía — el más próximo, el primero).
   const avisos = avisosDeCobro(prestamos, pagosPrestamos);
+  const proximos = proximosCobros(prestamos, pagosPrestamos);
   const hoyISO = todayISO();
-  const avisosHTML = avisos.length
+  const proximosHTML = proximos.length
+    ? `${avisos.length ? `<p class="aviso-cobros__titulo aviso-cobros__titulo--proximos">Próximos cobros</p>` : ""}
+       ${proximos
+         .map(
+           ({ p, fecha }) => `
+            <div class="aviso-cobros__fila aviso-cobros__fila--proximo">
+              <span class="aviso-cobros__texto">${esc(p.persona)}<span class="aviso-cobros__pendiente"> · Te paga el ${formatFecha(new Date(fecha + "T12:00:00"))}</span></span>
+              <span class="aviso-cobros__cuando">${textoEnDias(fecha)}</span>
+            </div>`
+         )
+         .join("")}`
+    : "";
+  const avisosHTML = avisos.length || proximos.length
     ? `<div class="aviso-cobros">
-        <p class="aviso-cobros__titulo">💰 Cobros que te deben</p>
+        <p class="aviso-cobros__titulo">💰 ${avisos.length ? "Cobros que te deben" : "Próximos cobros"}</p>
         ${avisos
           .map(({ p, fecha, plan }) => {
             const texto =
@@ -314,6 +350,7 @@ export function renderPrestamos(state) {
             </div>`;
           })
           .join("")}
+        ${proximosHTML}
       </div>`
     : "";
 

@@ -30,6 +30,23 @@ export const DICCIONARIO_EN = {
   "Gráficos": "Charts",
   "Categorías": "Categories",
   "Cartera": "Portfolio",
+  // ---------- Ajustes · avisos y próximos cobros ----------
+  "Avisos":
+    "Alerts",
+  "Avisos de cobro de préstamos":
+    "Loan payment alerts",
+  "En el Dashboard, cuando a alguien le toca pagarte o se acerca su fecha.":
+    "On the Dashboard, when someone is due to pay you or their date is near.",
+  "Aviso de innegociables":
+    "Non-negotiables reminder",
+  "En Hoy, a partir de las 21:00, si falta alguno por marcar.":
+    "On Today, from 9 pm, if any is still unchecked.",
+  "Próximos cobros":
+    "Upcoming payments",
+  "💰 Próximos cobros":
+    "💰 Upcoming payments",
+  "mañana":
+    "tomorrow",
   // ---------- Ajustes · perfil ----------
   "Ajustes":
     "Settings",
@@ -727,6 +744,9 @@ export const DICCIONARIO_EN = {
 };
 
 export const PATRONES_EN = [
+  [/^· Te paga el (.+)$/, "· Pays you on $1"],
+  [/^en (\d+) días$/, "in $1 days"],
+  [/^Próximo cobro: (.+) · (.+)$/, "Next payment: $1 · $2"],
   [/^💰 A (.+) le toca pagarte hoy$/, "💰 $1 is due to pay you today"],
   [/^💰 (.+) tenía que pagarte el (.+)$/, "💰 $1 was due to pay you on $2"],
   [/^A (.+) le toca pagarte hoy$/, "$1 is due to pay you today"],

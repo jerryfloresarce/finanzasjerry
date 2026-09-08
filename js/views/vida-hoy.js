@@ -42,14 +42,14 @@ import {
   comidaEsSobras,
   marcarComidaSobras,
   cambiosDeFecha,
-} from "../vida.js?v=121";
-import { abrirReceta, abrirCambioFecha } from "./vida-menu.js?v=121";
-import { pedirVista } from "./vida-agenda.js?v=121";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=121";
-import { fechaISO, formatFecha } from "../db.js?v=121";
-import { localeActual } from "../idioma.js?v=121";
-import { efectoDeCelebracion } from "../efectos.js?v=121";
-import { openModal, closeModal, esc } from "../modal.js?v=121";
+} from "../vida.js?v=122";
+import { abrirReceta, abrirCambioFecha } from "./vida-menu.js?v=122";
+import { pedirVista } from "./vida-agenda.js?v=122";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=122";
+import { fechaISO, formatFecha } from "../db.js?v=122";
+import { localeActual } from "../idioma.js?v=122";
+import { efectoDeCelebracion } from "../efectos.js?v=122";
+import { openModal, closeModal, esc } from "../modal.js?v=122";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -84,6 +84,16 @@ export function mountVidaHoy() {
   // Todo el enganche va por delegación sobre la sección, porque el
   // contenido se repinta entero con cada render.
   const root = document.getElementById("view-hoy");
+  // El interruptor del aviso de innegociables vive en la pantalla de
+  // Ajustes (que es del núcleo), pero el dato es de este módulo: se
+  // engancha aquí y se pone al día cada vez que Ajustes se abre.
+  const checkAviso = document.getElementById("check-aviso-innegociables");
+  checkAviso?.addEventListener("change", () => {
+    guardarSistema({ aviso_innegociables: checkAviso.checked }).catch(() => {});
+  });
+  document.addEventListener("ajustes-abiertos", () => {
+    if (checkAviso) checkAviso.checked = vida.sistema.aviso_innegociables !== false;
+  });
   // El indicador de "AHORA" del horario se mueve solo: cada medio minuto se
   // repinta si la pantalla está abierta. El checklist no pierde nada porque
   // vive en el borrador.
