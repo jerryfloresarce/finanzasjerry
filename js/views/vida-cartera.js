@@ -18,13 +18,13 @@ import {
   aportarAInversion,
   quitarAporte,
   guardarSistema,
-} from "../vida.js?v=124";
-import { formatEUR, formatFecha, fromTimestamp } from "../db.js?v=124";
-import { t } from "../idioma.js?v=124";
-import { openModal, closeModal } from "../modal.js?v=124";
-import { colorTema } from "../tema.js?v=124";
-import { efectoAlGuardar } from "../efectos.js?v=124";
-import { initials, avatarColor } from "../icons.js?v=124";
+} from "../vida.js?v=125";
+import { formatEUR, formatFecha, fromTimestamp } from "../db.js?v=125";
+import { t } from "../idioma.js?v=125";
+import { openModal, closeModal } from "../modal.js?v=125";
+import { colorTema } from "../tema.js?v=125";
+import { efectoAlGuardar } from "../efectos.js?v=125";
+import { initials, avatarColor } from "../icons.js?v=125";
 
 // Un porcentaje y unas unidades a la española: coma decimal, no punto.
 // Las unidades se recortan a 4 decimales: al aportar por euros salen

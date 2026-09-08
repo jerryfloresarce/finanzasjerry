@@ -47,6 +47,8 @@ export const DICCIONARIO_FR = {
   "mañana":
     "demain",
   // ---------- Ajustes · perfil ----------
+  "Correo de la cuenta": "E-mail du compte",
+  "Toca la foto para verla o cambiarla.": "Touchez la photo pour la voir ou la changer.",
   "Tu foto de perfil": "Votre photo de profil",
   "Ajustes":
     "Réglages",

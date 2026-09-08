@@ -1394,6 +1394,8 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
   background: color-mix(in srgb, currentColor 8%, transparent);
 }
 .foto-grande img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.perfil-nombre--vacio { color: var(--text-muted); font-weight: 400; }
+.dato-cuenta { margin-bottom: 4px; }
 .ajuste-interruptor {
   display: flex;
   align-items: center;

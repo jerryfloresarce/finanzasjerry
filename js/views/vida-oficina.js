@@ -6,9 +6,9 @@
 // la fecha, y caducan solas: si la última revisión no es de hoy ni de
 // anoche, la lista amanece sin marcar, lista para el siguiente repaso.
 
-import { vida, guardarSistema } from "../vida.js?v=124";
-import { fechaISO } from "../db.js?v=124";
-import { esc } from "../modal.js?v=124";
+import { vida, guardarSistema } from "../vida.js?v=125";
+import { fechaISO } from "../db.js?v=125";
+import { esc } from "../modal.js?v=125";
 
 const ITEMS_DE_SERIE = [
   "Portátil y cargador",

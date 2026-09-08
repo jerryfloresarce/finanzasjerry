@@ -21,7 +21,7 @@
      Sin esto, al añadirla a la pantalla de inicio se abre DENTRO de Safari
      con su barra de direcciones, y esa barra que aparece y desaparece al
      deslizar es lo que hace que todo se mueva de forma rara. -->
-<link rel="manifest" href="manifest.json?v=124" />
+<link rel="manifest" href="manifest.json?v=125" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <!-- "black-translucent" hace que la app llegue hasta arriba del todo, por
@@ -37,11 +37,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
-<link rel="stylesheet" href="css/styles.css?v=124" />
+<link rel="stylesheet" href="css/styles.css?v=125" />
 <!-- vida:inicio -->
-<link rel="stylesheet" href="css/vida.css?v=124" />
+<link rel="stylesheet" href="css/vida.css?v=125" />
 <!-- vida:fin -->
-<link rel="stylesheet" href="css/temas.css?v=124" />
+<link rel="stylesheet" href="css/temas.css?v=125" />
 <script>
   /* Pinta el tema guardado ANTES del primer fotograma. Si esto se hiciera
      desde un módulo (que se ejecuta al final), la app abriría un instante
@@ -586,8 +586,8 @@
               <span class="perfil-avatar__badge" aria-hidden="true"><i class="ph-bold ph-camera"></i></span>
             </button>
             <div>
-              <p class="entity-card__name" id="cuenta-panel-email" style="margin:0;">—</p>
-              <p class="entity-card__meta">Sesión iniciada con Firebase Auth</p>
+              <p class="entity-card__name" id="perfil-nombre-vista" style="margin:0;">—</p>
+              <p class="entity-card__meta">Toca la foto para verla o cambiarla.</p>
             </div>
           </div>
           <input type="file" id="input-foto-perfil" accept="image/*" class="is-hidden" />
@@ -596,8 +596,6 @@
             <input type="text" id="input-nombre-perfil" placeholder="Cómo quieres que te llame la app" />
           </label>
           <p class="entity-card__meta">La foto y el nombre se guardan en tu cuenta y se ven en todos tus dispositivos.</p>
-          <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-reset-password" style="margin-top: 8px;">Cambiar contraseña</button>
-          <p class="field-error" id="cuenta-reset-msg"></p>
         </article>
 
         <article class="card">
@@ -640,6 +638,13 @@
 
         <article class="card">
           <h2 class="card__title">Tus datos</h2>
+          <div class="dato-cuenta">
+            <p class="field__label" style="margin:0 0 2px;">Correo de la cuenta</p>
+            <p class="entity-card__name" style="margin:0;" id="cuenta-panel-email">—</p>
+            <p class="entity-card__meta">Sesión iniciada con Firebase Auth</p>
+          </div>
+          <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-reset-password">Cambiar contraseña</button>
+          <p class="field-error" id="cuenta-reset-msg"></p>
           <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-ver-tour">Ver la guía de la app otra vez</button>
           <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-exportar-datos">Exportar mis datos</button>
           <button type="button" class="btn btn--ghost btn--sm btn--block" id="btn-importar-datos">Importar desde una copia</button>
@@ -675,6 +680,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
-<script type="module" src="js/app.js?v=124"></script>
+<script type="module" src="js/app.js?v=125"></script>
 </body>
 </html>
