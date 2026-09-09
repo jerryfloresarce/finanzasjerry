@@ -8,12 +8,13 @@ import {
   formatFecha,
   fromTimestamp,
   nombreDeCuenta,
-} from "../db.js?v=127";
-import { openModal, closeModal, todayISO, esc } from "../modal.js?v=127";
-import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=127";
-import { attachCopyId, copyIdButton } from "../copy-id.js?v=127";
-import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=127";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=127";
+  saldosAntesDeCuenta,
+} from "../db.js?v=128";
+import { openModal, closeModal, todayISO, esc } from "../modal.js?v=128";
+import { entityIcon, iconForCuentaTipo, iconForCategoriaTipo, icon } from "../icons.js?v=128";
+import { attachCopyId, copyIdButton } from "../copy-id.js?v=128";
+import { emojiFieldHTML, attachEmojiPicker, CUENTA_EMOJIS } from "../emoji-picker.js?v=128";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=128";
 
 const TIPOS = ["Corriente", "Ahorro", "Efectivo", "Otra"];
 
@@ -149,6 +150,11 @@ export function openHistorial(cuenta, state) {
     .filter((m) => m.cuenta_id === cuenta.id || m.cuenta_destino_id === cuenta.id)
     .sort((a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0));
 
+  // Como en el extracto del banco: cada fila enseña, en pequeño, el saldo
+  // que había en la cuenta justo antes de ese movimiento. Un movimiento
+  // marcado "no afecta saldo" no cambia la cifra, así que ahí no se enseña.
+  const saldosAntes = saldosAntesDeCuenta(cuenta, movimientos);
+
   const filas = relacionados
     .map((m) => {
       const esTransferencia = m.tipo === "Transferencia";
@@ -170,11 +176,13 @@ export function openHistorial(cuenta, state) {
         descripcion = `${entityIcon(cat, iconForCategoriaTipo(cat?.tipo), { size: 14 })} ${m.subcategoria ? esc(m.subcategoria) + " · " : ""}${esc(cat?.nombre || "—")}`;
         signo = m.tipo === "Ingreso" ? 1 : -1;
       }
+      const antes = m.afecta_saldo === false ? null : saldosAntes.get(m);
+      const lineaAntes = antes == null ? "" : `<span class="data-row__saldo">Tenías ${formatEUR(antes)}</span>`;
       return `
         <div class="data-row data-row--historial">
           <span>${formatFecha(fromTimestamp(m.fecha))}</span>
           <span class="data-row__cat">${descripcion}</span>
-          <span class="${signo > 0 ? "data-row__amount--Ingreso" : "data-row__amount--Gasto"}">${signo > 0 ? "+ " : "− "}${formatEUR(Math.abs(Number(m.importe)))}</span>
+          <span class="${signo > 0 ? "data-row__amount--Ingreso" : "data-row__amount--Gasto"}">${signo > 0 ? "+ " : "− "}${formatEUR(Math.abs(Number(m.importe)))}${lineaAntes}</span>
         </div>`;
     })
     .join("");

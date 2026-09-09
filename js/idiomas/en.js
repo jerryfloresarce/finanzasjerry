@@ -748,6 +748,8 @@ export const DICCIONARIO_EN = {
 };
 
 export const PATRONES_EN = [
+  [/^Tenías (.+) en (.+)$/, "You had $1 in $2"],
+  [/^Tenías (.+)$/, "You had $1"],
   [/^· Te paga el (.+)$/, "· Pays you on $1"],
   [/^en (\d+) días$/, "in $1 days"],
   [/^Próximo cobro: (.+) · (.+)$/, "Next payment: $1 · $2"],

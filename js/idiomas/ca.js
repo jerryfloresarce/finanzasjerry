@@ -747,6 +747,8 @@ export const DICCIONARIO_CA = {
 };
 
 export const PATRONES_CA = [
+  [/^Tenías (.+) en (.+)$/, "Tenies $1 a $2"],
+  [/^Tenías (.+)$/, "Tenies $1"],
   [/^· Te paga el (.+)$/, "· Et paga el $1"],
   [/^en (\d+) días$/, "en $1 dies"],
   [/^Próximo cobro: (.+) · (.+)$/, "Proper cobrament: $1 · $2"],

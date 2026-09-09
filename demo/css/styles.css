@@ -1516,6 +1516,9 @@ canvas { max-width: 100%; }
 .mini-row__title { font-size: 0.9rem; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mini-row__sub { font-size: 0.78rem; color: var(--text-muted); }
 
+/* "Tenías 1.200 € en Imagin": el saldo previo al movimiento, en pequeño. */
+.mini-row__saldo-antes { font-size: 0.72rem; color: var(--text-muted); opacity: 0.85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 .mini-row__amount { font-family: var(--font-display); font-size: 1rem; white-space: nowrap; flex-shrink: 0; }
 .mini-row__amount--pos { color: var(--success); }
 
@@ -1856,6 +1859,19 @@ button.mini-row:last-child { border-bottom: none; }
 
 .data-row--historial { grid-template-columns: 90px 1fr 110px; }
 .data-row--historial .data-row__cat .icon-emoji { margin-right: 4px; }
+
+/* El saldo previo bajo el importe de cada fila del historial, como en el
+   extracto del banco. */
+.data-row__saldo {
+  display: block;
+  font-size: 0.7rem;
+  font-family: var(--font-body);
+  font-weight: 400;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 2px;
+  white-space: nowrap;
+}
 
 /* =========================================================
    MODAL

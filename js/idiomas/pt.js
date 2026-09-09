@@ -779,6 +779,8 @@ export const DICCIONARIO_PT = {
 // Patrones: para los textos que llevan datos dentro (números, nombres,
 // fechas). $1, $2… conservan esos datos tal cual.
 export const PATRONES_PT = [
+  [/^Tenías (.+) en (.+)$/, "Você tinha $1 em $2"],
+  [/^Tenías (.+)$/, "Você tinha $1"],
   [/^· Te paga el (.+)$/, "· Te paga em $1"],
   [/^en (\d+) días$/, "em $1 dias"],
   [/^Próximo cobro: (.+) · (.+)$/, "Próxima cobrança: $1 · $2"],

@@ -1,4 +1,4 @@
-import { localeActual } from "./idioma.js?v=127";
+import { localeActual } from "./idioma.js?v=128";
 import {
   collection,
   doc,
@@ -13,7 +13,7 @@ import {
   disableNetwork,
   enableNetwork,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=127";
+import { db } from "./firebase-init.js?v=128";
 
 // Cuando el iPhone deja la app en segundo plano (o la pantalla se apaga),
 // Safari congela la conexión abierta de Firestore. Al volver, esa conexión
@@ -268,6 +268,38 @@ export function calcularSaldoCuenta(cuenta, movimientos) {
     return acc + (m.tipo === "Ingreso" ? importe : -importe);
   }, 0);
   return inicial + delta;
+}
+
+// El saldo que había en la cuenta ANTES de cada movimiento ("tenías tanto y
+// gastaste tanto"). Devuelve un Map de movimiento → saldo previo.
+//
+// Se calcula hacia atrás desde el saldo actual, recorriendo los movimientos
+// en el MISMO orden en que se enseñan las listas (más reciente primero, con
+// la misma ordenación estable). Así cada cifra encadena con la anterior y
+// cuadra siempre con el saldo que se ve en pantalla, aunque haya varios
+// movimientos el mismo día.
+export function saldosAntesDeCuenta(cuenta, movimientos) {
+  const efectoDe = (m) => {
+    if (m.afecta_saldo === false) return 0;
+    const importe = Number(m.importe ?? 0);
+    if (m.tipo === "Transferencia") {
+      if (m.cuenta_id === cuenta.id) return -importe;
+      if (m.cuenta_destino_id === cuenta.id) return importe;
+      return 0;
+    }
+    if (m.cuenta_id !== cuenta.id) return 0;
+    return m.tipo === "Ingreso" ? importe : -importe;
+  };
+  const propios = movimientos
+    .filter((m) => m.cuenta_id === cuenta.id || m.cuenta_destino_id === cuenta.id)
+    .sort((a, b) => (fromTimestamp(b.fecha) ?? 0) - (fromTimestamp(a.fecha) ?? 0));
+  const antes = new Map();
+  let saldo = calcularSaldoCuenta(cuenta, movimientos);
+  for (const m of propios) {
+    saldo = Math.round((saldo - efectoDe(m)) * 100) / 100;
+    antes.set(m, saldo);
+  }
+  return antes;
 }
 
 // El periodo que cubre una factura, en corto: "1 jul – 31 jul".

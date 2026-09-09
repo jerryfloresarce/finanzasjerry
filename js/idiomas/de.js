@@ -747,6 +747,8 @@ export const DICCIONARIO_DE = {
 };
 
 export const PATRONES_DE = [
+  [/^Tenías (.+) en (.+)$/, "Du hattest $1 auf $2"],
+  [/^Tenías (.+)$/, "Du hattest $1"],
   [/^· Te paga el (.+)$/, "· Zahlt dir am $1"],
   [/^en (\d+) días$/, "in $1 Tagen"],
   [/^Próximo cobro: (.+) · (.+)$/, "Nächste Zahlung: $1 · $2"],

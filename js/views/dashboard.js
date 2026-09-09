@@ -1,7 +1,8 @@
-import { localeActual } from "../idioma.js?v=127";
+import { localeActual } from "../idioma.js?v=128";
 import {
   calcularSaldoCuenta,
   calcularSaldoTotal,
+  saldosAntesDeCuenta,
   gastosPorCategoriaDelMes,
   gastosPorSubcategoriaDelMes,
   formatEUR,
@@ -12,15 +13,15 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   nombreDeCuenta,
-} from "../db.js?v=127";
-import { avisosDeCobro, proximosCobros, textoEnDias, avisosCobroActivos } from "./prestamos.js?v=127";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=127";
-import { seedInitialData } from "../seed.js?v=127";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=127";
-import { openHistorial } from "./cuentas.js?v=127";
-import { esc, openModal, closeModal } from "../modal.js?v=127";
-import { sentidoDeTransferencia } from "./movimientos.js?v=127";
-import { colorTema, paletaTema } from "../tema.js?v=127";
+} from "../db.js?v=128";
+import { avisosDeCobro, proximosCobros, textoEnDias, avisosCobroActivos } from "./prestamos.js?v=128";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=128";
+import { seedInitialData } from "../seed.js?v=128";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=128";
+import { openHistorial } from "./cuentas.js?v=128";
+import { esc, openModal, closeModal } from "../modal.js?v=128";
+import { sentidoDeTransferencia } from "./movimientos.js?v=128";
+import { colorTema, paletaTema } from "../tema.js?v=128";
 
 let chartInstance = null;
 
@@ -313,6 +314,17 @@ function renderRecientes(movimientos, categorias, cuentas) {
   };
   const neto = recientes.reduce((acc, m) => acc + aporteDe(m), 0);
 
+  // El saldo que había en la cuenta justo antes de cada gasto o ingreso
+  // ("tenías tanto"). Se calcula una vez por cuenta y solo para las cuentas
+  // que aparecen en la lista.
+  const antesPorCuenta = new Map();
+  const saldoAntesDe = (m) => {
+    const cuenta = cuentas.find((c) => c.id === m.cuenta_id);
+    if (!cuenta || m.afecta_saldo === false) return null;
+    if (!antesPorCuenta.has(cuenta.id)) antesPorCuenta.set(cuenta.id, saldosAntesDeCuenta(cuenta, movimientos));
+    return antesPorCuenta.get(cuenta.id).get(m) ?? null;
+  };
+
   el.innerHTML = recientes
     .map((m) => {
       if (m.tipo === "Transferencia") {
@@ -331,6 +343,11 @@ function renderRecientes(movimientos, categorias, cuentas) {
       const cat = catMap.get(m.categoria_id);
       const signo = m.tipo === "Ingreso" ? "+" : "−";
       const cls = m.tipo === "Ingreso" ? "mini-row__amount--pos" : "mini-row__amount--neg";
+      const antes = saldoAntesDe(m);
+      const lineaAntes =
+        antes == null
+          ? ""
+          : `<span class="mini-row__saldo-antes">Tenías ${formatEUR(antes)} en ${esc(nombreDeCuenta(cuentaMap, m.cuenta_id))}</span>`;
       return `
         <div class="mini-row">
           <div class="mini-row__body">
@@ -338,6 +355,7 @@ function renderRecientes(movimientos, categorias, cuentas) {
             <div class="mini-row__main">
               <span class="mini-row__title">${esc(m.subcategoria || m.nota || cat?.nombre || "Movimiento")}</span>
               <span class="mini-row__sub">${cat?.nombre || ""} · ${formatFecha(fromTimestamp(m.fecha))}</span>
+              ${lineaAntes}
             </div>
           </div>
           <span class="mini-row__amount ${cls}">${signo} ${formatEUR(Math.abs(Number(m.importe)))}</span>
