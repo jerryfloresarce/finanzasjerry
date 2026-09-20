@@ -1,31 +1,31 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=128";
-import { tourSiPrimeraVez } from "./tour.js?v=128";
-import { arrancarIdioma } from "./idioma.js?v=128";
-import { state, subscribe, initStore } from "./store.js?v=128";
+import { onAuthReady } from "./auth.js?v=129";
+import { tourSiPrimeraVez } from "./tour.js?v=129";
+import { arrancarIdioma } from "./idioma.js?v=129";
+import { state, subscribe, initStore } from "./store.js?v=129";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=128";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=128";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=128";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=128";
-import { mountPrestamos, renderPrestamos } from "./views/prestamos.js?v=128";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=128";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=128";
-import { mountMetas, renderMetas } from "./views/metas.js?v=128";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=129";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=129";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=129";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=129";
+import { mountPrestamos, renderPrestamos, repararCategoriaDePrestamosDados } from "./views/prestamos.js?v=129";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=129";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=129";
+import { mountMetas, renderMetas } from "./views/metas.js?v=129";
 // modulo:rutina:inicio
-import { mountRutina, renderRutina } from "./views/rutina.js?v=128";
+import { mountRutina, renderRutina } from "./views/rutina.js?v=129";
 // modulo:rutina:fin
 // modulo:ciclo:inicio
-import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=128";
+import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=129";
 // modulo:ciclo:fin
 // modulo:gimnasio:inicio
-import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=128";
+import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=129";
 // modulo:gimnasio:fin
-import { mountCuentaPanel, renderAjustes } from "./views/cuenta.js?v=128";
-import { refreshAnimations } from "./animations.js?v=128";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=128";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=128";
-import { efectoDeEntrada } from "./efectos.js?v=128";
+import { mountCuentaPanel, renderAjustes } from "./views/cuenta.js?v=129";
+import { refreshAnimations } from "./animations.js?v=129";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=129";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=129";
+import { efectoDeEntrada } from "./efectos.js?v=129";
 
 const ROUTES = {
   dashboard: renderDashboard,
@@ -79,6 +79,10 @@ function renderCurrentView() {
   // mismo camino que el resto de los datos: si se cambió desde el otro
   // dispositivo, aquí se pone al día.
   sincronizarTemaDesdeConfig(state.config);
+  // Reparación de datos de préstamos (ver prestamos.js): corre una sola vez
+  // cuando los datos están completos; si mueve algo, el listener de
+  // Firestore repinta la vista con las categorías ya en su sitio.
+  if (state.ready) repararCategoriaDePrestamosDados(state);
   const renderFn = ROUTES[currentRoute];
   if (renderFn) renderFn(state);
   refreshAnimations();

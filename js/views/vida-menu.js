@@ -22,10 +22,10 @@ import {
   cambiosDeFecha,
   guardarCambiosDeFecha,
   platoDePlantilla,
-} from "../vida.js?v=128";
-import { fechaISO } from "../db.js?v=128";
-import { openModal, closeModal, esc } from "../modal.js?v=128";
-import { efectoAlGuardar } from "../efectos.js?v=128";
+} from "../vida.js?v=129";
+import { fechaISO } from "../db.js?v=129";
+import { openModal, closeModal, esc } from "../modal.js?v=129";
+import { efectoAlGuardar } from "../efectos.js?v=129";
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const MOMENTOS = [

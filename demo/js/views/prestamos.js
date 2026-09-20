@@ -4,6 +4,8 @@ import {
   deletePrestamo,
   addMovimiento,
   deleteMovimiento,
+  updateMovimiento,
+  addCategoria,
   addPagoPrestamo,
   updatePagoPrestamo,
   formatEUR,
@@ -13,12 +15,12 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=128";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=128";
-import { initials, avatarColor, icon } from "../icons.js?v=128";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=128";
-import { efectoDeCelebracion } from "../efectos.js?v=128";
-import { localeActual } from "../idioma.js?v=128";
+} from "../db.js?v=129";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=129";
+import { initials, avatarColor, icon } from "../icons.js?v=129";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=129";
+import { efectoDeCelebracion } from "../efectos.js?v=129";
+import { localeActual } from "../idioma.js?v=129";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -33,6 +35,45 @@ export function mountPrestamos() {
 }
 
 const round2 = (n) => Math.round(n * 100) / 100;
+
+// Los préstamos que TÚ das llevan su propia categoría, separada de la letra
+// de un préstamo que pagas al banco. Antes el gasto se colgaba de la primera
+// categoría con "préstamo" en el nombre — y si esa era la letra del banco
+// (p. ej. "Préstamo Bankinter"), todos los préstamos dados caían dentro y el
+// donut del mes los mezclaba con la deuda propia.
+export const CATEGORIA_PRESTAMOS_DADOS = "Préstamos a otros";
+
+const esCategoriaPrestamosDados = (c) => (c?.nombre || "").trim().toLowerCase() === CATEGORIA_PRESTAMOS_DADOS.toLowerCase();
+
+async function idCategoriaPrestamosDados(categorias) {
+  const existente = (categorias ?? []).find(esCategoriaPrestamosDados);
+  if (existente) return existente.id;
+  const ref = await addCategoria({ nombre: CATEGORIA_PRESTAMOS_DADOS, tipo: "Variable", limite_mensual: null });
+  return ref.id;
+}
+
+// Reparación de datos, una vez por arranque: los movimientos "Préstamo a X"
+// que una versión anterior colgó de otra categoría se mueven a la suya. Es
+// idempotente — una vez movidos ya no cumplen el filtro — así que correr en
+// varios dispositivos no duplica ni pisa nada.
+let reparacionLanzada = false;
+export async function repararCategoriaDePrestamosDados(state) {
+  if (reparacionLanzada || !state?.ready) return;
+  const desviados = (state.movimientos ?? []).filter((m) => {
+    if (m.tipo !== "Gasto" || !/^Préstamo a /.test(m.subcategoria || "")) return false;
+    const cat = (state.categorias ?? []).find((c) => c.id === m.categoria_id);
+    return !esCategoriaPrestamosDados(cat);
+  });
+  reparacionLanzada = true;
+  if (desviados.length === 0) return;
+  try {
+    const id = await idCategoriaPrestamosDados(state.categorias);
+    await Promise.all(desviados.map((m) => updateMovimiento(m.id, { categoria_id: id })));
+  } catch {
+    // Sin red (u otro tropiezo): se volverá a intentar en el próximo arranque.
+    reparacionLanzada = false;
+  }
+}
 
 // El modelo de deuda es UNO y simple: total a devolver = capital + interés.
 // Cada pago (del importe que sea, el día que sea) resta de ese total, y al
@@ -910,11 +951,10 @@ function openPrestamoForm(prestamo, state) {
                 // cuentas del mes cuadran con la realidad. La otra mitad de
                 // la simetría ya existe — cada cobro (interés, plan,
                 // liquidación) entra como "Ingreso" cuando llega.
-                const categoriaPrestamos = (state?.categorias ?? []).find((c) => /pr[eé]stamo/i.test(c.nombre || ""));
                 const movimiento = await addMovimiento({
                   tipo: "Gasto",
                   importe: data.capital,
-                  categoria_id: categoriaPrestamos?.id ?? null,
+                  categoria_id: await idCategoriaPrestamosDados(state?.categorias),
                   cuenta_id: cuentaOrigen,
                   cuenta_destino_id: null,
                   fecha: toTimestamp(f.fecha_entrega.value || todayISO()),
