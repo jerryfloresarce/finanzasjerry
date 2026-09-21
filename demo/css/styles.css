@@ -497,7 +497,7 @@ html[data-tema-claro] .icon[class*="icon--"] { filter: brightness(0.78) saturate
   gap: 12px;
   font-size: 0.88rem;
   color: var(--text-secondary);
-  border-top: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-top: 1px solid var(--border);
   padding: 8px 2px 0;
   margin: 4px 0 0;
 }
@@ -1778,6 +1778,64 @@ canvas { max-width: 100%; }
 .pago-list .mini-row__title { font-size: 0.86rem; }
 .pago-list .mini-row__sub { font-size: 0.74rem; }
 .pago-list .mini-row__amount { font-size: 0.92rem; }
+
+/* La cuenta del préstamo: capital, interés, lo pagado y lo que queda, cada
+   cosa en su línea y sumando a la vista. Antes era un párrafo con comas
+   donde el capital y el interés se perdían. */
+.prestamo-cuenta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 8px 0 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+}
+.prestamo-cuenta__fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.prestamo-cuenta__cifra {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.prestamo-cuenta__cifra--pos { color: var(--success); }
+.prestamo-cuenta__fila--total {
+  margin-top: 4px;
+  padding-top: 7px;
+  border-top: 1px solid var(--border);
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.prestamo-cuenta__fila--total .prestamo-cuenta__cifra { font-size: 1.05rem; }
+
+/* El día de cobro, en su tiempo verbal: si ya pasó, se marca. */
+.prestamo-vence { display: flex; flex-wrap: wrap; gap: 6px; font-size: 0.8rem; color: var(--text-muted); margin: 0 0 6px; }
+.prestamo-vence__cuando { opacity: 0.85; }
+.prestamo-vence__cuando::before { content: "· "; }
+.prestamo-vence--tarde { color: var(--danger); font-weight: 500; }
+
+/* Las dos frases que rematan el aviso de "No ha pagado": el dato que
+   importa, sin negritas a mitad de frase (que parten la traducción). */
+.prestamo-nota-fuerte { font-size: 0.86rem; color: var(--text-primary); margin: 10px 0 0; }
+
+/* "Deshacer el último", pegado a la línea de intereses capitalizados. */
+.prestamo-deshacer {
+  background: none;
+  border: none;
+  padding: 0 0 0 4px;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 /* Préstamos: tarjeta simple, capital arriba y el bloque de interés abajo
    (sin lista de pagos ni historial), altura libre según el contenido. */

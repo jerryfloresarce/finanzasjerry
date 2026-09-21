@@ -73,6 +73,40 @@ export const DICCIONARIO_CA = {
     "No s'ha pogut desar la foto. Prova amb una altra imatge.",
   "Esto añadirá todo lo que haya en el archivo a tus datos actuales (no borra nada existente). ¿Continuar?":
     "Això afegirà tot el que hi hagi a l'arxiu a les teves dades actuals (no esborra res existent). Vols continuar?",
+  // ---------- Préstamos · capital, interés y "No ha pagado" ----------
+  "Capital":
+    "Capital",
+  "Ya ha pagado":
+    "Ja ha pagat",
+  "Te debe":
+    "Et deu",
+  "Saldado":
+    "Saldat",
+  "Te tiene que pagar hoy":
+    "T'ha de pagar avui",
+  "hace 1 día":
+    "fa 1 dia",
+  "No ha pagado":
+    "No ha pagat",
+  "⏭ No ha pagado · sumar el interés al capital":
+    "⏭ No ha pagat · sumar l'interès al capital",
+  "El interés de este periodo no se pierde: se suma al capital, y la deuda sigue creciendo desde ahí.":
+    "L'interès d'aquest període no es perd: se suma al capital, i el deute continua creixent des d'aquí.",
+  "Capital ahora":
+    "Capital ara",
+  "Interés sin pagar":
+    "Interès sense pagar",
+  "Capital nuevo":
+    "Capital nou",
+  "Sumar el interés al capital":
+    "Sumar l'interès al capital",
+  "Deshacer el último":
+    "Desfés l'últim",
+  "Al deshacerlo, el capital y la fecha de cobro vuelven a como estaban.":
+    "En desfer-ho, el capital i la data de cobrament tornen a com estaven.",
+  "Deshacer":
+    "Desfés",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Cobraments que et deuen",
@@ -747,6 +781,17 @@ export const DICCIONARIO_CA = {
 };
 
 export const PATRONES_CA = [
+  [/^Interés \((.+) %\)$/, "Interès ($1 %)"],
+  [/^(.+) no ha pagado$/, "$1 no ha pagat"],
+  [/^Te paga el (.+)$/, "Et paga el $1"],
+  [/^Te tenía que pagar el (.+)$/, "T'havia de pagar el $1"],
+  [/^hace (\d+) días$/, "fa $1 dies"],
+  [/^Interés sumado al capital: (\d+) vez · (.+)$/, "Interès sumat al capital: $1 vegada · $2"],
+  [/^Interés sumado al capital: (\d+) veces · (.+)$/, "Interès sumat al capital: $1 vegades · $2"],
+  [/^El próximo interés se calculará sobre (.+): (.+)\.$/, "El proper interès es calcularà sobre $1: $2."],
+  [/^El interés seguirá siendo el que fijaste a mano: (.+)\.$/, "L'interès continuarà sent el que has fixat a mà: $1."],
+  [/^Próximo cobro: (.+)\.$/, "Proper cobrament: $1."],
+  [/^Se sumaron (.+) de interés al capital de (.+) \(de (.+) a (.+)\)\.$/, "S'han sumat $1 d'interès al capital de $2 (de $3 a $4)."],
   [/^Tenías (.+) en (.+)$/, "Tenies $1 a $2"],
   [/^Tenías (.+)$/, "Tenies $1"],
   [/^· Te paga el (.+)$/, "· Et paga el $1"],

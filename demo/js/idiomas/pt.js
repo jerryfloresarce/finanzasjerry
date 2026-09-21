@@ -83,6 +83,40 @@ export const DICCIONARIO_PT = {
     "Não foi possível salvar a foto. Tente outra imagem.",
   "Esto añadirá todo lo que haya en el archivo a tus datos actuales (no borra nada existente). ¿Continuar?":
     "Isto vai adicionar tudo o que houver no arquivo aos seus dados atuais (não apaga nada existente). Continuar?",
+  // ---------- Préstamos · capital, interés y "No ha pagado" ----------
+  "Capital":
+    "Capital",
+  "Ya ha pagado":
+    "Já pagou",
+  "Te debe":
+    "Te deve",
+  "Saldado":
+    "Quitado",
+  "Te tiene que pagar hoy":
+    "Tem de te pagar hoje",
+  "hace 1 día":
+    "há 1 dia",
+  "No ha pagado":
+    "Não pagou",
+  "⏭ No ha pagado · sumar el interés al capital":
+    "⏭ Não pagou · somar os juros ao capital",
+  "El interés de este periodo no se pierde: se suma al capital, y la deuda sigue creciendo desde ahí.":
+    "Os juros deste período não se perdem: somam-se ao capital, e a dívida continua crescendo a partir daí.",
+  "Capital ahora":
+    "Capital agora",
+  "Interés sin pagar":
+    "Juros não pagos",
+  "Capital nuevo":
+    "Capital novo",
+  "Sumar el interés al capital":
+    "Somar os juros ao capital",
+  "Deshacer el último":
+    "Desfazer o último",
+  "Al deshacerlo, el capital y la fecha de cobro vuelven a como estaban.":
+    "Ao desfazer, o capital e a data de cobrança voltam a como estavam.",
+  "Deshacer":
+    "Desfazer",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Pagamentos que te devem",
@@ -779,6 +813,17 @@ export const DICCIONARIO_PT = {
 // Patrones: para los textos que llevan datos dentro (números, nombres,
 // fechas). $1, $2… conservan esos datos tal cual.
 export const PATRONES_PT = [
+  [/^Interés \((.+) %\)$/, "Juros ($1 %)"],
+  [/^(.+) no ha pagado$/, "$1 não pagou"],
+  [/^Te paga el (.+)$/, "Te paga em $1"],
+  [/^Te tenía que pagar el (.+)$/, "Tinha de te pagar em $1"],
+  [/^hace (\d+) días$/, "há $1 dias"],
+  [/^Interés sumado al capital: (\d+) vez · (.+)$/, "Juros somados ao capital: $1 vez · $2"],
+  [/^Interés sumado al capital: (\d+) veces · (.+)$/, "Juros somados ao capital: $1 vezes · $2"],
+  [/^El próximo interés se calculará sobre (.+): (.+)\.$/, "Os próximos juros serão calculados sobre $1: $2."],
+  [/^El interés seguirá siendo el que fijaste a mano: (.+)\.$/, "Os juros continuarão sendo o que você fixou à mão: $1."],
+  [/^Próximo cobro: (.+)\.$/, "Próxima cobrança: $1."],
+  [/^Se sumaron (.+) de interés al capital de (.+) \(de (.+) a (.+)\)\.$/, "Somaram-se $1 de juros ao capital de $2 (de $3 para $4)."],
   [/^Tenías (.+) en (.+)$/, "Você tinha $1 em $2"],
   [/^Tenías (.+)$/, "Você tinha $1"],
   [/^· Te paga el (.+)$/, "· Te paga em $1"],

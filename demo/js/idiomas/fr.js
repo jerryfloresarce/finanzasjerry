@@ -73,6 +73,40 @@ export const DICCIONARIO_FR = {
     "Impossible d'enregistrer la photo. Essayez une autre image.",
   "Esto añadirá todo lo que haya en el archivo a tus datos actuales (no borra nada existente). ¿Continuar?":
     "Cela ajoutera tout le contenu du fichier à vos données actuelles (rien d'existant n'est effacé). Continuer ?",
+  // ---------- Préstamos · capital, interés y "No ha pagado" ----------
+  "Capital":
+    "Capital",
+  "Ya ha pagado":
+    "Déjà payé",
+  "Te debe":
+    "Te doit",
+  "Saldado":
+    "Soldé",
+  "Te tiene que pagar hoy":
+    "Doit te payer aujourd'hui",
+  "hace 1 día":
+    "il y a 1 jour",
+  "No ha pagado":
+    "N'a pas payé",
+  "⏭ No ha pagado · sumar el interés al capital":
+    "⏭ N'a pas payé · ajouter les intérêts au capital",
+  "El interés de este periodo no se pierde: se suma al capital, y la deuda sigue creciendo desde ahí.":
+    "Les intérêts de cette période ne sont pas perdus : ils s'ajoutent au capital, et la dette continue de croître à partir de là.",
+  "Capital ahora":
+    "Capital actuel",
+  "Interés sin pagar":
+    "Intérêts impayés",
+  "Capital nuevo":
+    "Nouveau capital",
+  "Sumar el interés al capital":
+    "Ajouter les intérêts au capital",
+  "Deshacer el último":
+    "Annuler le dernier",
+  "Al deshacerlo, el capital y la fecha de cobro vuelven a como estaban.":
+    "En annulant, le capital et la date de paiement reviennent comme avant.",
+  "Deshacer":
+    "Annuler",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Paiements qu'on vous doit",
@@ -747,6 +781,17 @@ export const DICCIONARIO_FR = {
 };
 
 export const PATRONES_FR = [
+  [/^Interés \((.+) %\)$/, "Intérêts ($1 %)"],
+  [/^(.+) no ha pagado$/, "$1 n'a pas payé"],
+  [/^Te paga el (.+)$/, "Te paie le $1"],
+  [/^Te tenía que pagar el (.+)$/, "Devait te payer le $1"],
+  [/^hace (\d+) días$/, "il y a $1 jours"],
+  [/^Interés sumado al capital: (\d+) vez · (.+)$/, "Intérêts ajoutés au capital : $1 fois · $2"],
+  [/^Interés sumado al capital: (\d+) veces · (.+)$/, "Intérêts ajoutés au capital : $1 fois · $2"],
+  [/^El próximo interés se calculará sobre (.+): (.+)\.$/, "Les prochains intérêts seront calculés sur $1 : $2."],
+  [/^El interés seguirá siendo el que fijaste a mano: (.+)\.$/, "Les intérêts resteront le montant que tu as fixé à la main : $1."],
+  [/^Próximo cobro: (.+)\.$/, "Prochain paiement : $1."],
+  [/^Se sumaron (.+) de interés al capital de (.+) \(de (.+) a (.+)\)\.$/, "$1 d'intérêts ont été ajoutés au capital de $2 (de $3 à $4)."],
   [/^Tenías (.+) en (.+)$/, "Tu avais $1 sur $2"],
   [/^Tenías (.+)$/, "Tu avais $1"],
   [/^· Te paga el (.+)$/, "· Vous paie le $1"],

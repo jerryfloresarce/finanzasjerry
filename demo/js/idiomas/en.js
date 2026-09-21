@@ -74,6 +74,40 @@ export const DICCIONARIO_EN = {
     "Couldn't save the photo. Try another image.",
   "Esto añadirá todo lo que haya en el archivo a tus datos actuales (no borra nada existente). ¿Continuar?":
     "This will add everything in the file to your current data (nothing existing is deleted). Continue?",
+  // ---------- Préstamos · capital, interés y "No ha pagado" ----------
+  "Capital":
+    "Principal",
+  "Ya ha pagado":
+    "Already paid",
+  "Te debe":
+    "Owes you",
+  "Saldado":
+    "Settled",
+  "Te tiene que pagar hoy":
+    "Has to pay you today",
+  "hace 1 día":
+    "1 day ago",
+  "No ha pagado":
+    "Hasn't paid",
+  "⏭ No ha pagado · sumar el interés al capital":
+    "⏭ Hasn't paid · add the interest to the principal",
+  "El interés de este periodo no se pierde: se suma al capital, y la deuda sigue creciendo desde ahí.":
+    "This period's interest isn't lost: it's added to the principal, and the debt keeps growing from there.",
+  "Capital ahora":
+    "Principal now",
+  "Interés sin pagar":
+    "Unpaid interest",
+  "Capital nuevo":
+    "New principal",
+  "Sumar el interés al capital":
+    "Add the interest to the principal",
+  "Deshacer el último":
+    "Undo the last one",
+  "Al deshacerlo, el capital y la fecha de cobro vuelven a como estaban.":
+    "Undoing it puts the principal and the collection date back as they were.",
+  "Deshacer":
+    "Undo",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Payments owed to you",
@@ -748,6 +782,17 @@ export const DICCIONARIO_EN = {
 };
 
 export const PATRONES_EN = [
+  [/^Interés \((.+) %\)$/, "Interest ($1%)"],
+  [/^(.+) no ha pagado$/, "$1 hasn't paid"],
+  [/^Te paga el (.+)$/, "Pays you on $1"],
+  [/^Te tenía que pagar el (.+)$/, "Should have paid you on $1"],
+  [/^hace (\d+) días$/, "$1 days ago"],
+  [/^Interés sumado al capital: (\d+) vez · (.+)$/, "Interest added to the principal: $1 time · $2"],
+  [/^Interés sumado al capital: (\d+) veces · (.+)$/, "Interest added to the principal: $1 times · $2"],
+  [/^El próximo interés se calculará sobre (.+): (.+)\.$/, "The next interest will be worked out on $1: $2."],
+  [/^El interés seguirá siendo el que fijaste a mano: (.+)\.$/, "The interest stays the amount you set by hand: $1."],
+  [/^Próximo cobro: (.+)\.$/, "Next collection: $1."],
+  [/^Se sumaron (.+) de interés al capital de (.+) \(de (.+) a (.+)\)\.$/, "$1 of interest was added to $2's principal (from $3 to $4)."],
   [/^Tenías (.+) en (.+)$/, "You had $1 in $2"],
   [/^Tenías (.+)$/, "You had $1"],
   [/^· Te paga el (.+)$/, "· Pays you on $1"],

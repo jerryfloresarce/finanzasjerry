@@ -15,12 +15,12 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=129";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=129";
-import { initials, avatarColor, icon } from "../icons.js?v=129";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=129";
-import { efectoDeCelebracion } from "../efectos.js?v=129";
-import { localeActual } from "../idioma.js?v=129";
+} from "../db.js?v=130";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=130";
+import { initials, avatarColor, icon } from "../icons.js?v=130";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=130";
+import { efectoDeCelebracion } from "../efectos.js?v=130";
+import { localeActual } from "../idioma.js?v=130";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -174,6 +174,85 @@ function siguienteFechaCobro(fechaActual, repite) {
   return iso;
 }
 
+// El mes siguiente de una fecha, saltando los que ya pasaron. Sirve para
+// los préstamos sin repetición pactada: el interés es mensual igualmente,
+// así que al sumarlo al capital la fecha se mueve un mes.
+function sumarUnMes(fecha) {
+  const base = fecha ? new Date(fecha + "T12:00:00") : new Date();
+  const d = Number.isNaN(base.getTime()) ? new Date() : base;
+  const hoy = todayISO();
+  let iso = diaISO(d);
+  for (let i = 0; i < 240 && iso <= hoy; i++) {
+    d.setMonth(d.getMonth() + 1);
+    iso = diaISO(d);
+  }
+  return iso;
+}
+
+// ---------- El interés que no se paga se suma al capital ----------
+//
+// Si llega el día y la persona no paga, ese interés no se evapora: se suma
+// al capital, y desde ahí el interés se calcula sobre el capital nuevo.
+// 500 € al 10 % son 50 € de interés; si no paga, el capital pasa a 550 € y
+// el interés del mes siguiente es 55 €.
+//
+// Esto NO pasa solo: lo decide el botón "No ha pagado". Quien sabe si ha
+// pagado eres tú, y la app no debe inventarse deuda por su cuenta.
+
+export function capitalizacionesDe(p) {
+  return Array.isArray(p.capitalizaciones) ? p.capitalizaciones : [];
+}
+
+// Lo que sumaría al capital el próximo "No ha pagado" y con qué quedaría.
+export function simularCapitalizacion(p) {
+  const capitalAntes = Number(p.capital ?? p.capital_inicial ?? 0);
+  const interes = interesTotalDe(p);
+  const capitalDespues = round2(capitalAntes + interes);
+  const pct = Number(p.interes_porcentaje ?? 0);
+  return {
+    interes,
+    capitalAntes,
+    capitalDespues,
+    manual: tieneInteresManual(p),
+    // Con un % pactado, el interés del mes que viene ya sale del capital
+    // nuevo; con un importe fijo a mano, sigue siendo el mismo.
+    interesSiguiente: tieneInteresManual(p) ? interes : round2(capitalDespues * (pct / 100)),
+    fechaSiguiente: siguienteFechaCobro(p.fecha_interes, p.cobro_repite) ?? sumarUnMes(p.fecha_interes),
+  };
+}
+
+async function capitalizarInteres(p) {
+  const { interes, capitalAntes, capitalDespues, fechaSiguiente } = simularCapitalizacion(p);
+  await updatePrestamo(p.id, {
+    capital: capitalDespues,
+    fecha_interes: fechaSiguiente,
+    capitalizaciones: [
+      ...capitalizacionesDe(p),
+      {
+        fecha: todayISO(),
+        interes,
+        capital_antes: capitalAntes,
+        capital_despues: capitalDespues,
+        // Guardado para poder deshacer con exactitud si fue un error.
+        fecha_interes_antes: p.fecha_interes ?? null,
+      },
+    ],
+  });
+}
+
+// Deshacer el último "No ha pagado" (un toque sin querer no puede dejar la
+// deuda inflada): devuelve el capital y la fecha a como estaban.
+async function deshacerCapitalizacion(p) {
+  const lista = capitalizacionesDe(p);
+  const ultima = lista[lista.length - 1];
+  if (!ultima) return;
+  await updatePrestamo(p.id, {
+    capital: Number(ultima.capital_antes ?? p.capital ?? 0),
+    fecha_interes: ultima.fecha_interes_antes ?? p.fecha_interes ?? null,
+    capitalizaciones: lista.slice(0, -1),
+  });
+}
+
 // Tras un cobro apuntado (o al pedir "siguiente fecha"): la fecha del
 // aviso avanza si se repite, o se apaga si era un cobro único.
 async function avanzarAvisoCobro(p) {
@@ -266,6 +345,25 @@ function abrirDesgloseMes(prestamos, movimientos) {
   `,
     { onMount: (root) => root.querySelector("#btn-cerrar-desglose").addEventListener("click", closeModal) }
   );
+}
+
+// "hace N días" para una fecha que ya pasó.
+function textoDiasAtras(fecha) {
+  const dias = Math.round((new Date(todayISO() + "T12:00:00") - new Date(fecha + "T12:00:00")) / 86400000);
+  return dias === 1 ? "hace 1 día" : `hace ${dias} días`;
+}
+
+// La línea del día de cobro, dicha en el tiempo verbal correcto: si la
+// fecha ya pasó no vale "para el 3 de septiembre" — ese día pasó y lo que
+// hay es un retraso, así que se dice y se marca en rojo.
+function vencimientoDe(p) {
+  if (!p.fecha_interes || p.estado === "Pagado") return null;
+  const hoy = todayISO();
+  const f = p.fecha_interes;
+  const fechaTxt = formatFecha(new Date(f + "T12:00:00"));
+  if (f > hoy) return { vencido: false, texto: `Te paga el ${fechaTxt}`, cuando: textoEnDias(f) };
+  if (f === hoy) return { vencido: true, texto: "Te tiene que pagar hoy", cuando: "" };
+  return { vencido: true, texto: `Te tenía que pagar el ${fechaTxt}`, cuando: textoDiasAtras(f) };
 }
 
 // Qué historial está desplegado (se recuerda entre repintados).
@@ -382,6 +480,11 @@ export function renderPrestamos(state) {
                     ? `<span class="aviso-cobros__nota">márcalo en su plan de abajo</span>`
                     : `<button type="button" class="btn btn--primary btn--sm" data-aviso-abono="${p.id}">± Apuntar el pago</button>
                        ${
+                         interesTotalDe(p) > 0
+                           ? `<button type="button" class="btn btn--ghost btn--sm" data-no-ha-pagado="${p.id}">No ha pagado</button>`
+                           : ""
+                       }
+                       ${
                          p.cobro_repite === "semana" || p.cobro_repite === "mes"
                            ? `<button type="button" class="btn btn--ghost btn--sm" data-aviso-siguiente="${p.id}">Pasar a la siguiente fecha</button>`
                            : `<button type="button" class="btn btn--ghost btn--sm" data-aviso-quitar="${p.id}">Quitar el aviso</button>`
@@ -420,13 +523,51 @@ export function renderPrestamos(state) {
       const montoMostrado = planPagos ? restantePlanDePagos(p, pagosPrestamos) : pendiente;
       // El desglose de la deuda, en una línea: qué se prestó, qué interés
       // lleva y cuánto ha devuelto ya. La barra es lo pagado sobre el total.
+      // La cuenta, línea a línea y sumando a la vista: capital, interés,
+      // lo ya pagado y lo que queda. Antes era un párrafo apretado donde el
+      // capital y el interés se perdían entre comas.
+      const vencimiento = vencimientoDe(p);
+      const capitalizaciones = capitalizacionesDe(p);
+      const sumadoAlCapital = capitalizaciones.reduce((acc, c) => acc + Number(c.interes ?? 0), 0);
       const desglose = planPagos
         ? ""
-        : `<p class="entity-card__meta">Prestado ${formatEUR(capital)}${
-            interes > 0 ? ` + interés ${formatEUR(interes)}${!tieneInteresManual(p) && pct > 0 ? ` (${pct} %)` : ""} = debe ${formatEUR(total)}` : ""
-          }${pagado > 0 ? ` · ya ha pagado ${formatEUR(pagado)}` : ""}${
-            p.fecha_interes && p.estado !== "Pagado" ? ` · para el ${formatFecha(new Date(p.fecha_interes + "T00:00:00"))}` : ""
-          }</p>
+        : `<div class="prestamo-cuenta">
+            <div class="prestamo-cuenta__fila">
+              <span>Capital</span><span class="prestamo-cuenta__cifra">${formatEUR(capital)}</span>
+            </div>
+            ${
+              interes > 0
+                ? `<div class="prestamo-cuenta__fila">
+                    <span>Interés${!tieneInteresManual(p) && pct > 0 ? ` (${pct} %)` : ""}</span>
+                    <span class="prestamo-cuenta__cifra">+ ${formatEUR(interes)}</span>
+                  </div>`
+                : ""
+            }
+            ${
+              pagado > 0
+                ? `<div class="prestamo-cuenta__fila">
+                    <span>Ya ha pagado</span><span class="prestamo-cuenta__cifra prestamo-cuenta__cifra--pos">− ${formatEUR(pagado)}</span>
+                  </div>`
+                : ""
+            }
+            <div class="prestamo-cuenta__fila prestamo-cuenta__fila--total">
+              <span>${p.estado === "Pagado" ? "Saldado" : "Te debe"}</span><span class="prestamo-cuenta__cifra">${formatEUR(pendiente)}</span>
+            </div>
+          </div>
+          ${
+            vencimiento
+              ? `<p class="prestamo-vence${vencimiento.vencido ? " prestamo-vence--tarde" : ""}"><span>${vencimiento.texto}</span>${
+                  vencimiento.cuando ? `<span class="prestamo-vence__cuando">${vencimiento.cuando}</span>` : ""
+                }</p>`
+              : ""
+          }
+          ${
+            sumadoAlCapital > 0
+              ? `<p class="entity-card__meta">Interés sumado al capital: ${capitalizaciones.length} ${
+                  capitalizaciones.length === 1 ? "vez" : "veces"
+                } · ${formatEUR(round2(sumadoAlCapital))} <button type="button" class="prestamo-deshacer" data-deshacer-capitalizacion="${p.id}">Deshacer el último</button></p>`
+              : ""
+          }
           ${
             p.estado !== "Pagado" && total > 0
               ? `<div class="progress-track" style="margin:4px 0 8px;"><div class="progress-fill" style="width:${Math.min(100, Math.round((pagado / total) * 100))}%"></div></div>`
@@ -458,6 +599,11 @@ export function renderPrestamos(state) {
               : ""
           }
           ${
+            p.estado !== "Pagado" && !planPagos && interes > 0 && vencimiento?.vencido
+              ? `<button type="button" class="btn btn--ghost btn--sm btn--block" data-no-ha-pagado="${p.id}">⏭ No ha pagado · sumar el interés al capital</button>`
+              : ""
+          }
+          ${
             p.estado !== "Pagado"
               ? `<button type="button" class="btn btn--ghost btn--sm btn--block prestamo-liquidar-btn" data-liquidar="${p.id}">💰 Ha pagado todo lo pendiente (liquidar)</button>`
               : ""
@@ -476,6 +622,12 @@ export function renderPrestamos(state) {
   );
   el.querySelectorAll("[data-aviso-quitar]").forEach((btn) =>
     btn.addEventListener("click", () => updatePrestamo(btn.dataset.avisoQuitar, { fecha_interes: null }))
+  );
+  el.querySelectorAll("[data-no-ha-pagado]").forEach((btn) =>
+    btn.addEventListener("click", () => openNoHaPagadoForm(prestamos.find((p) => p.id === btn.dataset.noHaPagado)))
+  );
+  el.querySelectorAll("[data-deshacer-capitalizacion]").forEach((btn) =>
+    btn.addEventListener("click", () => openDeshacerCapitalizacion(prestamos.find((p) => p.id === btn.dataset.deshacerCapitalizacion)))
   );
   el.querySelectorAll("[data-edit]").forEach((btn) =>
     btn.addEventListener("click", () => openPrestamoForm(prestamos.find((p) => p.id === btn.dataset.edit), state))
@@ -646,6 +798,74 @@ async function deshacerDiaPagado(pago) {
 // de 120, por ejemplo). Nada de repartir entre interés y capital — el
 // importe simplemente resta del total pendiente, y si con este pago llega
 // a cero, el préstamo se cierra solo como Pagado.
+// "No ha pagado": el interés del periodo se suma al capital y, con un %
+// pactado, el interés del periodo siguiente ya sale del capital nuevo.
+// Antes de tocar nada se enseñan las cifras exactas — es una decisión que
+// aumenta la deuda de una persona, así que se ve lo que va a pasar.
+function openNoHaPagadoForm(prestamo) {
+  if (!prestamo) return;
+  const { interes, capitalAntes, capitalDespues, interesSiguiente, manual, fechaSiguiente } = simularCapitalizacion(prestamo);
+  openModal(
+    `
+    <h2 class="modal__title">${esc(prestamo.persona)} no ha pagado</h2>
+    <p class="entity-card__meta" style="margin:-8px 0 14px;">
+      El interés de este periodo no se pierde: se suma al capital, y la deuda sigue creciendo desde ahí.
+    </p>
+    <div class="prestamo-cuenta">
+      <div class="prestamo-cuenta__fila"><span>Capital ahora</span><span class="prestamo-cuenta__cifra">${formatEUR(capitalAntes)}</span></div>
+      <div class="prestamo-cuenta__fila"><span>Interés sin pagar</span><span class="prestamo-cuenta__cifra">+ ${formatEUR(interes)}</span></div>
+      <div class="prestamo-cuenta__fila prestamo-cuenta__fila--total"><span>Capital nuevo</span><span class="prestamo-cuenta__cifra">${formatEUR(capitalDespues)}</span></div>
+    </div>
+    <p class="prestamo-nota-fuerte">${
+      manual
+        ? `El interés seguirá siendo el que fijaste a mano: ${formatEUR(interesSiguiente)}.`
+        : `El próximo interés se calculará sobre ${formatEUR(capitalDespues)}: ${formatEUR(interesSiguiente)}.`
+    }</p>
+    <p class="prestamo-nota-fuerte">Próximo cobro: ${formatFecha(new Date(fechaSiguiente + "T12:00:00"))}.</p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--ghost" id="btn-cancel-no-pagado">Cancelar</button>
+      <button type="button" class="btn btn--primary" id="btn-confirmar-no-pagado">Sumar el interés al capital</button>
+    </div>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancel-no-pagado").addEventListener("click", closeModal);
+        root.querySelector("#btn-confirmar-no-pagado").addEventListener("click", async () => {
+          await capitalizarInteres(prestamo);
+          closeModal();
+        });
+      },
+    }
+  );
+}
+
+// Y la vuelta atrás, por si el botón se tocó sin querer.
+function openDeshacerCapitalizacion(prestamo) {
+  if (!prestamo) return;
+  const ultima = capitalizacionesDe(prestamo).slice(-1)[0];
+  if (!ultima) return;
+  openModal(
+    `
+    <h2 class="modal__title">Deshacer el último</h2>
+    <p class="entity-card__meta" style="margin:-8px 0 6px;">${`Se sumaron ${formatEUR(Number(ultima.interes ?? 0))} de interés al capital de ${esc(prestamo.persona)} (de ${formatEUR(Number(ultima.capital_antes ?? 0))} a ${formatEUR(Number(ultima.capital_despues ?? 0))}).`}</p>
+    <p class="entity-card__meta" style="margin:0 0 14px;">Al deshacerlo, el capital y la fecha de cobro vuelven a como estaban.</p>
+    <div class="modal__actions">
+      <button type="button" class="btn btn--ghost" id="btn-cancel-deshacer">Cancelar</button>
+      <button type="button" class="btn btn--primary" id="btn-confirmar-deshacer">Deshacer</button>
+    </div>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancel-deshacer").addEventListener("click", closeModal);
+        root.querySelector("#btn-confirmar-deshacer").addEventListener("click", async () => {
+          await deshacerCapitalizacion(prestamo);
+          closeModal();
+        });
+      },
+    }
+  );
+}
+
 function openAbonoForm(prestamo, state) {
   const pendiente = pendienteDe(prestamo);
   const total = totalDe(prestamo);
