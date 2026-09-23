@@ -117,6 +117,24 @@ export const DICCIONARIO_PT = {
   "Deshacer":
     "Desfazer",
 
+  // ---------- Préstamos · corregir a mano y recargos ----------
+  "Te debe ahora (€)":
+    "Te deve agora (€)",
+  "Cambia uno y el otro se ajusta solo.":
+    "Mude um e o outro se ajusta sozinho.",
+  "¿Qué es este pago?":
+    "O que é este pagamento?",
+  "Devolución · baja lo que te debe":
+    "Devolução · baixa o que te deve",
+  "Recargo por retraso · no baja la deuda":
+    "Multa por atraso · não baixa a dívida",
+  "✎ Corregir el préstamo a mano":
+    "✎ Corrigir o empréstimo à mão",
+  "Recargo":
+    "Multa",
+  "Para que deba más, sube el capital o el interés.":
+    "Para que deva mais, aumente o capital ou os juros.",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Pagamentos que te devem",
@@ -813,6 +831,9 @@ export const DICCIONARIO_PT = {
 // Patrones: para los textos que llevan datos dentro (números, nombres,
 // fechas). $1, $2… conservan esos datos tal cual.
 export const PATRONES_PT = [
+  [/^Total a devolver (.+) · ya pagado (.+) → te debe (.+)\.$/, "Total a devolver $1 · já pago $2 → te deve $3."],
+  [/^Recargo de (.+): entra como ingreso y la deuda sigue en (.+)\.$/, "Multa de $1: entra como receita e a dívida continua em $2."],
+  [/^El recargo entra como ingreso y la deuda sigue en (.+)\.$/, "A multa entra como receita e a dívida continua em $1."],
   [/^Interés \((.+) %\)$/, "Juros ($1 %)"],
   [/^(.+) no ha pagado$/, "$1 não pagou"],
   [/^Te paga el (.+)$/, "Te paga em $1"],

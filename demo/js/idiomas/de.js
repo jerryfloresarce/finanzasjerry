@@ -107,6 +107,24 @@ export const DICCIONARIO_DE = {
   "Deshacer":
     "Rückgängig",
 
+  // ---------- Préstamos · corregir a mano y recargos ----------
+  "Te debe ahora (€)":
+    "Schuldet dir jetzt (€)",
+  "Cambia uno y el otro se ajusta solo.":
+    "Ändere eins, das andere passt sich von selbst an.",
+  "¿Qué es este pago?":
+    "Was ist diese Zahlung?",
+  "Devolución · baja lo que te debe":
+    "Rückzahlung · senkt die Schuld",
+  "Recargo por retraso · no baja la deuda":
+    "Verzugsgebühr · senkt die Schuld nicht",
+  "✎ Corregir el préstamo a mano":
+    "✎ Darlehen von Hand korrigieren",
+  "Recargo":
+    "Verzugsgebühr",
+  "Para que deba más, sube el capital o el interés.":
+    "Damit mehr geschuldet wird, erhöhe Kapital oder Zinsen.",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Zahlungen, die man dir schuldet",
@@ -781,6 +799,9 @@ export const DICCIONARIO_DE = {
 };
 
 export const PATRONES_DE = [
+  [/^Total a devolver (.+) · ya pagado (.+) → te debe (.+)\.$/, "Gesamt zurückzuzahlen $1 · schon gezahlt $2 → schuldet dir $3."],
+  [/^Recargo de (.+): entra como ingreso y la deuda sigue en (.+)\.$/, "Verzugsgebühr von $1: geht als Einnahme ein, die Schuld bleibt bei $2."],
+  [/^El recargo entra como ingreso y la deuda sigue en (.+)\.$/, "Die Verzugsgebühr geht als Einnahme ein, die Schuld bleibt bei $1."],
   [/^Interés \((.+) %\)$/, "Zinsen ($1 %)"],
   [/^(.+) no ha pagado$/, "$1 hat nicht gezahlt"],
   [/^Te paga el (.+)$/, "Zahlt dir am $1"],

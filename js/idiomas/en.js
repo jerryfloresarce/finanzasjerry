@@ -108,6 +108,24 @@ export const DICCIONARIO_EN = {
   "Deshacer":
     "Undo",
 
+  // ---------- Préstamos · corregir a mano y recargos ----------
+  "Te debe ahora (€)":
+    "Owes you now (€)",
+  "Cambia uno y el otro se ajusta solo.":
+    "Change one and the other adjusts by itself.",
+  "¿Qué es este pago?":
+    "What is this payment?",
+  "Devolución · baja lo que te debe":
+    "Repayment · lowers what they owe you",
+  "Recargo por retraso · no baja la deuda":
+    "Late fee · doesn't lower the debt",
+  "✎ Corregir el préstamo a mano":
+    "✎ Fix the loan by hand",
+  "Recargo":
+    "Late fee",
+  "Para que deba más, sube el capital o el interés.":
+    "To make them owe more, raise the principal or the interest.",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Payments owed to you",
@@ -782,6 +800,9 @@ export const DICCIONARIO_EN = {
 };
 
 export const PATRONES_EN = [
+  [/^Total a devolver (.+) · ya pagado (.+) → te debe (.+)\.$/, "Total to repay $1 · already paid $2 → owes you $3."],
+  [/^Recargo de (.+): entra como ingreso y la deuda sigue en (.+)\.$/, "Late fee of $1: comes in as income and the debt stays at $2."],
+  [/^El recargo entra como ingreso y la deuda sigue en (.+)\.$/, "The late fee comes in as income and the debt stays at $1."],
   [/^Interés \((.+) %\)$/, "Interest ($1%)"],
   [/^(.+) no ha pagado$/, "$1 hasn't paid"],
   [/^Te paga el (.+)$/, "Pays you on $1"],

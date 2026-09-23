@@ -107,6 +107,24 @@ export const DICCIONARIO_CA = {
   "Deshacer":
     "Desfés",
 
+  // ---------- Préstamos · corregir a mano y recargos ----------
+  "Te debe ahora (€)":
+    "Et deu ara (€)",
+  "Cambia uno y el otro se ajusta solo.":
+    "Canvia un i l'altre s'ajusta sol.",
+  "¿Qué es este pago?":
+    "Què és aquest pagament?",
+  "Devolución · baja lo que te debe":
+    "Devolució · baixa el que et deu",
+  "Recargo por retraso · no baja la deuda":
+    "Recàrrec per retard · no baixa el deute",
+  "✎ Corregir el préstamo a mano":
+    "✎ Corregir el préstec a mà",
+  "Recargo":
+    "Recàrrec",
+  "Para que deba más, sube el capital o el interés.":
+    "Perquè degui més, puja el capital o l'interès.",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Cobraments que et deuen",
@@ -781,6 +799,9 @@ export const DICCIONARIO_CA = {
 };
 
 export const PATRONES_CA = [
+  [/^Total a devolver (.+) · ya pagado (.+) → te debe (.+)\.$/, "Total a retornar $1 · ja pagat $2 → et deu $3."],
+  [/^Recargo de (.+): entra como ingreso y la deuda sigue en (.+)\.$/, "Recàrrec de $1: entra com a ingrés i el deute continua en $2."],
+  [/^El recargo entra como ingreso y la deuda sigue en (.+)\.$/, "El recàrrec entra com a ingrés i el deute continua en $1."],
   [/^Interés \((.+) %\)$/, "Interès ($1 %)"],
   [/^(.+) no ha pagado$/, "$1 no ha pagat"],
   [/^Te paga el (.+)$/, "Et paga el $1"],

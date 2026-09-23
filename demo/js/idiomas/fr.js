@@ -107,6 +107,24 @@ export const DICCIONARIO_FR = {
   "Deshacer":
     "Annuler",
 
+  // ---------- Préstamos · corregir a mano y recargos ----------
+  "Te debe ahora (€)":
+    "Te doit maintenant (€)",
+  "Cambia uno y el otro se ajusta solo.":
+    "Modifie l'un et l'autre s'ajuste tout seul.",
+  "¿Qué es este pago?":
+    "Qu'est-ce que ce paiement ?",
+  "Devolución · baja lo que te debe":
+    "Remboursement · réduit ce qu'il te doit",
+  "Recargo por retraso · no baja la deuda":
+    "Pénalité de retard · ne réduit pas la dette",
+  "✎ Corregir el préstamo a mano":
+    "✎ Corriger le prêt à la main",
+  "Recargo":
+    "Pénalité",
+  "Para que deba más, sube el capital o el interés.":
+    "Pour qu'il doive plus, augmente le capital ou les intérêts.",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Paiements qu'on vous doit",
@@ -781,6 +799,9 @@ export const DICCIONARIO_FR = {
 };
 
 export const PATRONES_FR = [
+  [/^Total a devolver (.+) · ya pagado (.+) → te debe (.+)\.$/, "Total à rembourser $1 · déjà payé $2 → te doit $3."],
+  [/^Recargo de (.+): entra como ingreso y la deuda sigue en (.+)\.$/, "Pénalité de $1 : entre comme revenu et la dette reste à $2."],
+  [/^El recargo entra como ingreso y la deuda sigue en (.+)\.$/, "La pénalité entre comme revenu et la dette reste à $1."],
   [/^Interés \((.+) %\)$/, "Intérêts ($1 %)"],
   [/^(.+) no ha pagado$/, "$1 n'a pas payé"],
   [/^Te paga el (.+)$/, "Te paie le $1"],

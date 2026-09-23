@@ -1,4 +1,4 @@
-import { localeActual } from "../idioma.js?v=130";
+import { localeActual } from "../idioma.js?v=131";
 import {
   calcularSaldoCuenta,
   calcularSaldoTotal,
@@ -13,15 +13,15 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   nombreDeCuenta,
-} from "../db.js?v=130";
-import { avisosDeCobro, proximosCobros, textoEnDias, avisosCobroActivos } from "./prestamos.js?v=130";
-import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=130";
-import { seedInitialData } from "../seed.js?v=130";
-import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=130";
-import { openHistorial } from "./cuentas.js?v=130";
-import { esc, openModal, closeModal } from "../modal.js?v=130";
-import { sentidoDeTransferencia } from "./movimientos.js?v=130";
-import { colorTema, paletaTema } from "../tema.js?v=130";
+} from "../db.js?v=131";
+import { avisosDeCobro, proximosCobros, textoEnDias, avisosCobroActivos } from "./prestamos.js?v=131";
+import { initDashboardAnimations, iniciarPaseDeRender, countUpTo, animateProgressBars, estaAsentando } from "../animations.js?v=131";
+import { seedInitialData } from "../seed.js?v=131";
+import { icon, entityIcon, iconForCategoriaTipo, iconForCuentaTipo, iconForSuscripcion, initials, avatarColor } from "../icons.js?v=131";
+import { openHistorial } from "./cuentas.js?v=131";
+import { esc, openModal, closeModal } from "../modal.js?v=131";
+import { sentidoDeTransferencia } from "./movimientos.js?v=131";
+import { colorTema, paletaTema } from "../tema.js?v=131";
 
 let chartInstance = null;
 

@@ -107,6 +107,24 @@ export const DICCIONARIO_IT = {
   "Deshacer":
     "Annulla",
 
+  // ---------- Préstamos · corregir a mano y recargos ----------
+  "Te debe ahora (€)":
+    "Ti deve ora (€)",
+  "Cambia uno y el otro se ajusta solo.":
+    "Cambia uno e l'altro si aggiusta da solo.",
+  "¿Qué es este pago?":
+    "Che cos'è questo pagamento?",
+  "Devolución · baja lo que te debe":
+    "Restituzione · abbassa quanto ti deve",
+  "Recargo por retraso · no baja la deuda":
+    "Mora per ritardo · non abbassa il debito",
+  "✎ Corregir el préstamo a mano":
+    "✎ Correggi il prestito a mano",
+  "Recargo":
+    "Mora",
+  "Para que deba más, sube el capital o el interés.":
+    "Perché debba di più, alza il capitale o gli interessi.",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Pagamenti che ti devono",
@@ -781,6 +799,9 @@ export const DICCIONARIO_IT = {
 };
 
 export const PATRONES_IT = [
+  [/^Total a devolver (.+) · ya pagado (.+) → te debe (.+)\.$/, "Totale da restituire $1 · già pagato $2 → ti deve $3."],
+  [/^Recargo de (.+): entra como ingreso y la deuda sigue en (.+)\.$/, "Mora di $1: entra come entrata e il debito resta a $2."],
+  [/^El recargo entra como ingreso y la deuda sigue en (.+)\.$/, "La mora entra come entrata e il debito resta a $1."],
   [/^Interés \((.+) %\)$/, "Interessi ($1 %)"],
   [/^(.+) no ha pagado$/, "$1 non ha pagato"],
   [/^Te paga el (.+)$/, "Ti paga il $1"],

@@ -15,12 +15,12 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=130";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=130";
-import { initials, avatarColor, icon } from "../icons.js?v=130";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=130";
-import { efectoDeCelebracion } from "../efectos.js?v=130";
-import { localeActual } from "../idioma.js?v=130";
+} from "../db.js?v=131";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=131";
+import { initials, avatarColor, icon } from "../icons.js?v=131";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=131";
+import { efectoDeCelebracion } from "../efectos.js?v=131";
+import { localeActual } from "../idioma.js?v=131";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -299,7 +299,9 @@ function cobrosDelMes(prestamos, movimientos) {
     if (!(importe > 0)) continue;
     const p = prestamos.find((x) => x.id === mov.prestamo_id);
     const ratio = p && !esPlanDePagos(p) && totalDe(p) > 0 ? interesTotalDe(p) / totalDe(p) : 0;
-    const interes = round2(importe * ratio);
+    // Un recargo por retraso no devuelve capital: es ganancia entera.
+    const esRecargo = typeof mov.subcategoria === "string" && mov.subcategoria.startsWith("Recargo préstamo");
+    const interes = esRecargo ? importe : round2(importe * ratio);
     const capital = round2(importe - interes);
     const persona = p?.persona || (typeof mov.subcategoria === "string" ? mov.subcategoria.split("·")[1]?.trim() : "") || "—";
     if (!porPersona.has(persona)) porPersona.set(persona, { capital: 0, interes: 0 });
@@ -375,7 +377,9 @@ function renderHistorialPagos(p, movimientos) {
   const total = pagos.reduce((acc, m) => acc + Number(m.importe ?? 0), 0);
   const abierto = historialAbierto.has(p.id);
   const etiqueta = (m) =>
-    m.subcategoria?.startsWith("Interés préstamo")
+    m.subcategoria?.startsWith("Recargo préstamo")
+      ? "Recargo"
+      : m.subcategoria?.startsWith("Interés préstamo")
       ? "Interés"
       : m.subcategoria?.startsWith("Plan de pagos")
         ? "Cuota del plan"
@@ -606,6 +610,11 @@ export function renderPrestamos(state) {
           ${
             p.estado !== "Pagado"
               ? `<button type="button" class="btn btn--ghost btn--sm btn--block prestamo-liquidar-btn" data-liquidar="${p.id}">💰 Ha pagado todo lo pendiente (liquidar)</button>`
+              : ""
+          }
+          ${
+            p.estado !== "Pagado"
+              ? `<button type="button" class="btn btn--ghost btn--sm btn--block" data-edit="${p.id}">✎ Corregir el préstamo a mano</button>`
               : ""
           }
         </article>`,
@@ -870,7 +879,12 @@ function openAbonoForm(prestamo, state) {
   const pendiente = pendienteDe(prestamo);
   const total = totalDe(prestamo);
 
-  const resumenDe = (importe) => {
+  const resumenDe = (importe, tipoPago = "devolucion") => {
+    if (tipoPago === "recargo") {
+      return importe > 0
+        ? `Recargo de ${formatEUR(importe)}: entra como ingreso y la deuda sigue en ${formatEUR(pendiente)}.`
+        : `El recargo entra como ingreso y la deuda sigue en ${formatEUR(pendiente)}.`;
+    }
     if (!(importe > 0)) {
       return `Debe <strong>${formatEUR(pendiente)}</strong>${pagadoDe(prestamo) > 0 ? ` (de ${formatEUR(total)} en total)` : ""}. Escribe cuánto ha pagado.`;
     }
@@ -889,10 +903,17 @@ function openAbonoForm(prestamo, state) {
         <input type="number" step="0.01" min="0.01" name="importe" required placeholder="30.00" />
       </label>
       <label class="field">
+        <span class="field__label">¿Qué es este pago?</span>
+        <select name="tipo_pago">
+          <option value="devolucion">Devolución · baja lo que te debe</option>
+          <option value="recargo">Recargo por retraso · no baja la deuda</option>
+        </select>
+      </label>
+      <label class="field">
         <span class="field__label">¿A qué cuenta entra?</span>
         <select name="cuenta_id">${optionsFrom(state.cuentas, { selected: prestamo.cuenta_id })}</select>
       </label>
-      <label class="field field--full">
+      <label class="field">
         <span class="field__label">Fecha</span>
         <input type="date" name="fecha" value="${todayISO()}" required />
       </label>
@@ -907,14 +928,18 @@ function openAbonoForm(prestamo, state) {
     {
       onMount: (root) => {
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
-        root.querySelector('#form-abono [name="importe"]').addEventListener("input", (e) => {
-          root.querySelector("#abono-resumen").innerHTML = resumenDe(Number(e.target.value || 0));
-        });
+        const f0 = root.querySelector("#form-abono");
+        const repintar = () => {
+          root.querySelector("#abono-resumen").innerHTML = resumenDe(Number(f0.importe.value || 0), f0.tipo_pago.value);
+        };
+        f0.importe.addEventListener("input", repintar);
+        f0.tipo_pago.addEventListener("change", repintar);
         root.querySelector("#form-abono").addEventListener("submit", async (e) => {
           e.preventDefault();
           const f = e.target;
           const importe = Number(f.importe.value);
           if (!(importe > 0)) return;
+          const esRecargo = f.tipo_pago.value === "recargo";
           try {
             await addMovimiento({
               tipo: "Ingreso",
@@ -923,10 +948,16 @@ function openAbonoForm(prestamo, state) {
               cuenta_id: f.cuenta_id.value,
               cuenta_destino_id: null,
               fecha: toTimestamp(f.fecha.value),
-              subcategoria: `Abono préstamo · ${prestamo.persona}`,
+              subcategoria: `${esRecargo ? "Recargo préstamo" : "Abono préstamo"} · ${prestamo.persona}`,
               nota: "",
               prestamo_id: prestamo.id,
             });
+            // Un recargo por retraso es ganancia pura: ya ha entrado como
+            // ingreso, y ahí se queda. Ni baja la deuda ni toca el aviso.
+            if (esRecargo) {
+              closeModal();
+              return;
+            }
             // El pago solo suma a "pagado": el capital y el interés del
             // préstamo no se tocan, así el desglose siempre cuenta la
             // historia completa (prestado + interés − pagado = pendiente).
@@ -1092,8 +1123,13 @@ function openPrestamoForm(prestamo, state) {
           ? `
       <label class="field">
         <span class="field__label">Ya pagado hasta ahora (€)</span>
-        <input type="number" step="0.01" name="pagado" value="${pagadoDe(prestamo)}" placeholder="0.00" />
-      </label>`
+        <input type="number" step="0.01" min="0" name="pagado" value="${pagadoDe(prestamo)}" placeholder="0.00" />
+      </label>
+      <label class="field">
+        <span class="field__label">Te debe ahora (€)</span>
+        <input type="number" step="0.01" min="0" name="debe" value="${pendienteDe(prestamo)}" placeholder="0.00" />
+      </label>
+      <p class="entity-card__meta field--full" style="margin:-4px 0 4px;">Cambia uno y el otro se ajusta solo.</p>`
           : ""
       }
       <label class="field">
@@ -1132,15 +1168,60 @@ function openPrestamoForm(prestamo, state) {
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
         const form = root.querySelector("#form-prestamo");
         // La línea del total, en vivo: capital + interés = lo que debe.
-        const pintarTotal = () => {
+        const totalActual = () => {
           const cap = Number(form.capital.value || 0);
           const manual = form.interes_manual.value !== "" ? Number(form.interes_manual.value) : null;
           const interes = manual !== null ? manual : round2(cap * (Number(form.interes_porcentaje.value || 0) / 100));
-          root.querySelector("#prestamo-total-linea").innerHTML =
-            cap > 0 ? `Total a devolver: <strong>${formatEUR(round2(cap + interes))}</strong>${interes > 0 ? ` (${formatEUR(cap)} + ${formatEUR(interes)} de interés)` : ""}. Cada pago resta de ahí hasta liquidar.` : "";
+          return { cap, interes, total: round2(cap + interes) };
+        };
+        // Al editar, "Ya pagado" y "Te debe ahora" son las dos caras de la
+        // misma moneda: se toca cualquiera y la otra se ajusta. Si se pide
+        // que deba más que el total, el total es el techo: hay que subir el
+        // capital o el interés, y la línea lo dice.
+        const sincronizar = (origen) => {
+          if (!isEdit || !form.debe) return;
+          const { total } = totalActual();
+          if (origen === "debe") {
+            const debe = Math.max(0, Number(form.debe.value || 0));
+            form.pagado.value = round2(total - Math.min(debe, total)).toFixed(2);
+          } else {
+            const pagado = Math.max(0, Number(form.pagado.value || 0));
+            form.debe.value = Math.max(0, round2(total - pagado)).toFixed(2);
+          }
+        };
+        const pintarTotal = () => {
+          const { cap, interes, total } = totalActual();
+          const linea = root.querySelector("#prestamo-total-linea");
+          if (!(cap > 0)) {
+            linea.innerHTML = "";
+            return;
+          }
+          if (isEdit && form.debe) {
+            const pagado = Math.max(0, Number(form.pagado.value || 0));
+            const debe = Math.max(0, round2(total - pagado));
+            const pideDeMas = Number(form.debe.value || 0) > total + 0.004;
+            linea.innerHTML = `<span>Total a devolver ${formatEUR(total)} · ya pagado ${formatEUR(pagado)} → te debe ${formatEUR(debe)}.</span>${
+              pideDeMas ? ` <span class="prestamo-vence--tarde">Para que deba más, sube el capital o el interés.</span>` : ""
+            }`;
+            return;
+          }
+          linea.innerHTML = `Total a devolver: <strong>${formatEUR(total)}</strong>${interes > 0 ? ` (${formatEUR(cap)} + ${formatEUR(interes)} de interés)` : ""}. Cada pago resta de ahí hasta liquidar.`;
         };
         pintarTotal();
-        ["capital", "interes_porcentaje", "interes_manual"].forEach((n) => form[n].addEventListener("input", pintarTotal));
+        ["capital", "interes_porcentaje", "interes_manual"].forEach((n) =>
+          form[n].addEventListener("input", () => {
+            sincronizar("pagado");
+            pintarTotal();
+          })
+        );
+        form.debe?.addEventListener("input", () => {
+          sincronizar("debe");
+          pintarTotal();
+        });
+        form.pagado?.addEventListener("input", () => {
+          sincronizar("pagado");
+          pintarTotal();
+        });
         form.addEventListener("submit", async (e) => {
           e.preventDefault();
           const f = e.target;
