@@ -1,4 +1,4 @@
-import { localeActual, t as tr } from "../idioma.js?v=131";
+import { localeActual, t as tr } from "../idioma.js?v=132";
 import {
   addMovimiento,
   updateMovimiento,
@@ -11,11 +11,11 @@ import {
   destinoTransferencia,
   textoPeriodo,
   nombreDeCuenta,
-} from "../db.js?v=131";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=131";
-import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=131";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=131";
-import { colorTema } from "../tema.js?v=131";
+} from "../db.js?v=132";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=132";
+import { icon, entityIcon, iconForCategoriaTipo } from "../icons.js?v=132";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=132";
+import { colorTema } from "../tema.js?v=132";
 
 let currentState = null;
 // Primer día del mes que se está viendo en el calendario.

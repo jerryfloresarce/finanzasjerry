@@ -125,6 +125,44 @@ export const DICCIONARIO_CA = {
   "Para que deba más, sube el capital o el interés.":
     "Perquè degui més, puja el capital o l'interès.",
 
+  // ---------- Ajustes · avisos en el móvil ----------
+  "Avisos en el móvil":
+    "Avisos al mòbil",
+  "Con la app cerrada: cobros de préstamos, citas de la agenda, innegociables y suscripciones.":
+    "Amb l'app tancada: cobraments de préstecs, cites de l'agenda, innegociables i subscripcions.",
+  "Sin comprobar.":
+    "Sense comprovar.",
+  "Activar avisos en este móvil":
+    "Activar avisos en aquest mòbil",
+  "Mándame un aviso de prueba ahora":
+    "Envia'm un avís de prova ara",
+  "Desactivar en este móvil":
+    "Desactivar en aquest mòbil",
+  "El servidor de avisos aún no está configurado.":
+    "El servidor d'avisos encara no està configurat.",
+  "Comprobando…":
+    "Comprovant…",
+  "Sin activar en este móvil.":
+    "Sense activar en aquest mòbil.",
+  "En iPhone solo funciona con la app en la pantalla de inicio (Compartir → Añadir a pantalla de inicio).":
+    "A l'iPhone només funciona amb l'app a la pantalla d'inici (Compartir → Afegir a la pantalla d'inici).",
+  "Este navegador no permite avisos con la app cerrada.":
+    "Aquest navegador no permet avisos amb l'app tancada.",
+  "Activados en este móvil, pero ahora mismo no puedo comprobar el servidor.":
+    "Activats en aquest mòbil, però ara mateix no puc comprovar el servidor.",
+  "Activando…":
+    "Activant…",
+  "Mandando el aviso de prueba…":
+    "Enviant l'avís de prova…",
+  "Enviado. Tiene que aparecer en este móvil en unos segundos.":
+    "Enviat. Ha d'aparèixer en aquest mòbil d'aquí a uns segons.",
+  "En iPhone solo funciona con la app en la pantalla de inicio: Compartir → Añadir a pantalla de inicio, y activa desde ahí.":
+    "A l'iPhone només funciona amb l'app a la pantalla d'inici: Compartir → Afegir a la pantalla d'inici, i activa des d'allà.",
+  "No diste permiso para los avisos. Puedes cambiarlo en los ajustes del navegador.":
+    "No has donat permís per als avisos. Ho pots canviar als ajustos del navegador.",
+  "Este móvil no está suscrito: activa los avisos primero.":
+    "Aquest mòbil no està subscrit: activa primer els avisos.",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Cobraments que et deuen",
@@ -799,6 +837,12 @@ export const DICCIONARIO_CA = {
 };
 
 export const PATRONES_CA = [
+  [/^✓ Avisos activados · (\d+) programados · (\d+) enviados$/, "✓ Avisos activats · $1 programats · $2 enviats"],
+  [/^✓ Avisos activados · (\d+) programados$/, "✓ Avisos activats · $1 programats"],
+  [/^1 aviso no llegó: (.*)$/, "1 avís no ha arribat: $1"],
+  [/^(\d+) avisos no llegaron: (.*)$/, "$1 avisos no han arribat: $2"],
+  [/^No se pudo activar: (.+)$/, "No s'ha pogut activar: $1"],
+  [/^El servidor respondió (\d+)$/, "El servidor ha respost $1"],
   [/^Total a devolver (.+) · ya pagado (.+) → te debe (.+)\.$/, "Total a retornar $1 · ja pagat $2 → et deu $3."],
   [/^Recargo de (.+): entra como ingreso y la deuda sigue en (.+)\.$/, "Recàrrec de $1: entra com a ingrés i el deute continua en $2."],
   [/^El recargo entra como ingreso y la deuda sigue en (.+)\.$/, "El recàrrec entra com a ingrés i el deute continua en $1."],

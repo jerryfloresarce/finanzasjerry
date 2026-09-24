@@ -14,7 +14,7 @@
 import { cpSync, mkdirSync, rmSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 
 const SALIDA = "_site";
-const PUBLICAR = ["index.html", "manifest.json", "css", "js", "assets", "demo"];
+const PUBLICAR = ["index.html", "manifest.json", "sw.js", "css", "js", "assets", "demo"];
 
 rmSync(SALIDA, { recursive: true, force: true });
 mkdirSync(SALIDA);

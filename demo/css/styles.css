@@ -1918,6 +1918,15 @@ button.mini-row:last-child { border-bottom: none; }
 .data-row--historial { grid-template-columns: 90px 1fr 110px; }
 .data-row--historial .data-row__cat .icon-emoji { margin-right: 4px; }
 
+/* Avisos en el móvil (Ajustes): estado honesto y sus tres botones. */
+.avisos-push { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.avisos-push__titulo { display: block; }
+.avisos-push__estado { margin: 6px 0 10px; }
+.avisos-push__estado--ok { color: var(--success); }
+.avisos-push__estado--aviso { color: var(--warning); }
+.avisos-push__perdidos { color: var(--danger); font-size: 0.78rem; }
+.avisos-push__botones { display: flex; flex-wrap: wrap; gap: 8px; }
+
 /* El saldo previo bajo el importe de cada fila del historial, como en el
    extracto del banco. */
 .data-row__saldo {

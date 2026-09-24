@@ -1,0 +1,23 @@
+{
+  // El servidor de avisos de la app (ver worker/index.mjs).
+  //
+  // Antes del primer despliegue hay que crear el KV y pegar su id aquí:
+  //   npx wrangler kv namespace create AVISOS
+  // Y guardar la clave privada como secreto (worker/herramientas/generar-claves.mjs):
+  //   npx wrangler secret put VAPID_PRIVADA_JWK
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "avisos-app",
+  "main": "index.mjs",
+  "compatibility_date": "2025-09-01",
+  "triggers": { "crons": ["* * * * *"] },
+  "kv_namespaces": [{ "binding": "AVISOS", "id": "PON_AQUI_EL_ID_DEL_KV" }],
+  "vars": {
+    // Quién eres para el servicio de avisos del móvil (lo exige el estándar).
+    "VAPID_CONTACTO": "mailto:avisos@example.com",
+    // Orígenes de la app que pueden hablar con este worker, separados por
+    // comas. Vacío = cualquiera (los endpoints de cada móvil son secretos
+    // de por sí, así que no se filtra nada de nadie).
+    "ORIGENES_PERMITIDOS": ""
+  },
+  "observability": { "enabled": true }
+}

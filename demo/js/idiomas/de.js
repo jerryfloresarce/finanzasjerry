@@ -125,6 +125,44 @@ export const DICCIONARIO_DE = {
   "Para que deba más, sube el capital o el interés.":
     "Damit mehr geschuldet wird, erhöhe Kapital oder Zinsen.",
 
+  // ---------- Ajustes · avisos en el móvil ----------
+  "Avisos en el móvil":
+    "Benachrichtigungen auf dem Handy",
+  "Con la app cerrada: cobros de préstamos, citas de la agenda, innegociables y suscripciones.":
+    "Bei geschlossener App: Darlehenszahlungen, Termine aus der Agenda, Unverhandelbares und Abos.",
+  "Sin comprobar.":
+    "Noch nicht geprüft.",
+  "Activar avisos en este móvil":
+    "Benachrichtigungen auf diesem Handy einschalten",
+  "Mándame un aviso de prueba ahora":
+    "Schick mir jetzt eine Test-Benachrichtigung",
+  "Desactivar en este móvil":
+    "Auf diesem Handy ausschalten",
+  "El servidor de avisos aún no está configurado.":
+    "Der Benachrichtigungsserver ist noch nicht eingerichtet.",
+  "Comprobando…":
+    "Prüfe…",
+  "Sin activar en este móvil.":
+    "Auf diesem Handy nicht eingeschaltet.",
+  "En iPhone solo funciona con la app en la pantalla de inicio (Compartir → Añadir a pantalla de inicio).":
+    "Auf dem iPhone geht es nur mit der App auf dem Home-Bildschirm (Teilen → Zum Home-Bildschirm).",
+  "Este navegador no permite avisos con la app cerrada.":
+    "Dieser Browser erlaubt keine Benachrichtigungen bei geschlossener App.",
+  "Activados en este móvil, pero ahora mismo no puedo comprobar el servidor.":
+    "Auf diesem Handy eingeschaltet, aber ich erreiche den Server gerade nicht.",
+  "Activando…":
+    "Schalte ein…",
+  "Mandando el aviso de prueba…":
+    "Test-Benachrichtigung wird gesendet…",
+  "Enviado. Tiene que aparecer en este móvil en unos segundos.":
+    "Gesendet. Sie sollte in ein paar Sekunden auf diesem Handy erscheinen.",
+  "En iPhone solo funciona con la app en la pantalla de inicio: Compartir → Añadir a pantalla de inicio, y activa desde ahí.":
+    "Auf dem iPhone geht es nur mit der App auf dem Home-Bildschirm: Teilen → Zum Home-Bildschirm, und dort einschalten.",
+  "No diste permiso para los avisos. Puedes cambiarlo en los ajustes del navegador.":
+    "Du hast Benachrichtigungen nicht erlaubt. Das kannst du in den Browser-Einstellungen ändern.",
+  "Este móvil no está suscrito: activa los avisos primero.":
+    "Dieses Handy ist nicht angemeldet: schalte zuerst die Benachrichtigungen ein.",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Zahlungen, die man dir schuldet",
@@ -799,6 +837,12 @@ export const DICCIONARIO_DE = {
 };
 
 export const PATRONES_DE = [
+  [/^✓ Avisos activados · (\d+) programados · (\d+) enviados$/, "✓ Benachrichtigungen an · $1 geplant · $2 gesendet"],
+  [/^✓ Avisos activados · (\d+) programados$/, "✓ Benachrichtigungen an · $1 geplant"],
+  [/^1 aviso no llegó: (.*)$/, "1 Benachrichtigung kam nicht an: $1"],
+  [/^(\d+) avisos no llegaron: (.*)$/, "$1 Benachrichtigungen kamen nicht an: $2"],
+  [/^No se pudo activar: (.+)$/, "Konnte nicht einschalten: $1"],
+  [/^El servidor respondió (\d+)$/, "Der Server antwortete $1"],
   [/^Total a devolver (.+) · ya pagado (.+) → te debe (.+)\.$/, "Gesamt zurückzuzahlen $1 · schon gezahlt $2 → schuldet dir $3."],
   [/^Recargo de (.+): entra como ingreso y la deuda sigue en (.+)\.$/, "Verzugsgebühr von $1: geht als Einnahme ein, die Schuld bleibt bei $2."],
   [/^El recargo entra como ingreso y la deuda sigue en (.+)\.$/, "Die Verzugsgebühr geht als Einnahme ein, die Schuld bleibt bei $1."],

@@ -1,4 +1,4 @@
-import { localeActual } from "./idioma.js?v=131";
+import { localeActual } from "./idioma.js?v=132";
 import {
   collection,
   doc,
@@ -13,7 +13,7 @@ import {
   disableNetwork,
   enableNetwork,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=131";
+import { db } from "./firebase-init.js?v=132";
 
 // Cuando el iPhone deja la app en segundo plano (o la pantalla se apaga),
 // Safari congela la conexión abierta de Firestore. Al volver, esa conexión

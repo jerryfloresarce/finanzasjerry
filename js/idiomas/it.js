@@ -125,6 +125,44 @@ export const DICCIONARIO_IT = {
   "Para que deba más, sube el capital o el interés.":
     "Perché debba di più, alza il capitale o gli interessi.",
 
+  // ---------- Ajustes · avisos en el móvil ----------
+  "Avisos en el móvil":
+    "Avvisi sul telefono",
+  "Con la app cerrada: cobros de préstamos, citas de la agenda, innegociables y suscripciones.":
+    "Con l'app chiusa: incassi dei prestiti, appuntamenti dell'agenda, non negoziabili e abbonamenti.",
+  "Sin comprobar.":
+    "Non ancora verificato.",
+  "Activar avisos en este móvil":
+    "Attiva gli avvisi su questo telefono",
+  "Mándame un aviso de prueba ahora":
+    "Mandami un avviso di prova adesso",
+  "Desactivar en este móvil":
+    "Disattiva su questo telefono",
+  "El servidor de avisos aún no está configurado.":
+    "Il server degli avvisi non è ancora configurato.",
+  "Comprobando…":
+    "Verifica in corso…",
+  "Sin activar en este móvil.":
+    "Non attivati su questo telefono.",
+  "En iPhone solo funciona con la app en la pantalla de inicio (Compartir → Añadir a pantalla de inicio).":
+    "Su iPhone funziona solo con l'app nella schermata Home (Condividi → Aggiungi alla schermata Home).",
+  "Este navegador no permite avisos con la app cerrada.":
+    "Questo browser non permette avvisi con l'app chiusa.",
+  "Activados en este móvil, pero ahora mismo no puedo comprobar el servidor.":
+    "Attivati su questo telefono, ma adesso non riesco a raggiungere il server.",
+  "Activando…":
+    "Attivazione…",
+  "Mandando el aviso de prueba…":
+    "Invio dell'avviso di prova…",
+  "Enviado. Tiene que aparecer en este móvil en unos segundos.":
+    "Inviato. Dovrebbe comparire su questo telefono tra pochi secondi.",
+  "En iPhone solo funciona con la app en la pantalla de inicio: Compartir → Añadir a pantalla de inicio, y activa desde ahí.":
+    "Su iPhone funziona solo con l'app nella schermata Home: Condividi → Aggiungi alla schermata Home, poi attiva da lì.",
+  "No diste permiso para los avisos. Puedes cambiarlo en los ajustes del navegador.":
+    "Non hai dato il permesso per gli avvisi. Puoi cambiarlo nelle impostazioni del browser.",
+  "Este móvil no está suscrito: activa los avisos primero.":
+    "Questo telefono non è iscritto: attiva prima gli avvisi.",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Pagamenti che ti devono",
@@ -799,6 +837,12 @@ export const DICCIONARIO_IT = {
 };
 
 export const PATRONES_IT = [
+  [/^✓ Avisos activados · (\d+) programados · (\d+) enviados$/, "✓ Avvisi attivati · $1 programmati · $2 inviati"],
+  [/^✓ Avisos activados · (\d+) programados$/, "✓ Avvisi attivati · $1 programmati"],
+  [/^1 aviso no llegó: (.*)$/, "1 avviso non è arrivato: $1"],
+  [/^(\d+) avisos no llegaron: (.*)$/, "$1 avvisi non sono arrivati: $2"],
+  [/^No se pudo activar: (.+)$/, "Impossibile attivare: $1"],
+  [/^El servidor respondió (\d+)$/, "Il server ha risposto $1"],
   [/^Total a devolver (.+) · ya pagado (.+) → te debe (.+)\.$/, "Totale da restituire $1 · già pagato $2 → ti deve $3."],
   [/^Recargo de (.+): entra como ingreso y la deuda sigue en (.+)\.$/, "Mora di $1: entra come entrata e il debito resta a $2."],
   [/^El recargo entra como ingreso y la deuda sigue en (.+)\.$/, "La mora entra come entrata e il debito resta a $1."],

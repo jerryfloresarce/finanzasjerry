@@ -126,6 +126,44 @@ export const DICCIONARIO_EN = {
   "Para que deba más, sube el capital o el interés.":
     "To make them owe more, raise the principal or the interest.",
 
+  // ---------- Ajustes · avisos en el móvil ----------
+  "Avisos en el móvil":
+    "Notifications on your phone",
+  "Con la app cerrada: cobros de préstamos, citas de la agenda, innegociables y suscripciones.":
+    "With the app closed: loan collections, agenda appointments, non-negotiables and subscriptions.",
+  "Sin comprobar.":
+    "Not checked yet.",
+  "Activar avisos en este móvil":
+    "Turn on notifications on this phone",
+  "Mándame un aviso de prueba ahora":
+    "Send me a test notification now",
+  "Desactivar en este móvil":
+    "Turn off on this phone",
+  "El servidor de avisos aún no está configurado.":
+    "The notification server isn't set up yet.",
+  "Comprobando…":
+    "Checking…",
+  "Sin activar en este móvil.":
+    "Not turned on on this phone.",
+  "En iPhone solo funciona con la app en la pantalla de inicio (Compartir → Añadir a pantalla de inicio).":
+    "On iPhone it only works with the app on the Home Screen (Share → Add to Home Screen).",
+  "Este navegador no permite avisos con la app cerrada.":
+    "This browser doesn't allow notifications with the app closed.",
+  "Activados en este móvil, pero ahora mismo no puedo comprobar el servidor.":
+    "Turned on on this phone, but I can't reach the server right now.",
+  "Activando…":
+    "Turning on…",
+  "Mandando el aviso de prueba…":
+    "Sending the test notification…",
+  "Enviado. Tiene que aparecer en este móvil en unos segundos.":
+    "Sent. It should show up on this phone in a few seconds.",
+  "En iPhone solo funciona con la app en la pantalla de inicio: Compartir → Añadir a pantalla de inicio, y activa desde ahí.":
+    "On iPhone it only works with the app on the Home Screen: Share → Add to Home Screen, then turn it on from there.",
+  "No diste permiso para los avisos. Puedes cambiarlo en los ajustes del navegador.":
+    "You didn't allow notifications. You can change that in the browser settings.",
+  "Este móvil no está suscrito: activa los avisos primero.":
+    "This phone isn't subscribed: turn on notifications first.",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Payments owed to you",
@@ -800,6 +838,12 @@ export const DICCIONARIO_EN = {
 };
 
 export const PATRONES_EN = [
+  [/^✓ Avisos activados · (\d+) programados · (\d+) enviados$/, "✓ Notifications on · $1 scheduled · $2 sent"],
+  [/^✓ Avisos activados · (\d+) programados$/, "✓ Notifications on · $1 scheduled"],
+  [/^1 aviso no llegó: (.*)$/, "1 notification didn't arrive: $1"],
+  [/^(\d+) avisos no llegaron: (.*)$/, "$1 notifications didn't arrive: $2"],
+  [/^No se pudo activar: (.+)$/, "Couldn't turn on: $1"],
+  [/^El servidor respondió (\d+)$/, "The server answered $1"],
   [/^Total a devolver (.+) · ya pagado (.+) → te debe (.+)\.$/, "Total to repay $1 · already paid $2 → owes you $3."],
   [/^Recargo de (.+): entra como ingreso y la deuda sigue en (.+)\.$/, "Late fee of $1: comes in as income and the debt stays at $2."],
   [/^El recargo entra como ingreso y la deuda sigue en (.+)\.$/, "The late fee comes in as income and the debt stays at $1."],

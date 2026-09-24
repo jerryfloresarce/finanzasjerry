@@ -1,31 +1,32 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=131";
-import { tourSiPrimeraVez } from "./tour.js?v=131";
-import { arrancarIdioma } from "./idioma.js?v=131";
-import { state, subscribe, initStore } from "./store.js?v=131";
+import { onAuthReady } from "./auth.js?v=132";
+import { tourSiPrimeraVez } from "./tour.js?v=132";
+import { arrancarIdioma } from "./idioma.js?v=132";
+import { state, subscribe, initStore } from "./store.js?v=132";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=131";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=131";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=131";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=131";
-import { mountPrestamos, renderPrestamos, repararCategoriaDePrestamosDados } from "./views/prestamos.js?v=131";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=131";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=131";
-import { mountMetas, renderMetas } from "./views/metas.js?v=131";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=132";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=132";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=132";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=132";
+import { mountPrestamos, renderPrestamos, repararCategoriaDePrestamosDados } from "./views/prestamos.js?v=132";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=132";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=132";
+import { mountMetas, renderMetas } from "./views/metas.js?v=132";
 // modulo:rutina:inicio
-import { mountRutina, renderRutina } from "./views/rutina.js?v=131";
+import { mountRutina, renderRutina } from "./views/rutina.js?v=132";
 // modulo:rutina:fin
 // modulo:ciclo:inicio
-import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=131";
+import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=132";
 // modulo:ciclo:fin
 // modulo:gimnasio:inicio
-import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=131";
+import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=132";
 // modulo:gimnasio:fin
-import { mountCuentaPanel, renderAjustes } from "./views/cuenta.js?v=131";
-import { refreshAnimations } from "./animations.js?v=131";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=131";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=131";
-import { efectoDeEntrada } from "./efectos.js?v=131";
+import { mountCuentaPanel, renderAjustes } from "./views/cuenta.js?v=132";
+import { refreshAnimations } from "./animations.js?v=132";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=132";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=132";
+import { efectoDeEntrada } from "./efectos.js?v=132";
+import { sincronizarAvisosPush, mountAvisosPush, renderAvisosPush } from "./avisos-push.js?v=132";
 
 const ROUTES = {
   dashboard: renderDashboard,
@@ -36,7 +37,13 @@ const ROUTES = {
   prestamos: renderPrestamos,
   suscripciones: renderSuscripciones,
   metas: renderMetas,
-  ajustes: renderAjustes,
+  // La tarjeta de avisos en el móvil se pinta con Ajustes, desde aquí y no
+  // desde cuenta.js: importarla allí creaba un ciclo (cuenta → avisos-push →
+  // vida → vida-perfil → cuenta) que rompía el arranque del perfil de Gaby.
+  ajustes: (s) => {
+    renderAjustes(s);
+    renderAvisosPush();
+  },
 // modulo:rutina:inicio
   rutina: renderRutina,
 // modulo:rutina:fin
@@ -83,6 +90,9 @@ function renderCurrentView() {
   // cuando los datos están completos; si mueve algo, el listener de
   // Firestore repinta la vista con las categorías ya en su sitio.
   if (state.ready) repararCategoriaDePrestamosDados(state);
+  // La lista de avisos del móvil se recalcula con cada cambio de datos y se
+  // manda al servidor solo si cambió (ver avisos-push.js).
+  sincronizarAvisosPush();
   const renderFn = ROUTES[currentRoute];
   if (renderFn) renderFn(state);
   refreshAnimations();
@@ -334,6 +344,7 @@ onAuthReady((user) => {
     mountGimnasio();
 // modulo:gimnasio:fin
     mountCuentaPanel();
+    mountAvisosPush();
   }
 
   if (!window.location.hash) history.replaceState(null, "", `#/${DEFAULT_ROUTE}`);

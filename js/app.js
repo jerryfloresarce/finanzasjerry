@@ -1,34 +1,35 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=131";
-import { tourSiPrimeraVez } from "./tour.js?v=131";
-import { arrancarIdioma } from "./idioma.js?v=131";
-import { state, subscribe, initStore } from "./store.js?v=131";
+import { onAuthReady } from "./auth.js?v=132";
+import { tourSiPrimeraVez } from "./tour.js?v=132";
+import { arrancarIdioma } from "./idioma.js?v=132";
+import { state, subscribe, initStore } from "./store.js?v=132";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=131";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=131";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=131";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=131";
-import { mountPrestamos, renderPrestamos, repararCategoriaDePrestamosDados } from "./views/prestamos.js?v=131";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=131";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=131";
-import { mountMetas, renderMetas } from "./views/metas.js?v=131";
-import { mountCuentaPanel, renderAjustes } from "./views/cuenta.js?v=131";
-import { refreshAnimations } from "./animations.js?v=131";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=131";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=131";
-import { efectoDeEntrada } from "./efectos.js?v=131";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=132";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=132";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=132";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=132";
+import { mountPrestamos, renderPrestamos, repararCategoriaDePrestamosDados } from "./views/prestamos.js?v=132";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=132";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=132";
+import { mountMetas, renderMetas } from "./views/metas.js?v=132";
+import { mountCuentaPanel, renderAjustes } from "./views/cuenta.js?v=132";
+import { refreshAnimations } from "./animations.js?v=132";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=132";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=132";
+import { efectoDeEntrada } from "./efectos.js?v=132";
+import { sincronizarAvisosPush, mountAvisosPush, renderAvisosPush } from "./avisos-push.js?v=132";
 // vida:inicio
-import { initPerfil } from "./vida-perfil.js?v=131";
-import { initVida } from "./vida.js?v=131";
-import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=131";
-import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=131";
-import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=131";
-import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=131";
-import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=131";
-import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=131";
-import { mountVidaCiclo, renderVidaCiclo } from "./views/vida-ciclo.js?v=131";
-import { mountVidaOficina, renderVidaOficina } from "./views/vida-oficina.js?v=131";
-import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=131";
+import { initPerfil } from "./vida-perfil.js?v=132";
+import { initVida } from "./vida.js?v=132";
+import { mountVidaHoy, renderVidaHoy } from "./views/vida-hoy.js?v=132";
+import { mountVidaEntreno, renderVidaEntreno } from "./views/vida-entreno.js?v=132";
+import { mountVidaProgreso, renderVidaProgreso } from "./views/vida-progreso.js?v=132";
+import { mountVidaCartera, renderVidaCartera } from "./views/vida-cartera.js?v=132";
+import { mountVidaMenu, renderVidaMenu } from "./views/vida-menu.js?v=132";
+import { mountVidaCompras, renderVidaCompras } from "./views/vida-compras.js?v=132";
+import { mountVidaCiclo, renderVidaCiclo } from "./views/vida-ciclo.js?v=132";
+import { mountVidaOficina, renderVidaOficina } from "./views/vida-oficina.js?v=132";
+import { mountVidaAgenda, renderVidaAgenda } from "./views/vida-agenda.js?v=132";
 // vida:fin
 
 const ROUTES = {
@@ -51,7 +52,13 @@ const ROUTES = {
   prestamos: renderPrestamos,
   suscripciones: renderSuscripciones,
   metas: renderMetas,
-  ajustes: renderAjustes,
+  // La tarjeta de avisos en el móvil se pinta con Ajustes, desde aquí y no
+  // desde cuenta.js: importarla allí creaba un ciclo (cuenta → avisos-push →
+  // vida → vida-perfil → cuenta) que rompía el arranque del perfil de Gaby.
+  ajustes: (s) => {
+    renderAjustes(s);
+    renderAvisosPush();
+  },
 };
 
 let DEFAULT_ROUTE = "dashboard";
@@ -92,6 +99,9 @@ function renderCurrentView() {
   // cuando los datos están completos; si mueve algo, el listener de
   // Firestore repinta la vista con las categorías ya en su sitio.
   if (state.ready) repararCategoriaDePrestamosDados(state);
+  // La lista de avisos del móvil se recalcula con cada cambio de datos y se
+  // manda al servidor solo si cambió (ver avisos-push.js).
+  sincronizarAvisosPush();
   const renderFn = ROUTES[currentRoute];
   if (renderFn) renderFn(state);
   refreshAnimations();
@@ -340,6 +350,7 @@ onAuthReady((user) => {
     mountSuscripciones();
     mountMetas();
     mountCuentaPanel();
+    mountAvisosPush();
     // vida:inicio
     mountVidaHoy();
     mountVidaEntreno();

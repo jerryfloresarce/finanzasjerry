@@ -154,3 +154,7 @@ _site
 # La copia local de index.html con firebase falso que usan las pruebas del
 # navegador (se regenera cada tanda; nunca debe publicarse).
 prueba-local.html
+worker/node_modules/
+worker/.wrangler/
+worker/.dev.vars
+worker/*.local.json

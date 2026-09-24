@@ -135,6 +135,44 @@ export const DICCIONARIO_PT = {
   "Para que deba más, sube el capital o el interés.":
     "Para que deva mais, aumente o capital ou os juros.",
 
+  // ---------- Ajustes · avisos en el móvil ----------
+  "Avisos en el móvil":
+    "Avisos no celular",
+  "Con la app cerrada: cobros de préstamos, citas de la agenda, innegociables y suscripciones.":
+    "Com o app fechado: cobranças de empréstimos, compromissos da agenda, inegociáveis e assinaturas.",
+  "Sin comprobar.":
+    "Sem verificar.",
+  "Activar avisos en este móvil":
+    "Ativar avisos neste celular",
+  "Mándame un aviso de prueba ahora":
+    "Me mande um aviso de teste agora",
+  "Desactivar en este móvil":
+    "Desativar neste celular",
+  "El servidor de avisos aún no está configurado.":
+    "O servidor de avisos ainda não está configurado.",
+  "Comprobando…":
+    "Verificando…",
+  "Sin activar en este móvil.":
+    "Sem ativar neste celular.",
+  "En iPhone solo funciona con la app en la pantalla de inicio (Compartir → Añadir a pantalla de inicio).":
+    "No iPhone só funciona com o app na tela de início (Compartilhar → Adicionar à Tela de Início).",
+  "Este navegador no permite avisos con la app cerrada.":
+    "Este navegador não permite avisos com o app fechado.",
+  "Activados en este móvil, pero ahora mismo no puedo comprobar el servidor.":
+    "Ativados neste celular, mas agora não consigo verificar o servidor.",
+  "Activando…":
+    "Ativando…",
+  "Mandando el aviso de prueba…":
+    "Mandando o aviso de teste…",
+  "Enviado. Tiene que aparecer en este móvil en unos segundos.":
+    "Enviado. Deve aparecer neste celular em alguns segundos.",
+  "En iPhone solo funciona con la app en la pantalla de inicio: Compartir → Añadir a pantalla de inicio, y activa desde ahí.":
+    "No iPhone só funciona com o app na tela de início: Compartilhar → Adicionar à Tela de Início, e ative a partir daí.",
+  "No diste permiso para los avisos. Puedes cambiarlo en los ajustes del navegador.":
+    "Você não deu permissão para os avisos. Pode mudar isso nos ajustes do navegador.",
+  "Este móvil no está suscrito: activa los avisos primero.":
+    "Este celular não está inscrito: ative os avisos primeiro.",
+
   // ---------- Préstamos · avisos de cobro ----------
   "💰 Cobros que te deben":
     "💰 Pagamentos que te devem",
@@ -831,6 +869,12 @@ export const DICCIONARIO_PT = {
 // Patrones: para los textos que llevan datos dentro (números, nombres,
 // fechas). $1, $2… conservan esos datos tal cual.
 export const PATRONES_PT = [
+  [/^✓ Avisos activados · (\d+) programados · (\d+) enviados$/, "✓ Avisos ativados · $1 programados · $2 enviados"],
+  [/^✓ Avisos activados · (\d+) programados$/, "✓ Avisos ativados · $1 programados"],
+  [/^1 aviso no llegó: (.*)$/, "1 aviso não chegou: $1"],
+  [/^(\d+) avisos no llegaron: (.*)$/, "$1 avisos não chegaram: $2"],
+  [/^No se pudo activar: (.+)$/, "Não foi possível ativar: $1"],
+  [/^El servidor respondió (\d+)$/, "O servidor respondeu $1"],
   [/^Total a devolver (.+) · ya pagado (.+) → te debe (.+)\.$/, "Total a devolver $1 · já pago $2 → te deve $3."],
   [/^Recargo de (.+): entra como ingreso y la deuda sigue en (.+)\.$/, "Multa de $1: entra como receita e a dívida continua em $2."],
   [/^El recargo entra como ingreso y la deuda sigue en (.+)\.$/, "A multa entra como receita e a dívida continua em $1."],

@@ -45,7 +45,8 @@ jobs:
             --exclude '.github' \
             --exclude '_web' \
             --exclude 'kit-finanzas' \
-            --exclude 'herramientas'
+            --exclude 'herramientas' \
+            --exclude 'worker'
           # Sin este archivo, GitHub intenta interpretar la web con Jekyll y
           # se salta las carpetas que empiezan por guion bajo.
           touch _web/.nojekyll
