@@ -10,7 +10,7 @@
   "main": "index.mjs",
   "compatibility_date": "2025-09-01",
   "triggers": { "crons": ["* * * * *"] },
-  "kv_namespaces": [{ "binding": "AVISOS", "id": "PON_AQUI_EL_ID_DEL_KV" }],
+  "kv_namespaces": [{ "binding": "AVISOS", "id": "21942ac86b384ec790e4fd250102d931" }],
   "vars": {
     // Quién eres para el servicio de avisos del móvil (lo exige el estándar).
     "VAPID_CONTACTO": "mailto:avisos@example.com",

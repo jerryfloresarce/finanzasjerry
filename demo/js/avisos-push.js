@@ -4,12 +4,12 @@
 // avisos del navegador, y cada vez que cambian los datos recalcula la lista
 // de avisos de los próximos 30 días y se la manda al servidor (worker/). La
 // tarjeta de Ajustes solo dice "activados" cuando el servidor lo confirma.
-import { URL_AVISOS } from "./config-avisos.js?v=132";
-import { calcularAvisos, huellaDeAvisos } from "./avisos-calculo.js?v=132";
-import { state } from "./store.js?v=132";
-import { formatEUR, fromTimestamp } from "./db.js?v=132";
-import { avisosCobroActivos } from "./views/prestamos.js?v=132";
-import { esc } from "./modal.js?v=132";
+import { URL_AVISOS } from "./config-avisos.js?v=133";
+import { calcularAvisos, huellaDeAvisos } from "./avisos-calculo.js?v=133";
+import { state } from "./store.js?v=133";
+import { formatEUR, fromTimestamp } from "./db.js?v=133";
+import { avisosCobroActivos } from "./views/prestamos.js?v=133";
+import { esc } from "./modal.js?v=133";
 
 const CLAVE_LOCAL = "fj-avisos-push";
 const VERSION_SW = new URL(import.meta.url).searchParams.get("v") || "0";

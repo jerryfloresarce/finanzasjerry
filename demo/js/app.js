@@ -1,32 +1,32 @@
 import "./auth.js";
-import { onAuthReady } from "./auth.js?v=132";
-import { tourSiPrimeraVez } from "./tour.js?v=132";
-import { arrancarIdioma } from "./idioma.js?v=132";
-import { state, subscribe, initStore } from "./store.js?v=132";
+import { onAuthReady } from "./auth.js?v=133";
+import { tourSiPrimeraVez } from "./tour.js?v=133";
+import { arrancarIdioma } from "./idioma.js?v=133";
+import { state, subscribe, initStore } from "./store.js?v=133";
 
-import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=132";
-import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=132";
-import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=132";
-import { mountCategorias, renderCategorias } from "./views/categorias.js?v=132";
-import { mountPrestamos, renderPrestamos, repararCategoriaDePrestamosDados } from "./views/prestamos.js?v=132";
-import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=132";
-import { mountGraficos, renderGraficos } from "./views/graficos.js?v=132";
-import { mountMetas, renderMetas } from "./views/metas.js?v=132";
+import { mountDashboard, renderDashboard } from "./views/dashboard.js?v=133";
+import { mountMovimientos, renderMovimientos } from "./views/movimientos.js?v=133";
+import { mountCuentas, renderCuentas } from "./views/cuentas.js?v=133";
+import { mountCategorias, renderCategorias } from "./views/categorias.js?v=133";
+import { mountPrestamos, renderPrestamos, repararCategoriaDePrestamosDados } from "./views/prestamos.js?v=133";
+import { mountSuscripciones, renderSuscripciones } from "./views/suscripciones.js?v=133";
+import { mountGraficos, renderGraficos } from "./views/graficos.js?v=133";
+import { mountMetas, renderMetas } from "./views/metas.js?v=133";
 // modulo:rutina:inicio
-import { mountRutina, renderRutina } from "./views/rutina.js?v=132";
+import { mountRutina, renderRutina } from "./views/rutina.js?v=133";
 // modulo:rutina:fin
 // modulo:ciclo:inicio
-import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=132";
+import { mountCiclo, renderCiclo } from "./views/ciclo.js?v=133";
 // modulo:ciclo:fin
 // modulo:gimnasio:inicio
-import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=132";
+import { mountGimnasio, renderGimnasio } from "./views/gimnasio.js?v=133";
 // modulo:gimnasio:fin
-import { mountCuentaPanel, renderAjustes } from "./views/cuenta.js?v=132";
-import { refreshAnimations } from "./animations.js?v=132";
-import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=132";
-import { sincronizarTemaDesdeConfig } from "./tema.js?v=132";
-import { efectoDeEntrada } from "./efectos.js?v=132";
-import { sincronizarAvisosPush, mountAvisosPush, renderAvisosPush } from "./avisos-push.js?v=132";
+import { mountCuentaPanel, renderAjustes } from "./views/cuenta.js?v=133";
+import { refreshAnimations } from "./animations.js?v=133";
+import { bloquearScrollFondo, desbloquearScrollFondo } from "./scroll-lock.js?v=133";
+import { sincronizarTemaDesdeConfig } from "./tema.js?v=133";
+import { efectoDeEntrada } from "./efectos.js?v=133";
+import { sincronizarAvisosPush, mountAvisosPush, renderAvisosPush } from "./avisos-push.js?v=133";
 
 const ROUTES = {
   dashboard: renderDashboard,
@@ -39,7 +39,7 @@ const ROUTES = {
   metas: renderMetas,
   // La tarjeta de avisos en el móvil se pinta con Ajustes, desde aquí y no
   // desde cuenta.js: importarla allí creaba un ciclo (cuenta → avisos-push →
-  // vida → vida-perfil → cuenta) que rompía el arranque del perfil de Gaby.
+  // vida → vida-perfil → cuenta) que rompía el arranque del segundo perfil.
   ajustes: (s) => {
     renderAjustes(s);
     renderAvisosPush();
