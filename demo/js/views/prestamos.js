@@ -15,12 +15,12 @@ import {
   esPlanDePagos,
   restantePlanDePagos,
   fechaISO as diaISO,
-} from "../db.js?v=133";
-import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=133";
-import { initials, avatarColor, icon } from "../icons.js?v=133";
-import { wrapSwipe, attachSwipe } from "../swipe.js?v=133";
-import { efectoDeCelebracion } from "../efectos.js?v=133";
-import { localeActual } from "../idioma.js?v=133";
+} from "../db.js?v=134";
+import { openModal, closeModal, optionsFrom, todayISO, esc } from "../modal.js?v=134";
+import { initials, avatarColor, icon } from "../icons.js?v=134";
+import { wrapSwipe, attachSwipe } from "../swipe.js?v=134";
+import { efectoDeCelebracion } from "../efectos.js?v=134";
+import { localeActual } from "../idioma.js?v=134";
 
 const ESTADOS = ["Activo", "Pagado"];
 
@@ -368,6 +368,14 @@ function vencimientoDe(p) {
   return { vencido: true, texto: `Te tenía que pagar el ${fechaTxt}`, cuando: textoDiasAtras(f) };
 }
 
+// Qué tarjetas están desplegadas. De serie todas van plegadas: la lista
+// es una lista de nombres con lo que debe cada uno, y se abre la que
+// interesa. Se recuerda en el móvil para que no haya que reabrir cada vez.
+const CLAVE_ABIERTOS = "fj-prestamos-abiertos";
+const abiertos = new Set((() => { try { return JSON.parse(localStorage.getItem(CLAVE_ABIERTOS) || "[]"); } catch { return []; } })());
+const guardarAbiertos = () => { try { localStorage.setItem(CLAVE_ABIERTOS, JSON.stringify([...abiertos])); } catch { /* sin almacenamiento */ } };
+export function abrirTarjetaPrestamo(id) { abiertos.add(id); guardarAbiertos(); }
+
 // Qué historial está desplegado (se recuerda entre repintados).
 const historialAbierto = new Set();
 
@@ -580,18 +588,20 @@ export function renderPrestamos(state) {
 
       return wrapSwipe(
         `
-        <article class="entity-card">
+        <article class="entity-card${abiertos.has(p.id) ? "" : " entity-card--plegada"}">
           <div class="entity-card__top">
-            <div class="entity-card__heading">
+            <button type="button" class="entity-card__heading prestamo-cabecera" data-toggle-prestamo="${p.id}" aria-expanded="${abiertos.has(p.id)}">
               <span class="avatar" style="background:${avatarColor(p.persona)}">${initials(p.persona)}</span>
-              <p class="entity-card__name">${esc(p.persona)}</p>
-            </div>
+              <span class="entity-card__name">${esc(p.persona)}</span>
+              <span class="prestamo-caret" aria-hidden="true">▾</span>
+            </button>
             <div class="entity-card__top-actions">
               <span class="entity-card__tag ${tagClass}">${p.estado || "Activo"}</span>
               <button type="button" class="row-edit-btn" data-edit="${p.id}" title="Editar">${icon("edit", { size: 15 })}</button>
             </div>
           </div>
           <p class="entity-card__amount">${formatEUR(montoMostrado)} <span style="font-size:0.9rem;color:var(--text-muted);font-family:var(--font-body)">${p.estado === "Pagado" ? "— saldado" : "pendiente"}</span></p>
+          <div class="prestamo-cuerpo${abiertos.has(p.id) ? "" : " is-hidden"}">
           ${desglose}
           ${p.notas ? `<p class="entity-card__meta">${esc(p.notas)}</p>` : ""}
 
@@ -617,6 +627,7 @@ export function renderPrestamos(state) {
               ? `<button type="button" class="btn btn--ghost btn--sm btn--block" data-edit="${p.id}">✎ Corregir el préstamo a mano</button>`
               : ""
           }
+          </div>
         </article>`,
         p.id
       );
@@ -631,6 +642,19 @@ export function renderPrestamos(state) {
   );
   el.querySelectorAll("[data-aviso-quitar]").forEach((btn) =>
     btn.addEventListener("click", () => updatePrestamo(btn.dataset.avisoQuitar, { fecha_interes: null }))
+  );
+  el.querySelectorAll("[data-toggle-prestamo]").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.togglePrestamo;
+      const tarjeta = btn.closest(".entity-card");
+      const abrir = !abiertos.has(id);
+      if (abrir) abiertos.add(id);
+      else abiertos.delete(id);
+      guardarAbiertos();
+      tarjeta?.classList.toggle("entity-card--plegada", !abrir);
+      tarjeta?.querySelector(".prestamo-cuerpo")?.classList.toggle("is-hidden", !abrir);
+      btn.setAttribute("aria-expanded", String(abrir));
+    })
   );
   el.querySelectorAll("[data-no-ha-pagado]").forEach((btn) =>
     btn.addEventListener("click", () => openNoHaPagadoForm(prestamos.find((p) => p.id === btn.dataset.noHaPagado)))
@@ -1268,7 +1292,8 @@ function openPrestamoForm(prestamo, state) {
                 data.cuenta_id = cuentaOrigen;
                 data.movimiento_origen_id = movimiento.id;
               }
-              await addPrestamo(data);
+              const creado = await addPrestamo(data);
+              if (creado?.id) abrirTarjetaPrestamo(creado.id);
             }
             closeModal();
           } catch (err) {

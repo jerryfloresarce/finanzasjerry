@@ -1915,6 +1915,27 @@ button.mini-row:last-child { border-bottom: none; }
 .data-row--historial { grid-template-columns: 90px 1fr 110px; }
 .data-row--historial .data-row__cat .icon-emoji { margin-right: 4px; }
 
+/* Préstamos plegables: la cabecera es un botón (nombre + flecha) y el
+   cuerpo se esconde hasta que se toca. Plegada, la tarjeta es una línea con
+   el nombre y lo que debe. */
+.prestamo-cabecera {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+}
+.prestamo-cabecera .entity-card__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prestamo-caret { color: var(--text-muted); font-size: 0.9rem; transition: transform 0.18s ease; margin-left: 2px; }
+.entity-card--plegada .prestamo-caret { transform: rotate(-90deg); }
+.entity-card--plegada.entity-card { height: auto; }
+.entity-card--plegada .entity-card__amount { margin-bottom: 0; }
+
 /* Avisos en el móvil (Ajustes): estado honesto y sus tres botones. */
 .avisos-push { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 .avisos-push__titulo { display: block; }
