@@ -1162,3 +1162,10 @@ button.agenda-bloque { cursor: pointer; }
 }
 .reto-banner .btn { margin-top: 6px; }
 /* vida:fin */
+
+/* v136: vuestros ingredientes y lo que lleva un plato vuestro. */
+.chip--propio { border-style: double; }
+.ingredientes-grid__grupo { width: 100%; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; }
+.plato-nuevo-ing { display: flex; gap: 8px; flex-wrap: wrap; }
+.plato-nuevo-ing input { flex: 1 1 140px; }
+.plato-nuevo-ing select { flex: 1 1 120px; }

@@ -7,11 +7,13 @@
 
 import {
   vida,
-  INGREDIENTES,
   GRUPOS_INGREDIENTES,
   INGREDIENTES_POR_DEFECTO,
   RECETAS,
   PLATOS_ESPECIALES,
+  ingredientesPropios,
+  todosLosIngredientes,
+  ingredientePorId,
   platosPropios,
   recetaPorId,
   recetasDisponibles,
@@ -19,13 +21,22 @@ import {
   repararMenu,
   guardarMenu,
   lunesDe,
+  lunesObjetivo,
+  conservarRestoDeSemana,
+  pasarMenuALaCompra,
   cambiosDeFecha,
   guardarCambiosDeFecha,
   platoDePlantilla,
-} from "../vida.js?v=135";
-import { fechaISO } from "../db.js?v=135";
-import { openModal, closeModal, esc } from "../modal.js?v=135";
-import { efectoAlGuardar } from "../efectos.js?v=135";
+} from "../vida.js?v=136";
+import { fechaISO } from "../db.js?v=136";
+import { openModal, closeModal, esc } from "../modal.js?v=136";
+import { efectoAlGuardar } from "../efectos.js?v=136";
+import { localeActual } from "../idioma.js?v=136";
+
+// Lo último que dijo el botón de pasar el menú a la compra: se repinta con
+// la pantalla (guardar la compra la vuelve a pintar) y se olvida a los pocos
+// segundos.
+let avisoCompra = "";
 
 const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 const MOMENTOS = [
@@ -55,6 +66,11 @@ export function abrirReceta(recetaId) {
       ${cabecera}
       ${r.aire ? ' · <span class="chip-aire">AirFryer</span>' : ""}
     </p>
+    ${
+      r.propio && r.req.length
+        ? `<p class="entity-card__meta" style="margin:0 0 10px;">Lleva: ${r.req.map((i) => esc(ingredientePorId(i)?.nombre || i)).join(", ")}.</p>`
+        : ""
+    }
     <ol class="receta-pasos">
       ${(r.pasos || []).map((p) => `<li>${p}</li>`).join("")}
     </ol>
@@ -200,6 +216,102 @@ export function abrirCambioFecha(fechaId = fechaISO()) {
   );
 }
 
+// ---------- Vuestros ingredientes ----------
+
+// Los chips de todos los ingredientes (de serie y vuestros), por grupo,
+// para elegir lo que lleva un plato.
+function chipsDeIngredientes(seleccion) {
+  return GRUPOS_INGREDIENTES.map((grupo) => {
+    const del = todosLosIngredientes().filter((i) => i.grupo === grupo);
+    if (!del.length) return "";
+    return `<span class="ingredientes-grid__grupo">${esc(grupo)}</span>${del
+      .map((i) => `<button type="button" class="chip ${seleccion.has(i.id) ? "chip--on" : ""}" data-ing="${i.id}">${esc(i.nombre)}</button>`)
+      .join("")}`;
+  }).join("");
+}
+
+// Un ingrediente vuestro nuevo: id propio, su grupo, y se guarda en el
+// menú de casa. Si ya existe uno con ese nombre, se devuelve ese.
+async function crearIngrediente(nombre, grupo) {
+  const normal = (t) => t.trim().toLowerCase();
+  const existente = todosLosIngredientes().find((i) => normal(i.nombre) === normal(nombre));
+  if (existente) return existente;
+  const nuevo = { id: "i_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), nombre: nombre.trim(), grupo: GRUPOS_INGREDIENTES.includes(grupo) ? grupo : "Lácteos y básicos" };
+  const ingredientes_propios = [...(vida.menu?.ingredientes_propios || []), nuevo];
+  // En local desde ya: el formulario que lo pidió lo enseña al momento, sin
+  // esperar a que vuelva de la base de datos.
+  vida.menu = { ...(vida.menu || {}), ingredientes_propios };
+  await guardarMenu({ ingredientes_propios }).catch(() => {});
+  return nuevo;
+}
+
+// El "＋" de cada grupo: apuntar un ingrediente vuestro en ese grupo (queda
+// marcado para la semana) y, si hay, borrar los que ya no queráis.
+function abrirEditorIngrediente(grupo) {
+  const propiosDelGrupo = ingredientesPropios().filter((i) => i.grupo === grupo);
+  openModal(
+    `
+    <h2 class="modal__title">Un ingrediente vuestro</h2>
+    <p class="entity-card__meta" style="margin:-8px 0 12px;">
+      Lo que coméis y no está en la lista. Se guarda para siempre: lo marcáis cada semana como los demás y entra en vuestros platos.
+    </p>
+    <form id="form-ingrediente" class="form-grid">
+      <label class="field">
+        <span class="field__label">¿Cómo se llama?</span>
+        <input type="text" name="nombre" required maxlength="40" placeholder="Pavo picado" autocomplete="off" />
+      </label>
+      <label class="field">
+        <span class="field__label">Grupo</span>
+        <select name="grupo">${GRUPOS_INGREDIENTES.map((g) => `<option value="${g}" ${g === grupo ? "selected" : ""}>${g}</option>`).join("")}</select>
+      </label>
+      ${
+        propiosDelGrupo.length
+          ? `<div class="field field--full">
+        <span class="field__label">Los vuestros en este grupo</span>
+        <div class="ingredientes-grid">
+          ${propiosDelGrupo.map((i) => `<button type="button" class="chip" data-borrar-ing="${i.id}" title="Borrar">${esc(i.nombre)} ✕</button>`).join("")}
+        </div>
+      </div>`
+          : ""
+      }
+      <div class="modal__actions field--full">
+        <button type="button" class="btn btn--ghost" id="btn-cancelar-ingrediente">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar</button>
+      </div>
+    </form>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancelar-ingrediente").addEventListener("click", closeModal);
+        root.querySelectorAll("[data-borrar-ing]").forEach((b) =>
+          b.addEventListener("click", async () => {
+            const id = b.dataset.borrarIng;
+            const ing = ingredientePorId(id);
+            if (!ing || !confirm(`¿Borrar "${ing.nombre}"? Los platos vuestros que lo llevaban dejan de pedirlo.`)) return;
+            const platos = (vida.menu?.platos || []).map((p) => ({ ...p, req: (p.req || []).filter((i) => i !== id) }));
+            await guardarMenu({
+              ingredientes_propios: (vida.menu?.ingredientes_propios || []).filter((i) => i.id !== id),
+              ingredientes: marcados().filter((i) => i !== id),
+              platos,
+            }).catch(() => {});
+            closeModal();
+          })
+        );
+        root.querySelector("#form-ingrediente").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const f = new FormData(e.target);
+          const nombre = String(f.get("nombre") || "").trim();
+          if (!nombre) return;
+          const creado = await crearIngrediente(nombre, String(f.get("grupo")));
+          await guardarMenu({ ingredientes: [...new Set([...marcados(), creado.id])] }).catch(() => {});
+          closeModal();
+          efectoAlGuardar();
+        });
+      },
+    }
+  );
+}
+
 // ---------- Platos vuestros ----------
 
 function abrirEditorPlato(plato) {
@@ -232,6 +344,23 @@ function abrirEditorPlato(plato) {
         <input type="checkbox" name="aire" ${plato?.aire ? "checked" : ""} />
         <span>Se hace en la AirFryer o el horno</span>
       </label>
+      <label class="field-check field--full">
+        <input type="checkbox" name="facil" ${!plato || plato.facil !== false ? "checked" : ""} />
+        <span>Es fácil de hacer (pocos pasos, poco lío)</span>
+      </label>
+      <div class="field field--full">
+        <span class="field__label">¿Qué lleva? (toca los ingredientes)</span>
+        <p class="entity-card__meta" style="margin:0 0 8px;">Con lo que marques aquí, el plato entra en el menú cuando esos ingredientes estén marcados, y pasa a la lista de la compra con el resto.</p>
+        <div class="ingredientes-grid" id="plato-ingredientes">${chipsDeIngredientes(new Set(plato?.req || []))}</div>
+      </div>
+      <div class="field field--full">
+        <span class="field__label">¿Falta alguno? Apúntalo y queda para siempre</span>
+        <div class="plato-nuevo-ing">
+          <input type="text" id="plato-ing-nombre" maxlength="40" placeholder="Pavo picado" autocomplete="off" />
+          <select id="plato-ing-grupo">${GRUPOS_INGREDIENTES.map((g) => `<option value="${g}">${g}</option>`).join("")}</select>
+          <button type="button" class="btn btn--ghost btn--sm" id="btn-plato-ing">Añadir</button>
+        </div>
+      </div>
       <div class="modal__actions field--full">
         ${esNuevo ? "" : '<button type="button" class="btn btn--ghost" id="btn-borrar-plato">Borrar</button>'}
         <button type="button" class="btn btn--ghost" id="btn-cancelar-plato">Cancelar</button>
@@ -242,6 +371,23 @@ function abrirEditorPlato(plato) {
     {
       onMount: (root) => {
         root.querySelector("#btn-cancelar-plato").addEventListener("click", closeModal);
+        const grid = root.querySelector("#plato-ingredientes");
+        const marcadosDelPlato = () => new Set([...grid.querySelectorAll("[data-ing].chip--on")].map((b) => b.dataset.ing));
+        grid.addEventListener("click", (e) => {
+          const chip = e.target.closest("[data-ing]");
+          if (chip) chip.classList.toggle("chip--on");
+        });
+        // Un ingrediente nuevo desde el propio plato: se guarda en casa (para
+        // este y los platos que vengan) y queda marcado en el plato.
+        root.querySelector("#btn-plato-ing").addEventListener("click", async () => {
+          const nombre = root.querySelector("#plato-ing-nombre").value.trim();
+          if (!nombre) return;
+          const creado = await crearIngrediente(nombre, root.querySelector("#plato-ing-grupo").value);
+          const seleccion = marcadosDelPlato();
+          seleccion.add(creado.id);
+          grid.innerHTML = chipsDeIngredientes(seleccion);
+          root.querySelector("#plato-ing-nombre").value = "";
+        });
         root.querySelector("#btn-borrar-plato")?.addEventListener("click", async () => {
           const lista = (vida.menu?.platos || []).filter((p) => p.id !== plato.id);
           await guardarMenu({ platos: lista }).catch(() => {});
@@ -253,7 +399,7 @@ function abrirEditorPlato(plato) {
           const nombre = String(f.get("nombre") || "").trim();
           if (!nombre) return;
           const nuevo = {
-            id: plato?.id || "p_" + Date.now().toString(36),
+            id: plato?.id || "p_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
             nombre,
             momento: String(f.get("momento")),
             pasos: String(f.get("pasos") || "")
@@ -261,12 +407,18 @@ function abrirEditorPlato(plato) {
               .map((p) => p.trim())
               .filter(Boolean),
             aire: f.get("aire") === "on",
+            facil: f.get("facil") === "on",
+            req: [...marcadosDelPlato()],
           };
           const lista = [...(vida.menu?.platos || [])];
           const idx = lista.findIndex((p) => p.id === nuevo.id);
           if (idx >= 0) lista[idx] = nuevo;
           else lista.push(nuevo);
-          await guardarMenu({ platos: lista }).catch(() => {});
+          // Lo que lleva el plato queda marcado en la semana: si no, el
+          // plato recién apuntado no entraría nunca en el menú.
+          const marcadosSemana = new Set(marcados());
+          nuevo.req.forEach((i) => marcadosSemana.add(i));
+          await guardarMenu({ platos: lista, ingredientes: [...marcadosSemana] }).catch(() => {});
           closeModal();
           efectoAlGuardar();
         });
@@ -297,6 +449,24 @@ export function mountVidaMenu() {
       abrirEditorPlato(null);
       return;
     }
+    const nuevoIng = e.target.closest("[data-nuevo-ingrediente]");
+    if (nuevoIng) {
+      abrirEditorIngrediente(nuevoIng.dataset.nuevoIngrediente);
+      return;
+    }
+    if (e.target.closest("#btn-menu-a-compra")) {
+      const { nuevos, yaEstaban } = await pasarMenuALaCompra().catch(() => ({ nuevos: 0, yaEstaban: 0 }));
+      avisoCompra = nuevos
+        ? `${nuevos} ingredientes añadidos a la lista de la compra (${yaEstaban} ya estaban).`
+        : `Ya estaba todo en la lista de la compra (${yaEstaban} ingredientes).`;
+      const aviso = document.getElementById("menu-compra-aviso");
+      if (aviso) aviso.textContent = avisoCompra;
+      setTimeout(() => {
+        avisoCompra = "";
+      }, 8000);
+      efectoAlGuardar();
+      return;
+    }
     const platoPropio = e.target.closest("[data-editar-plato]");
     if (platoPropio) {
       abrirEditorPlato((vida.menu?.platos || []).find((p) => p.id === platoPropio.dataset.editarPlato));
@@ -311,13 +481,16 @@ export function mountVidaMenu() {
       // Con un menú en pie no se pisa sin preguntar: la compra de la
       // semana está hecha para ese menú.
       if (vida.menu?.lunes && !confirm("Ya hay un menú hecho (y la compra suele ir con él). ¿Lo sustituyo por uno nuevo?")) return;
-      const lunes = lunesDe(new Date());
+      const lunes = lunesObjetivo(new Date());
       const menu = generarMenuSemana(lunes, marcados());
       const aviso = document.getElementById("menu-aviso");
       if (!menu) {
         if (aviso) aviso.textContent = "Con tan pocos ingredientes marcados no salen platos suficientes. Marca al menos una proteína, un hidrato y huevos.";
         return;
       }
+      // Menú para la semana que viene con esta aún en marcha: lo que queda
+      // de esta (de hoy al domingo) se conserva como cambios de fecha.
+      if (vida.menu?.lunes && lunes > lunesDe(new Date())) menu.cambios = conservarRestoDeSemana(vida.menu, menu, new Date());
       await guardarMenu(menu).catch(() => {
         if (aviso) aviso.textContent = "No se pudo guardar el menú. Inténtalo de nuevo.";
       });
@@ -345,8 +518,11 @@ export function renderVidaMenu(_state) {
   // El menú guardado se enseña SIEMPRE — jamás desaparece al cambiar de
   // semana. Si es de una semana anterior, se dice con una nota, sin más.
   const menuVigente = vida.menu?.lunes ? vida.menu : null;
-  const menuDeOtraSemana = menuVigente && menuVigente.lunes !== lunesActual;
+  const menuDeOtraSemana = menuVigente && menuVigente.lunes < lunesActual;
+  const menuDeLaQueViene = menuVigente && menuVigente.lunes > lunesActual;
+  const paraLaQueViene = lunesObjetivo(new Date()) !== lunesActual;
   const propios = platosPropios();
+  const fechaLarga = (iso) => new Intl.DateTimeFormat(localeActual(), { day: "numeric", month: "long" }).format(new Date(iso + "T12:00:00"));
 
   el.innerHTML = `
     <div class="grid grid--hoy">
@@ -362,12 +538,14 @@ export function renderVidaMenu(_state) {
           (grupo) => `
           <p class="progreso-grupo">${grupo}</p>
           <div class="ingredientes-grid">
-            ${INGREDIENTES.filter((i) => i.grupo === grupo)
+            ${todosLosIngredientes()
+              .filter((i) => i.grupo === grupo)
               .map(
                 (i) => `
-              <button type="button" class="chip ${lista.has(i.id) ? "chip--on" : ""}" data-ingrediente="${i.id}">${esc(i.nombre)}</button>`
+              <button type="button" class="chip ${lista.has(i.id) ? "chip--on" : ""}${i.propio ? " chip--propio" : ""}" data-ingrediente="${i.id}">${esc(i.nombre)}</button>`
               )
               .join("")}
+            <button type="button" class="chip chip--nueva" data-nuevo-ingrediente="${esc(grupo)}" title="Apuntar un ingrediente vuestro">＋</button>
           </div>`
         ).join("")}
         <p class="progreso-grupo">Platos vuestros</p>
@@ -379,15 +557,21 @@ export function renderVidaMenu(_state) {
         </div>
         <p class="field-error" id="menu-aviso"></p>
         <button type="button" class="btn btn--primary btn--block hoy-cerrar" id="btn-generar-menu">
-          ${menuVigente ? "Rehacer el menú de esta semana" : "Hacer el menú de esta semana"}
+          ${paraLaQueViene ? (menuVigente ? "Rehacer el menú para la semana que viene" : "Hacer el menú de la semana que viene") : menuVigente ? "Rehacer el menú de esta semana" : "Hacer el menú de esta semana"}
         </button>
+        ${paraLaQueViene ? `<p class="entity-card__meta" style="margin-top:8px;">Es fin de semana: el menú se hace para la semana que viene. Lo de hoy y el fin de semana se queda como está.</p>` : ""}
       </article>
 
       <article class="card">
         <h2 class="card__title">El menú de la semana</h2>
         ${
           menuDeOtraSemana
-            ? `<p class="entity-card__meta" style="margin-top:-6px;">Este menú lo hicisteis la semana del ${new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "long" }).format(new Date(menuVigente.lunes + "T12:00:00"))} y <strong>sigue en pie</strong> — no se borra solo. Cuando queráis otro, botón de rehacer.</p>`
+            ? `<p class="entity-card__meta" style="margin-top:-6px;">Este menú lo hicisteis la semana del ${fechaLarga(menuVigente.lunes)} y <strong>sigue en pie</strong> — no se borra solo. Cuando queráis otro, botón de rehacer.</p>`
+            : ""
+        }
+        ${
+          menuDeLaQueViene
+            ? `<p class="entity-card__meta" style="margin-top:-6px;">Este menú es para la semana que viene (del ${fechaLarga(menuVigente.lunes)}). Hasta el domingo sigue lo que ya teníais.</p>`
             : ""
         }
         ${
@@ -421,7 +605,9 @@ export function renderVidaMenu(_state) {
             Toca un plato y sale la guía rápida; con el ✎ cambias cualquier
             día (otro plato, uno vuestro, o "En casa de mamá" el domingo).
             Las comidas se dejan hechas el domingo y las cenas por la mañana.
-          </p>`
+          </p>
+          <button type="button" class="btn btn--ghost btn--block" id="btn-menu-a-compra" style="margin-top:10px;">🛒 Pasar los ingredientes del menú a la compra</button>
+          <p class="entity-card__meta" id="menu-compra-aviso" style="margin-top:6px;">${esc(avisoCompra)}</p>`
         }
       </article>
     </div>

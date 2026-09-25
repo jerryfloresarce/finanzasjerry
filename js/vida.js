@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=135";
-import { fechaISO } from "./db.js?v=135";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=135";
+import { db } from "./firebase-init.js?v=136";
+import { fechaISO } from "./db.js?v=136";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=136";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -1672,14 +1672,30 @@ export const PLATOS_ESPECIALES = [
   },
 ];
 
+// Los ingredientes que añadís vosotros ("＋" en cada grupo de la pantalla
+// Menú): viven en el documento del menú de casa, se marcan como los de
+// serie y entran en vuestros platos. Cada uno lleva su grupo, así uno de
+// "Proteína" cuenta como proteína al repartir la semana.
+export function ingredientesPropios() {
+  return (vida.menu?.ingredientes_propios || []).map((i) => ({
+    ...i,
+    grupo: GRUPOS_INGREDIENTES.includes(i.grupo) ? i.grupo : "Lácteos y básicos",
+    propio: true,
+  }));
+}
+
+export const todosLosIngredientes = () => [...INGREDIENTES, ...ingredientesPropios()];
+export const ingredientePorId = (id) => todosLosIngredientes().find((i) => i.id === id) || null;
+
 // Los platos que añadís vosotros ("Plato vuestro" en la pantalla Menú):
 // viven en el documento del menú de casa y entran en el generador como
-// cualquier receta, sin depender de ingredientes marcados.
+// cualquier receta. Si lleva ingredientes apuntados, entra cuando están
+// todos marcados (como una receta de serie); sin ingredientes, siempre.
 export function platosPropios() {
   return (vida.menu?.platos || []).map((p) => ({
     proteina: null,
     ...p,
-    req: [],
+    req: Array.isArray(p.req) ? p.req : [],
     opc: [],
     pasos: p.pasos?.length ? p.pasos : ["Plato vuestro: lo hacéis como os gusta en casa."],
     propio: true,
@@ -1694,12 +1710,14 @@ export const recetaPorId = (id) =>
 
 export function recetasDisponibles(marcados) {
   const set = new Set(marcados);
-  return [...RECETAS.filter((r) => r.req.every((i) => set.has(i))), ...platosPropios()];
+  const conLoMarcado = (r) => r.req.every((i) => set.has(i));
+  return [...RECETAS.filter(conLoMarcado), ...platosPropios().filter(conLoMarcado)];
 }
 
 // Un plato cuenta como rápido si se hace en la AirFryer/horno o en tres
-// pasos como mucho: la comida de diario no puede ser un proyecto.
-const esRapida = (r) => Boolean(r.aire) || (r.pasos?.length ?? 9) <= 3 || r.propio;
+// pasos como mucho: la comida de diario no puede ser un proyecto. Un plato
+// vuestro es fácil salvo que digáis lo contrario al apuntarlo.
+const esRapida = (r) => (r.propio ? r.facil !== false : Boolean(r.aire) || (r.pasos?.length ?? 9) <= 3);
 
 // Un barajado con semilla: el mismo lunes baraja siempre igual, pero cada
 // semana sale un orden distinto — nada de que el menú empiece siempre por
@@ -1718,7 +1736,8 @@ function barajar(lista, semilla) {
 // La proteína que manda en un plato, para no comer pollo tres días
 // seguidos. Un plato vuestro cuenta como proteína única (no agrupa).
 const PROTEINAS = ["pollo", "ternera", "lomo", "salmon", "merluza", "atun", "salchichas", "bacon", "jamon", "chorizo", "huevos"];
-const proteinaDe = (r) => r.req?.find((i) => PROTEINAS.includes(i)) || r.id;
+const esProteina = (id) => PROTEINAS.includes(id) || ingredientesPropios().some((i) => i.id === id && i.grupo === "Proteína");
+const proteinaDe = (r) => r.req?.find(esProteina) || r.id;
 
 // Reparte una semana de un momento del día: baraja con la semilla, evita
 // repetir plato mientras haya donde elegir, y procura no repetir la misma
@@ -1789,7 +1808,7 @@ export function repararMenu(marcados) {
   const sigueValiendo = (id) => {
     const r = recetaPorId(id);
     if (!r) return false;
-    if (r.especial || r.propio) return true; // no dependen de ingredientes
+    if (r.especial) return true; // no depende de ingredientes
     return (r.req || []).every((i) => set.has(i));
   };
   const disponibles = recetasDisponibles(marcados);
@@ -1848,6 +1867,79 @@ export function platoDePlantilla(fechaId, campo) {
 // comida, cena } — solo los momentos cambiados. La plantilla de la semana
 // no se entera, y la fecha siguiente vuelve a mandar la plantilla.
 export const cambiosDeFecha = (fechaId) => vida.menu?.cambios?.[fechaId] || null;
+
+// La semana para la que se hace el menú: de lunes a jueves, esta; de
+// viernes a domingo, la que viene — que es cuando se planifica y se compra
+// (el sábado se va a por la compra de la semana siguiente).
+export function lunesObjetivo(fecha = new Date()) {
+  const lunes = lunesDe(fecha);
+  if (fecha.getDay() === 0 || fecha.getDay() >= 5) {
+    const d = new Date(lunes + "T12:00:00");
+    d.setDate(d.getDate() + 7);
+    return fechaISO(d);
+  }
+  return lunes;
+}
+
+// Al hacer el menú de la semana que viene, lo que quedaba de ESTA semana
+// (de hoy al domingo) no se pierde: se apunta como cambio de esas fechas,
+// así el fin de semana sigue con lo planeado y comprado, y el lunes manda
+// el menú nuevo. Devuelve el mapa de cambios a guardar (fusionado con los
+// que ya hubiera).
+export function conservarRestoDeSemana(menuViejo, menuNuevo, fecha = new Date()) {
+  const cambios = { ...(vida.menu?.cambios || {}) };
+  if (!menuViejo?.lunes) return cambios;
+  const d = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate(), 12);
+  while (true) {
+    const dia = ((d.getDay() + 6) % 7) + 1;
+    const fid = fechaISO(d);
+    const cambio = { ...(cambios[fid] || {}) };
+    for (const [campo, momento] of [["desayunos", "desayuno"], ["comidas", "comida"], ["cenas", "cena"]]) {
+      const viejo = menuViejo[campo]?.[dia];
+      if (!cambio[momento] && viejo && viejo !== menuNuevo[campo]?.[dia]) cambio[momento] = viejo;
+    }
+    if (Object.keys(cambio).length) cambios[fid] = cambio;
+    if (dia === 7) break;
+    d.setDate(d.getDate() + 1);
+  }
+  return cambios;
+}
+
+// Los ingredientes que pide el menú guardado (los imprescindibles de cada
+// plato de la semana, sin repetir): lo que hay que tener en casa.
+export function ingredientesDelMenu(menu = vida.menu) {
+  if (!menu?.lunes) return [];
+  const ids = new Set();
+  for (const campo of ["desayunos", "comidas", "cenas"]) {
+    for (const id of Object.values(menu[campo] || {})) {
+      const r = recetaPorId(id);
+      (r?.req || []).forEach((i) => ids.add(i));
+    }
+  }
+  return [...ids].map(ingredientePorId).filter(Boolean);
+}
+
+// Pasa los ingredientes del menú a la lista de la compra de casa: lo que
+// ya está en la lista (falte o esté en casa) no se duplica ni se toca.
+// Devuelve cuántos se añadieron y cuántos ya estaban.
+export async function pasarMenuALaCompra() {
+  const normal = (t) => String(t).trim().toLowerCase();
+  const items = [...vida.compras];
+  const cat = categoriasDeCompras().find((c) => c.id === "comida" || /comida/i.test(c.nombre))?.id ?? null;
+  let nuevos = 0;
+  let yaEstaban = 0;
+  for (const ing of ingredientesDelMenu()) {
+    const nombre = ing.nombre.replace(/\s*\(.*\)\s*$/, "").trim();
+    if (items.some((i) => normal(i.nombre) === normal(nombre) || normal(i.nombre) === normal(ing.nombre))) {
+      yaEstaban++;
+      continue;
+    }
+    items.push({ id: Date.now().toString(36) + nuevos, nombre, falta: true, cat });
+    nuevos++;
+  }
+  if (nuevos) await guardarCompras({ items });
+  return { nuevos, yaEstaban };
+}
 
 export async function guardarCambiosDeFecha(fechaId, cambio) {
   const limpio = Object.fromEntries(Object.entries(cambio || {}).filter(([, v]) => v));

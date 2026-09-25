@@ -18,14 +18,14 @@ import {
   aportarAInversion,
   quitarAporte,
   guardarSistema,
-} from "../vida.js?v=135";
-import { formatEUR, formatFecha, fromTimestamp, addMovimiento, addCategoria, toTimestamp } from "../db.js?v=135";
-import { state } from "../store.js?v=135";
-import { t } from "../idioma.js?v=135";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=135";
-import { colorTema } from "../tema.js?v=135";
-import { efectoAlGuardar } from "../efectos.js?v=135";
-import { initials, avatarColor } from "../icons.js?v=135";
+} from "../vida.js?v=136";
+import { formatEUR, formatFecha, fromTimestamp, addMovimiento, addCategoria, toTimestamp } from "../db.js?v=136";
+import { state } from "../store.js?v=136";
+import { t } from "../idioma.js?v=136";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=136";
+import { colorTema } from "../tema.js?v=136";
+import { efectoAlGuardar } from "../efectos.js?v=136";
+import { initials, avatarColor } from "../icons.js?v=136";
 
 // El dinero que se mete en una inversión SALE de una cuenta: se apunta como
 // gasto en la categoría "Inversiones" (se crea sola la primera vez), con la
@@ -511,6 +511,10 @@ function openFormAporte(inv) {
         <input type="number" step="0.01" min="0" name="comision" placeholder="1" />
       </label>
       <label class="field field--full">
+        <span class="field__label">Participaciones exactas (opcional, las que pone tu bróker)</span>
+        <input type="number" step="0.000001" min="0" name="unidades_exactas" placeholder="0.772946" />
+      </label>
+      <label class="field field--full">
         <span class="field__label">¿De qué cuenta salió el dinero?</span>
         <select name="cuenta_origen_id">${opcionesCuentas()}</select>
       </label>
@@ -530,8 +534,9 @@ function openFormAporte(inv) {
           const importe = Number(f.importe.value);
           const precio = Number(f.precio.value);
           const comision = Number(f.comision.value || 0);
+          const exactas = Number(f.unidades_exactas.value || 0);
           calculo.textContent =
-            importe > 0 && precio > 0 ? `Eso son ${udsTxt(importe / precio)} participaciones.${f.cuenta_origen_id.value ? lineaSalida(importe, comision) : ""}` : "";
+            importe > 0 && precio > 0 ? `Eso son ${udsTxt(exactas > 0 ? exactas : importe / precio)} participaciones.${f.cuenta_origen_id.value ? lineaSalida(importe, comision) : ""}` : "";
         };
         f.addEventListener("input", repintarCalculo);
         f.cuenta_origen_id.addEventListener("change", repintarCalculo);
@@ -543,7 +548,8 @@ function openFormAporte(inv) {
           if (!(importe > 0) || !(precio > 0)) return;
           try {
             const comision = Number(f.comision.value || 0);
-            await aportarAInversion(inv, { fecha: f.fecha.value, importe, unidades: importe / precio, comision });
+            const exactas = Number(f.unidades_exactas.value || 0);
+            await aportarAInversion(inv, { fecha: f.fecha.value, importe, unidades: exactas > 0 ? exactas : importe / precio, comision });
             await apuntarSalida({ cuentaId: f.cuenta_origen_id.value, importe, comision, fecha: f.fecha.value, nombre: inv.nombre });
             efectoAlGuardar();
             closeModal();
@@ -618,6 +624,10 @@ function openFormInversion(inv) {
           <input type="date" name="fecha_compra" value="${todayISO()}" />
         </label>
         <label class="field field--full">
+          <span class="field__label">Participaciones exactas (opcional, las que pone tu bróker)</span>
+          <input type="number" step="0.000001" min="0" name="unidades_exactas" placeholder="0.772946" />
+        </label>
+        <label class="field field--full">
           <span class="field__label">¿De qué cuenta salió el dinero?</span>
           <select name="cuenta_origen_id">${opcionesCuentas()}</select>
         </label>
@@ -686,9 +696,10 @@ function openFormInversion(inv) {
             const importe = Number(f.importe.value);
             const precio = Number(f.precio_dia.value);
             const comision = Number(f.comision.value || 0);
+            const exactas = Number(f.unidades_exactas.value || 0);
             calculo.textContent =
               importe > 0 && precio > 0
-                ? `Eso son ${udsTxt(importe / precio)} participaciones.${f.cuenta_origen_id.value ? lineaSalida(importe, comision) : ""}`
+                ? `Eso son ${udsTxt(exactas > 0 ? exactas : importe / precio)} participaciones.${f.cuenta_origen_id.value ? lineaSalida(importe, comision) : ""}`
                 : "";
           };
           modo?.addEventListener("change", aplicarModo);
@@ -726,8 +737,12 @@ function openFormInversion(inv) {
           const precioDia = porEuros ? Number(f.precio_dia.value) : 0;
           const comision = porEuros ? Number(f.comision.value || 0) : 0;
           if (porEuros && (!(importe > 0) || !(precioDia > 0))) return;
-          const unidades = porEuros ? importe / precioDia : Number(f.unidades.value);
-          const precioCompra = porEuros ? precioDia : Number(f.precio_compra.value);
+          // Si el bróker da las participaciones exactas, mandan ellas: el
+          // precio de compra real es lo metido entre esas participaciones
+          // (el precio que enseña el bróker va redondeado y baila un céntimo).
+          const exactas = porEuros ? Number(f.unidades_exactas.value || 0) : 0;
+          const unidades = porEuros ? (exactas > 0 ? exactas : importe / precioDia) : Number(f.unidades.value);
+          const precioCompra = porEuros ? (exactas > 0 ? importe / exactas : precioDia) : Number(f.precio_compra.value);
           const data = {
             nombre: f.nombre.value.trim(),
             tipo: f.tipo.value,
