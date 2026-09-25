@@ -276,6 +276,32 @@ export const DICCIONARIO_DE = {
   "y tendrías": "und du hättest",
   "¿Qué es esto?": "Was ist das?",
   "Entendido": "Verstanden",
+  // ---------- Cartera · apuntar por euros y precios de hoy ----------
+  "¿Cómo lo apuntas?":
+    "Wie trägst du es ein?",
+  "Por lo que metiste (€)":
+    "Nach eingezahltem Betrag (€)",
+  "Por participaciones":
+    "Nach Anteilen",
+  "Cuánto metiste (€)":
+    "Wie viel du eingezahlt hast (€)",
+  "Precio por participación ese día (€)":
+    "Preis pro Anteil an dem Tag (€)",
+  "Comisión (€, opcional)":
+    "Gebühr (€, optional)",
+  "¿Qué día?":
+    "An welchem Tag?",
+  "¿De qué cuenta salió el dinero?":
+    "Von welchem Konto kam das Geld?",
+  "Poner los precios de hoy":
+    "Heutige Preise eintragen",
+  "Precios de hoy":
+    "Heutige Preise",
+  "Copia el precio que ves en Trade Republic para cada uno. Vacío = se deja como está.":
+    "Übertrage für jeden den Preis aus Trade Republic. Leer = bleibt wie es ist.",
+  "Guardar precios":
+    "Preise speichern",
+
   // ---------- Cartera · aportaciones ----------
   "Aportación":
     "Einzahlung",
@@ -837,6 +863,10 @@ export const DICCIONARIO_DE = {
 };
 
 export const PATRONES_DE = [
+  [/^(.+) — en Trade Republic: (.+)$/, "$1 — bei Trade Republic: $2"],
+  [/^Eso son (.+) participaciones\. De la cuenta salen (.+) \((.+) \+ (.+) de comisión\)\.$/, "Das sind $1 Anteile. Vom Konto gehen $2 ab ($3 + $4 Gebühr)."],
+  [/^Eso son (.+) participaciones\. De la cuenta salen (.+)\.$/, "Das sind $1 Anteile. Vom Konto gehen $2 ab."],
+  [/^(.+) · ahora (.+)$/, "$1 · jetzt $2"],
   [/^✓ Avisos activados · (\d+) programados · (\d+) enviados$/, "✓ Benachrichtigungen an · $1 geplant · $2 gesendet"],
   [/^✓ Avisos activados · (\d+) programados$/, "✓ Benachrichtigungen an · $1 geplant"],
   [/^1 aviso no llegó: (.*)$/, "1 Benachrichtigung kam nicht an: $1"],

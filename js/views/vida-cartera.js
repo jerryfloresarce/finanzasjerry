@@ -18,13 +18,45 @@ import {
   aportarAInversion,
   quitarAporte,
   guardarSistema,
-} from "../vida.js?v=134";
-import { formatEUR, formatFecha, fromTimestamp } from "../db.js?v=134";
-import { t } from "../idioma.js?v=134";
-import { openModal, closeModal } from "../modal.js?v=134";
-import { colorTema } from "../tema.js?v=134";
-import { efectoAlGuardar } from "../efectos.js?v=134";
-import { initials, avatarColor } from "../icons.js?v=134";
+} from "../vida.js?v=135";
+import { formatEUR, formatFecha, fromTimestamp, addMovimiento, addCategoria, toTimestamp } from "../db.js?v=135";
+import { state } from "../store.js?v=135";
+import { t } from "../idioma.js?v=135";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=135";
+import { colorTema } from "../tema.js?v=135";
+import { efectoAlGuardar } from "../efectos.js?v=135";
+import { initials, avatarColor } from "../icons.js?v=135";
+
+// El dinero que se mete en una inversión SALE de una cuenta: se apunta como
+// gasto en la categoría "Inversiones" (se crea sola la primera vez), con la
+// comisión dentro. Así el saldo de la cuenta cuadra con el banco y en el
+// donut del mes se ve cuánto se ha ido a invertir.
+const CATEGORIA_INVERSIONES = "Inversiones";
+async function idCategoriaInversiones() {
+  const existente = (state.categorias ?? []).find((c) => (c.nombre || "").trim().toLowerCase() === CATEGORIA_INVERSIONES.toLowerCase());
+  if (existente) return existente.id;
+  const ref = await addCategoria({ nombre: CATEGORIA_INVERSIONES, tipo: "Variable", limite_mensual: null });
+  return ref.id;
+}
+const round2 = (n) => Math.round(n * 100) / 100;
+async function apuntarSalida({ cuentaId, importe, comision, fecha, nombre }) {
+  if (!cuentaId) return null;
+  const mov = await addMovimiento({
+    tipo: "Gasto",
+    importe: round2(importe + comision),
+    categoria_id: await idCategoriaInversiones(),
+    cuenta_id: cuentaId,
+    cuenta_destino_id: null,
+    fecha: toTimestamp(fecha || todayISO()),
+    subcategoria: `Inversión · ${nombre}`,
+    nota: comision > 0 ? `Incluye ${formatEUR(comision)} de comisión` : "",
+  });
+  return mov?.id ?? null;
+}
+const opcionesCuentas = (seleccionada) =>
+  `${optionsFrom(state.cuentas ?? [], { selected: seleccionada })}<option value="">No descontarlo de ninguna cuenta</option>`;
+const lineaSalida = (importe, comision) =>
+  ` De la cuenta salen ${formatEUR(round2(importe + comision))}${comision > 0 ? ` (${formatEUR(importe)} + ${formatEUR(comision)} de comisión)` : ""}.`;
 
 // Un porcentaje y unas unidades a la española: coma decimal, no punto.
 // Las unidades se recortan a 4 decimales: al aportar por euros salen
@@ -49,11 +81,11 @@ const TIPOS_INV = { etf: "ETF", accion: "Acción", cripto: "Cripto" };
 // quiere copiar, más algún clásico). Los ETF europeos (UCITS) no cotizan en
 // el plan gratuito de Finnhub: su precio se copia de Trade Republic a mano.
 const CONOCIDOS = [
-  { nombre: "Vanguard FTSE All-World (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
-  { nombre: "Vanguard FTSE All-World (Dist)", tipo: "etf", simbolo: "", divisa: "EUR" },
-  { nombre: "iShares Core MSCI World (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
-  { nombre: "iShares Core S&P 500 (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
-  { nombre: "Vanguard S&P 500 (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
+  { nombre: "Vanguard FTSE All-World (Acc)", alias: "FTSE All-World USD (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
+  { nombre: "Vanguard FTSE All-World (Dist)", alias: "FTSE All-World USD (Dist)", tipo: "etf", simbolo: "", divisa: "EUR" },
+  { nombre: "iShares Core MSCI World (Acc)", alias: "Core MSCI World USD (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
+  { nombre: "iShares Core S&P 500 (Acc)", alias: "Core S&P 500 USD (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
+  { nombre: "Vanguard S&P 500 (Acc)", alias: "S&P 500 USD (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
   { nombre: "NASDAQ 100 (Acc)", tipo: "etf", simbolo: "", divisa: "EUR" },
   { nombre: "Amazon", tipo: "accion", simbolo: "AMZN", divisa: "USD" },
   { nombre: "McDonald's", tipo: "accion", simbolo: "MCD", divisa: "USD" },
@@ -189,6 +221,10 @@ export function mountVidaCartera() {
       renderVidaCartera(null);
       return;
     }
+    if (e.target.closest("#btn-precios-mano")) {
+      openFormPreciosMano();
+      return;
+    }
     if (e.target.closest("#btn-clave-finnhub")) {
       const clave = prompt(
         t("Clave de Finnhub (gratis en finnhub.io → Get free API key). Se guarda una vez y sirve para refrescar acciones de EE. UU.:"),
@@ -250,6 +286,7 @@ export function renderVidaCartera(_state) {
       </div>
       <div style="display:flex; gap:8px;">
         <button type="button" class="btn btn--ghost btn--sm" id="btn-actualizar-precios">↻ Actualizar</button>
+        <button type="button" class="btn btn--ghost btn--sm" id="btn-precios-mano">Poner los precios de hoy</button>
         <button type="button" class="btn btn--primary btn--sm" id="btn-add-inversion">+ Añadir</button>
       </div>
     </div>
@@ -404,6 +441,52 @@ function seccionAportes(inv) {
 
 // La aportación del mes: cuánto metes y a qué precio estaba. Las
 // participaciones salen solas (dinero ÷ precio), como en Trade Republic.
+// Los ETF europeos no tienen precio automático: se copia de Trade Republic.
+// Esto lo hace cómodo: todas las posiciones a la vez, en un formulario.
+function openFormPreciosMano() {
+  const posiciones = vida.inversiones ?? [];
+  openModal(
+    `
+    <h2 class="modal__title">Precios de hoy</h2>
+    <p class="entity-card__meta" style="margin:-8px 0 12px;">Copia el precio que ves en Trade Republic para cada uno. Vacío = se deja como está.</p>
+    <form id="form-precios-mano" class="form-grid">
+      ${posiciones
+        .map(
+          (p) => `<label class="field field--full">
+        <span class="field__label">${p.nombre} · ahora ${formatEUR(Number(p.precio_actual ?? p.precio_compra ?? 0))}</span>
+        <input type="number" step="0.0001" min="0" data-precio-id="${p.id}" placeholder="${Number(p.precio_actual ?? p.precio_compra ?? 0).toFixed(2)}" />
+      </label>`
+        )
+        .join("")}
+      <p class="field-error" id="form-precios-error"></p>
+      <div class="modal__actions field--full">
+        <button type="button" class="btn btn--ghost" id="btn-cancel-precios">Cancelar</button>
+        <button type="submit" class="btn btn--primary">Guardar precios</button>
+      </div>
+    </form>
+  `,
+    {
+      onMount: (root) => {
+        root.querySelector("#btn-cancel-precios").addEventListener("click", closeModal);
+        root.querySelector("#form-precios-mano").addEventListener("submit", async (e) => {
+          e.preventDefault();
+          try {
+            for (const input of root.querySelectorAll("[data-precio-id]")) {
+              const valor = Number(input.value);
+              if (input.value !== "" && valor > 0) await updateInversion(input.dataset.precioId, { precio_actual: valor, precio_actualizado: new Date().toISOString() });
+            }
+            efectoAlGuardar();
+            closeModal();
+            renderVidaCartera(null);
+          } catch (err) {
+            root.querySelector("#form-precios-error").textContent = "No se pudo guardar. Inténtalo de nuevo.";
+          }
+        });
+      },
+    }
+  );
+}
+
 function openFormAporte(inv) {
   const hoyISO = new Date().toISOString().slice(0, 10);
   const precioSugerido = inv.precio_actual ?? inv.precio_compra ?? "";
@@ -419,9 +502,17 @@ function openFormAporte(inv) {
         <span class="field__label">Cuánto metes (€)</span>
         <input type="number" step="0.01" min="0.01" name="importe" required placeholder="100" />
       </label>
-      <label class="field field--full">
+      <label class="field">
         <span class="field__label">Precio por unidad ese día (€)</span>
         <input type="number" step="0.0001" min="0.0001" name="precio" required value="${precioSugerido}" placeholder="127.53" />
+      </label>
+      <label class="field">
+        <span class="field__label">Comisión (€, opcional)</span>
+        <input type="number" step="0.01" min="0" name="comision" placeholder="1" />
+      </label>
+      <label class="field field--full">
+        <span class="field__label">¿De qué cuenta salió el dinero?</span>
+        <select name="cuenta_origen_id">${opcionesCuentas()}</select>
       </label>
       <p class="entity-card__meta field--full" id="aporte-calculo" style="margin:0;"></p>
       <p class="field-error" id="form-aporte-error"></p>
@@ -438,10 +529,12 @@ function openFormAporte(inv) {
         const repintarCalculo = () => {
           const importe = Number(f.importe.value);
           const precio = Number(f.precio.value);
+          const comision = Number(f.comision.value || 0);
           calculo.textContent =
-            importe > 0 && precio > 0 ? `Eso son ${udsTxt(importe / precio)} participaciones.` : "";
+            importe > 0 && precio > 0 ? `Eso son ${udsTxt(importe / precio)} participaciones.${f.cuenta_origen_id.value ? lineaSalida(importe, comision) : ""}` : "";
         };
         f.addEventListener("input", repintarCalculo);
+        f.cuenta_origen_id.addEventListener("change", repintarCalculo);
         root.querySelector("#btn-cancel-aporte").addEventListener("click", closeModal);
         f.addEventListener("submit", async (e) => {
           e.preventDefault();
@@ -449,7 +542,9 @@ function openFormAporte(inv) {
           const precio = Number(f.precio.value);
           if (!(importe > 0) || !(precio > 0)) return;
           try {
-            await aportarAInversion(inv, { fecha: f.fecha.value, importe, unidades: importe / precio });
+            const comision = Number(f.comision.value || 0);
+            await aportarAInversion(inv, { fecha: f.fecha.value, importe, unidades: importe / precio, comision });
+            await apuntarSalida({ cuentaId: f.cuenta_origen_id.value, importe, comision, fecha: f.fecha.value, nombre: inv.nombre });
             efectoAlGuardar();
             closeModal();
             renderVidaCartera(null);
@@ -475,7 +570,7 @@ function openFormInversion(inv) {
         <span class="field__label">Elegir de la lista (opcional)</span>
         <select id="inv-conocido">
           <option value="">— Escribir a mano —</option>
-          ${CONOCIDOS.map((c, i) => `<option value="${i}">${c.nombre}</option>`).join("")}
+          ${CONOCIDOS.map((c, i) => `<option value="${i}">${c.nombre}${c.alias ? ` — en Trade Republic: ${c.alias}` : ""}</option>`).join("")}
         </select>
       </label>`
       }
@@ -495,14 +590,50 @@ function openFormInversion(inv) {
         <span class="field__label">Símbolo (opcional) ${info("simbolo")}</span>
         <input type="text" name="simbolo" value="${inv?.simbolo ?? ""}" placeholder="AAPL / bitcoin" />
       </label>
+      ${
+        isEdit
+          ? ""
+          : `<label class="field field--full">
+        <span class="field__label">¿Cómo lo apuntas?</span>
+        <select name="modo" id="inv-modo">
+          <option value="euros">Por lo que metiste (€)</option>
+          <option value="unidades">Por participaciones</option>
+        </select>
+      </label>
+      <div class="form-grid field--full" id="inv-modo-euros" style="padding:0;">
+        <label class="field">
+          <span class="field__label">Cuánto metiste (€)</span>
+          <input type="number" step="0.01" min="0.01" name="importe" placeholder="100" />
+        </label>
+        <label class="field">
+          <span class="field__label">Precio por participación ese día (€)</span>
+          <input type="number" step="0.0001" min="0.0001" name="precio_dia" placeholder="129.38" />
+        </label>
+        <label class="field">
+          <span class="field__label">Comisión (€, opcional)</span>
+          <input type="number" step="0.01" min="0" name="comision" placeholder="1" />
+        </label>
+        <label class="field">
+          <span class="field__label">¿Qué día?</span>
+          <input type="date" name="fecha_compra" value="${todayISO()}" />
+        </label>
+        <label class="field field--full">
+          <span class="field__label">¿De qué cuenta salió el dinero?</span>
+          <select name="cuenta_origen_id">${opcionesCuentas()}</select>
+        </label>
+        <p class="entity-card__meta field--full" id="inv-calculo" style="margin:0;"></p>
+      </div>`
+      }
+      <div class="form-grid field--full${isEdit ? "" : " is-hidden"}" id="inv-modo-unidades" style="padding:0;">
       <label class="field">
         <span class="field__label">Participaciones</span>
-        <input type="number" step="0.000001" min="0" name="unidades" required value="${inv?.unidades ?? ""}" placeholder="2.5" />
+        <input type="number" step="0.000001" min="0" name="unidades" ${isEdit ? "required" : ""} value="${inv?.unidades ?? ""}" placeholder="2.5" />
       </label>
       <label class="field">
         <span class="field__label">Precio de compra (€/ud)</span>
-        <input type="number" step="0.0001" min="0" name="precio_compra" required value="${inv?.precio_compra ?? ""}" placeholder="112.40" />
+        <input type="number" step="0.0001" min="0" name="precio_compra" ${isEdit ? "required" : ""} value="${inv?.precio_compra ?? ""}" placeholder="112.40" />
       </label>
+      </div>
       <label class="field">
         <span class="field__label">Precio actual (€/ud)</span>
         <input type="number" step="0.0001" min="0" name="precio_actual" value="${inv?.precio_actual ?? ""}" placeholder="Vacío = el de compra" />
@@ -534,6 +665,39 @@ function openFormInversion(inv) {
           f.simbolo.value = c.simbolo;
           f.divisa.value = c.divisa;
         });
+        {
+          const f = root.querySelector("#form-inversion");
+          const modo = root.querySelector("#inv-modo");
+          const bloqueEuros = root.querySelector("#inv-modo-euros");
+          const bloqueUds = root.querySelector("#inv-modo-unidades");
+          const calculo = root.querySelector("#inv-calculo");
+          const porEuros = () => Boolean(modo) && modo.value === "euros";
+          const aplicarModo = () => {
+            if (!modo) return;
+            bloqueEuros.classList.toggle("is-hidden", !porEuros());
+            bloqueUds.classList.toggle("is-hidden", porEuros());
+            f.importe.required = porEuros();
+            f.precio_dia.required = porEuros();
+            f.unidades.required = !porEuros();
+            f.precio_compra.required = !porEuros();
+          };
+          const repintarCalculo = () => {
+            if (!calculo) return;
+            const importe = Number(f.importe.value);
+            const precio = Number(f.precio_dia.value);
+            const comision = Number(f.comision.value || 0);
+            calculo.textContent =
+              importe > 0 && precio > 0
+                ? `Eso son ${udsTxt(importe / precio)} participaciones.${f.cuenta_origen_id.value ? lineaSalida(importe, comision) : ""}`
+                : "";
+          };
+          modo?.addEventListener("change", aplicarModo);
+          if (modo) {
+            aplicarModo();
+            f.addEventListener("input", repintarCalculo);
+            f.cuenta_origen_id.addEventListener("change", repintarCalculo);
+          }
+        }
         root.querySelectorAll("[data-info]").forEach((b) => b.addEventListener("click", () => abrirInfo(b.dataset.info)));
         root.querySelector("#btn-cancel").addEventListener("click", closeModal);
         root.querySelector("#btn-nueva-aportacion")?.addEventListener("click", () => {
@@ -557,18 +721,33 @@ function openFormInversion(inv) {
         root.querySelector("#form-inversion").addEventListener("submit", async (e) => {
           e.preventDefault();
           const f = e.target;
+          const porEuros = !isEdit && f.modo && f.modo.value === "euros";
+          const importe = porEuros ? Number(f.importe.value) : 0;
+          const precioDia = porEuros ? Number(f.precio_dia.value) : 0;
+          const comision = porEuros ? Number(f.comision.value || 0) : 0;
+          if (porEuros && (!(importe > 0) || !(precioDia > 0))) return;
+          const unidades = porEuros ? importe / precioDia : Number(f.unidades.value);
+          const precioCompra = porEuros ? precioDia : Number(f.precio_compra.value);
           const data = {
             nombre: f.nombre.value.trim(),
             tipo: f.tipo.value,
             simbolo: f.simbolo.value.trim() || null,
-            unidades: Number(f.unidades.value),
-            precio_compra: Number(f.precio_compra.value),
-            precio_actual: f.precio_actual.value !== "" ? Number(f.precio_actual.value) : Number(f.precio_compra.value),
+            unidades,
+            precio_compra: precioCompra,
+            precio_actual: f.precio_actual.value !== "" ? Number(f.precio_actual.value) : precioCompra,
             divisa: f.tipo.value === "cripto" ? "EUR" : f.divisa.value,
           };
+          if (porEuros) {
+            // La primera compra queda en el historial de aportaciones, con su
+            // comisión, igual que las que vengan después.
+            data.aportes = [{ fecha: f.fecha_compra.value || todayISO(), importe, unidades, ...(comision > 0 ? { comision } : {}) }];
+          }
           try {
             if (isEdit) await updateInversion(inv.id, data);
-            else await addInversion(data);
+            else {
+              await addInversion(data);
+              if (porEuros) await apuntarSalida({ cuentaId: f.cuenta_origen_id.value, importe, comision, fecha: f.fecha_compra.value, nombre: data.nombre });
+            }
             // Si lo añadido es de la pestaña que no está a la vista, se
             // cambia: si no, parece que no se guardó.
             tabActiva = data.tipo === "cripto" ? "cripto" : "valores";

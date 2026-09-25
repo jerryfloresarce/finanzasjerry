@@ -16,9 +16,9 @@ import {
   deleteDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-import { db } from "./firebase-init.js?v=134";
-import { fechaISO } from "./db.js?v=134";
-import { perfilVisto, esGaby } from "./vida-perfil.js?v=134";
+import { db } from "./firebase-init.js?v=135";
+import { fechaISO } from "./db.js?v=135";
+import { perfilVisto, esGaby } from "./vida-perfil.js?v=135";
 
 // ---------- Las reglas del sistema, una por perfil ----------
 //
@@ -1904,8 +1904,8 @@ export function resumenCartera() {
 // y se recalculan los totales: las unidades se suman y el precio de compra
 // pasa a ser el precio MEDIO, de forma que unidades × precio medio = todo
 // el dinero metido, exacto — que es lo que se quiere saber.
-export async function aportarAInversion(p, { fecha, importe, unidades }) {
-  const aportes = [...(p.aportes ?? []), { fecha, importe, unidades }];
+export async function aportarAInversion(p, { fecha, importe, unidades, comision = 0 }) {
+  const aportes = [...(p.aportes ?? []), { fecha, importe, unidades, ...(comision > 0 ? { comision } : {}) }];
   const udsPrev = Number(p.unidades ?? 0);
   const invPrev = udsPrev * Number(p.precio_compra ?? 0);
   const udsTotal = udsPrev + unidades;

@@ -276,6 +276,32 @@ export const DICCIONARIO_IT = {
   "y tendrías": "e avresti",
   "¿Qué es esto?": "Che cos'è questo?",
   "Entendido": "Capito",
+  // ---------- Cartera · apuntar por euros y precios de hoy ----------
+  "¿Cómo lo apuntas?":
+    "Come lo registri?",
+  "Por lo que metiste (€)":
+    "Per quanto hai messo (€)",
+  "Por participaciones":
+    "Per quote",
+  "Cuánto metiste (€)":
+    "Quanto hai messo (€)",
+  "Precio por participación ese día (€)":
+    "Prezzo per quota quel giorno (€)",
+  "Comisión (€, opcional)":
+    "Commissione (€, opzionale)",
+  "¿Qué día?":
+    "Che giorno?",
+  "¿De qué cuenta salió el dinero?":
+    "Da quale conto è uscito il denaro?",
+  "Poner los precios de hoy":
+    "Inserisci i prezzi di oggi",
+  "Precios de hoy":
+    "Prezzi di oggi",
+  "Copia el precio que ves en Trade Republic para cada uno. Vacío = se deja como está.":
+    "Copia il prezzo che vedi su Trade Republic per ciascuno. Vuoto = resta com'è.",
+  "Guardar precios":
+    "Salva i prezzi",
+
   // ---------- Cartera · aportaciones ----------
   "Aportación":
     "Versamento",
@@ -837,6 +863,10 @@ export const DICCIONARIO_IT = {
 };
 
 export const PATRONES_IT = [
+  [/^(.+) — en Trade Republic: (.+)$/, "$1 — su Trade Republic: $2"],
+  [/^Eso son (.+) participaciones\. De la cuenta salen (.+) \((.+) \+ (.+) de comisión\)\.$/, "Sono $1 quote. Dal conto escono $2 ($3 + $4 di commissione)."],
+  [/^Eso son (.+) participaciones\. De la cuenta salen (.+)\.$/, "Sono $1 quote. Dal conto escono $2."],
+  [/^(.+) · ahora (.+)$/, "$1 · ora $2"],
   [/^✓ Avisos activados · (\d+) programados · (\d+) enviados$/, "✓ Avvisi attivati · $1 programmati · $2 inviati"],
   [/^✓ Avisos activados · (\d+) programados$/, "✓ Avvisi attivati · $1 programmati"],
   [/^1 aviso no llegó: (.*)$/, "1 avviso non è arrivato: $1"],

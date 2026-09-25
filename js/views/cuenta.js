@@ -3,14 +3,14 @@
 // un panel lateral; ahora es una vista propia y el botón del avatar (arriba
 // a la derecha) navega hasta ella.
 import { sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
-import { auth } from "../firebase-init.js?v=134";
-import { state, subscribe } from "../store.js?v=134";
-import { updateConfig } from "../db.js?v=134";
-import { exportarDatos, importarDatos } from "../backup.js?v=134";
-import { montarSelectorTemas, nombreTemaActual } from "../tema.js?v=134";
-import { arrancarTour } from "../tour.js?v=134";
-import { montarSelectorIdioma, nombreIdiomaActual, t } from "../idioma.js?v=134";
-import { openModal, closeModal, esc } from "../modal.js?v=134";
+import { auth } from "../firebase-init.js?v=135";
+import { state, subscribe } from "../store.js?v=135";
+import { updateConfig } from "../db.js?v=135";
+import { exportarDatos, importarDatos } from "../backup.js?v=135";
+import { montarSelectorTemas, nombreTemaActual } from "../tema.js?v=135";
+import { arrancarTour } from "../tour.js?v=135";
+import { montarSelectorIdioma, nombreIdiomaActual, t } from "../idioma.js?v=135";
+import { openModal, closeModal, esc } from "../modal.js?v=135";
 
 const ICONO_AVATAR = '<i class="ph-thin ph-user-circle" aria-hidden="true"></i>';
 

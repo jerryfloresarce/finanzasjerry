@@ -276,6 +276,32 @@ export const DICCIONARIO_CA = {
   "y tendrías": "i tindries",
   "¿Qué es esto?": "Què és això?",
   "Entendido": "Entesos",
+  // ---------- Cartera · apuntar por euros y precios de hoy ----------
+  "¿Cómo lo apuntas?":
+    "Com ho apuntes?",
+  "Por lo que metiste (€)":
+    "Pel que hi vas posar (€)",
+  "Por participaciones":
+    "Per participacions",
+  "Cuánto metiste (€)":
+    "Quant hi vas posar (€)",
+  "Precio por participación ese día (€)":
+    "Preu per participació aquell dia (€)",
+  "Comisión (€, opcional)":
+    "Comissió (€, opcional)",
+  "¿Qué día?":
+    "Quin dia?",
+  "¿De qué cuenta salió el dinero?":
+    "De quin compte va sortir el diner?",
+  "Poner los precios de hoy":
+    "Posar els preus d'avui",
+  "Precios de hoy":
+    "Preus d'avui",
+  "Copia el precio que ves en Trade Republic para cada uno. Vacío = se deja como está.":
+    "Copia el preu que veus a Trade Republic per a cadascun. Buit = es deixa com està.",
+  "Guardar precios":
+    "Desar preus",
+
   // ---------- Cartera · aportaciones ----------
   "Aportación":
     "Aportació",
@@ -837,6 +863,10 @@ export const DICCIONARIO_CA = {
 };
 
 export const PATRONES_CA = [
+  [/^(.+) — en Trade Republic: (.+)$/, "$1 — a Trade Republic: $2"],
+  [/^Eso son (.+) participaciones\. De la cuenta salen (.+) \((.+) \+ (.+) de comisión\)\.$/, "Això són $1 participacions. Del compte surten $2 ($3 + $4 de comissió)."],
+  [/^Eso son (.+) participaciones\. De la cuenta salen (.+)\.$/, "Això són $1 participacions. Del compte surten $2."],
+  [/^(.+) · ahora (.+)$/, "$1 · ara $2"],
   [/^✓ Avisos activados · (\d+) programados · (\d+) enviados$/, "✓ Avisos activats · $1 programats · $2 enviats"],
   [/^✓ Avisos activados · (\d+) programados$/, "✓ Avisos activats · $1 programats"],
   [/^1 aviso no llegó: (.*)$/, "1 avís no ha arribat: $1"],

@@ -277,6 +277,32 @@ export const DICCIONARIO_EN = {
   "y tendrías": "and you'd have",
   "¿Qué es esto?": "What is this?",
   "Entendido": "Got it",
+  // ---------- Cartera · apuntar por euros y precios de hoy ----------
+  "¿Cómo lo apuntas?":
+    "How do you want to enter it?",
+  "Por lo que metiste (€)":
+    "By what you put in (€)",
+  "Por participaciones":
+    "By shares",
+  "Cuánto metiste (€)":
+    "How much you put in (€)",
+  "Precio por participación ese día (€)":
+    "Price per share that day (€)",
+  "Comisión (€, opcional)":
+    "Fee (€, optional)",
+  "¿Qué día?":
+    "Which day?",
+  "¿De qué cuenta salió el dinero?":
+    "Which account did the money come from?",
+  "Poner los precios de hoy":
+    "Enter today's prices",
+  "Precios de hoy":
+    "Today's prices",
+  "Copia el precio que ves en Trade Republic para cada uno. Vacío = se deja como está.":
+    "Copy the price you see in Trade Republic for each one. Empty = left as is.",
+  "Guardar precios":
+    "Save prices",
+
   // ---------- Cartera · aportaciones ----------
   "Aportación":
     "Contribution",
@@ -838,6 +864,10 @@ export const DICCIONARIO_EN = {
 };
 
 export const PATRONES_EN = [
+  [/^(.+) — en Trade Republic: (.+)$/, "$1 — in Trade Republic: $2"],
+  [/^Eso son (.+) participaciones\. De la cuenta salen (.+) \((.+) \+ (.+) de comisión\)\.$/, "That's $1 shares. $2 leaves the account ($3 + $4 fee)."],
+  [/^Eso son (.+) participaciones\. De la cuenta salen (.+)\.$/, "That's $1 shares. $2 leaves the account."],
+  [/^(.+) · ahora (.+)$/, "$1 · now $2"],
   [/^✓ Avisos activados · (\d+) programados · (\d+) enviados$/, "✓ Notifications on · $1 scheduled · $2 sent"],
   [/^✓ Avisos activados · (\d+) programados$/, "✓ Notifications on · $1 scheduled"],
   [/^1 aviso no llegó: (.*)$/, "1 notification didn't arrive: $1"],

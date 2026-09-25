@@ -276,6 +276,32 @@ export const DICCIONARIO_FR = {
   "y tendrías": "et vous auriez",
   "¿Qué es esto?": "Qu'est-ce que c'est ?",
   "Entendido": "Compris",
+  // ---------- Cartera · apuntar por euros y precios de hoy ----------
+  "¿Cómo lo apuntas?":
+    "Comment tu l'enregistres ?",
+  "Por lo que metiste (€)":
+    "Par ce que tu as mis (€)",
+  "Por participaciones":
+    "Par parts",
+  "Cuánto metiste (€)":
+    "Combien tu as mis (€)",
+  "Precio por participación ese día (€)":
+    "Prix par part ce jour-là (€)",
+  "Comisión (€, opcional)":
+    "Commission (€, optionnel)",
+  "¿Qué día?":
+    "Quel jour ?",
+  "¿De qué cuenta salió el dinero?":
+    "De quel compte est sorti l'argent ?",
+  "Poner los precios de hoy":
+    "Saisir les prix d'aujourd'hui",
+  "Precios de hoy":
+    "Prix d'aujourd'hui",
+  "Copia el precio que ves en Trade Republic para cada uno. Vacío = se deja como está.":
+    "Copie le prix que tu vois dans Trade Republic pour chacun. Vide = inchangé.",
+  "Guardar precios":
+    "Enregistrer les prix",
+
   // ---------- Cartera · aportaciones ----------
   "Aportación":
     "Versement",
@@ -837,6 +863,10 @@ export const DICCIONARIO_FR = {
 };
 
 export const PATRONES_FR = [
+  [/^(.+) — en Trade Republic: (.+)$/, "$1 — dans Trade Republic : $2"],
+  [/^Eso son (.+) participaciones\. De la cuenta salen (.+) \((.+) \+ (.+) de comisión\)\.$/, "Ça fait $1 parts. $2 sortent du compte ($3 + $4 de commission)."],
+  [/^Eso son (.+) participaciones\. De la cuenta salen (.+)\.$/, "Ça fait $1 parts. $2 sortent du compte."],
+  [/^(.+) · ahora (.+)$/, "$1 · maintenant $2"],
   [/^✓ Avisos activados · (\d+) programados · (\d+) enviados$/, "✓ Notifications activées · $1 programmées · $2 envoyées"],
   [/^✓ Avisos activados · (\d+) programados$/, "✓ Notifications activées · $1 programmées"],
   [/^1 aviso no llegó: (.*)$/, "1 notification n'est pas arrivée : $1"],

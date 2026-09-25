@@ -286,6 +286,32 @@ export const DICCIONARIO_PT = {
   "y tendrías": "e você teria",
   "¿Qué es esto?": "O que é isto?",
   "Entendido": "Entendi",
+  // ---------- Cartera · apuntar por euros y precios de hoy ----------
+  "¿Cómo lo apuntas?":
+    "Como você anota?",
+  "Por lo que metiste (€)":
+    "Pelo que você colocou (€)",
+  "Por participaciones":
+    "Por participações",
+  "Cuánto metiste (€)":
+    "Quanto você colocou (€)",
+  "Precio por participación ese día (€)":
+    "Preço por participação nesse dia (€)",
+  "Comisión (€, opcional)":
+    "Comissão (€, opcional)",
+  "¿Qué día?":
+    "Que dia?",
+  "¿De qué cuenta salió el dinero?":
+    "De que conta saiu o dinheiro?",
+  "Poner los precios de hoy":
+    "Colocar os preços de hoje",
+  "Precios de hoy":
+    "Preços de hoje",
+  "Copia el precio que ves en Trade Republic para cada uno. Vacío = se deja como está.":
+    "Copie o preço que você vê no Trade Republic para cada um. Vazio = fica como está.",
+  "Guardar precios":
+    "Salvar preços",
+
   // ---------- Cartera · aportaciones ----------
   "Aportación":
     "Aporte",
@@ -869,6 +895,10 @@ export const DICCIONARIO_PT = {
 // Patrones: para los textos que llevan datos dentro (números, nombres,
 // fechas). $1, $2… conservan esos datos tal cual.
 export const PATRONES_PT = [
+  [/^(.+) — en Trade Republic: (.+)$/, "$1 — no Trade Republic: $2"],
+  [/^Eso son (.+) participaciones\. De la cuenta salen (.+) \((.+) \+ (.+) de comisión\)\.$/, "Isso dá $1 participações. Da conta saem $2 ($3 + $4 de comissão)."],
+  [/^Eso son (.+) participaciones\. De la cuenta salen (.+)\.$/, "Isso dá $1 participações. Da conta saem $2."],
+  [/^(.+) · ahora (.+)$/, "$1 · agora $2"],
   [/^✓ Avisos activados · (\d+) programados · (\d+) enviados$/, "✓ Avisos ativados · $1 programados · $2 enviados"],
   [/^✓ Avisos activados · (\d+) programados$/, "✓ Avisos ativados · $1 programados"],
   [/^1 aviso no llegó: (.*)$/, "1 aviso não chegou: $1"],
