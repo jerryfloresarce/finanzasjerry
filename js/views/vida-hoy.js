@@ -42,14 +42,14 @@ import {
   comidaEsSobras,
   marcarComidaSobras,
   cambiosDeFecha,
-} from "../vida.js?v=136";
-import { abrirReceta, abrirCambioFecha } from "./vida-menu.js?v=136";
-import { pedirVista } from "./vida-agenda.js?v=136";
-import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=136";
-import { fechaISO, formatFecha } from "../db.js?v=136";
-import { localeActual } from "../idioma.js?v=136";
-import { efectoDeCelebracion } from "../efectos.js?v=136";
-import { openModal, closeModal, esc } from "../modal.js?v=136";
+} from "../vida.js?v=137";
+import { abrirReceta, abrirCambioFecha } from "./vida-menu.js?v=137";
+import { pedirVista } from "./vida-agenda.js?v=137";
+import { necesitaArranqueGaby, arrancarPerfilGaby } from "../vida-arranque-gaby.js?v=137";
+import { fechaISO, formatFecha } from "../db.js?v=137";
+import { localeActual } from "../idioma.js?v=137";
+import { efectoDeCelebracion } from "../efectos.js?v=137";
+import { openModal, closeModal, esc } from "../modal.js?v=137";
 
 let currentState = null;
 // La fecha que se está editando: hoy, o ayer si quedó sin cerrar.
@@ -897,55 +897,66 @@ export function abrirTareasDia(fechaId) {
     `
     <h2 class="modal__title">Para hacer el ${titulo}</h2>
     <div id="tareas-lista">${listaHTML()}</div>
-    <form id="form-tarea" class="compras-add" style="margin-top:10px;">
-      <input type="text" id="tarea-texto" placeholder="¿Qué hay que hacer?" autocomplete="off" maxlength="80" />
+    <form id="form-tarea" class="compras-add tareas-add" style="margin-top:10px;">
+      <input type="text" id="tarea-texto" placeholder="¿Qué hay que hacer?" autocomplete="off" maxlength="80" enterkeyhint="done" />
+      <button type="submit" class="btn btn--ghost btn--sm" id="btn-anadir-tarea">Añadir</button>
     </form>
+    <p class="entity-card__meta" style="margin:6px 0 0;">Cada tarea se guarda sola al añadirla; la ventana se queda abierta para seguir apuntando.</p>
     <p class="field-error" id="tarea-error"></p>
     <div class="modal__actions">
-      <button type="button" class="btn btn--ghost" id="btn-cancel">Cancelar</button>
-      <button type="button" class="btn btn--primary" id="btn-guardar-tareas">Guardar</button>
+      <button type="button" class="btn btn--primary" id="btn-guardar-tareas">Listo</button>
     </div>`,
     {
       onMount: (root) => {
         const repintar = () => (root.querySelector("#tareas-lista").innerHTML = listaHTML());
-        root.querySelector("#btn-cancel").addEventListener("click", closeModal);
+        // Cada cambio se guarda al momento (añadir, marcar, quitar): la
+        // ventana NO se cierra, que apuntar tres tareas seguidas no sea
+        // abrirla tres veces. "Listo" solo la cierra.
+        const guardar = async () => {
+          try {
+            await guardarDia(fechaId, { tareas });
+            root.querySelector("#tarea-error").textContent = "";
+          } catch (err) {
+            root.querySelector("#tarea-error").textContent = "No se pudo guardar. Revisa la conexión.";
+          }
+        };
         root.querySelector("#tareas-lista").addEventListener("click", (e) => {
           const alterna = e.target.closest("[data-t-toggle]");
           if (alterna) {
             const i = Number(alterna.dataset.tToggle);
             tareas[i] = { ...tareas[i], hecho: !tareas[i].hecho };
             repintar();
+            guardar();
             return;
           }
           const quitar = e.target.closest("[data-t-quitar]");
           if (quitar) {
             tareas.splice(Number(quitar.dataset.tQuitar), 1);
             repintar();
+            guardar();
           }
         });
         // El texto del campo entra en la lista, venga de donde venga el
-        // toque: Enter, o directamente el botón de Guardar. Que escribir
-        // y guardar nunca tire lo escrito.
+        // toque: Enter, el botón de Añadir o el de Listo. Que escribir
+        // y cerrar nunca tire lo escrito.
         const absorberTexto = () => {
           const input = root.querySelector("#tarea-texto");
           const texto = input.value.trim();
-          if (!texto) return;
+          if (!texto) return false;
           tareas.push({ texto, hecho: false });
           input.value = "";
           repintar();
+          return true;
         };
         root.querySelector("#form-tarea").addEventListener("submit", (e) => {
           e.preventDefault();
-          absorberTexto();
+          if (absorberTexto()) guardar();
+          root.querySelector("#tarea-texto").focus();
         });
         root.querySelector("#btn-guardar-tareas").addEventListener("click", async () => {
-          absorberTexto();
-          try {
-            await guardarDia(fechaId, { tareas });
-            closeModal();
-          } catch (err) {
-            root.querySelector("#tarea-error").textContent = "No se pudo guardar. Revisa la conexión.";
-          }
+          const habia = absorberTexto();
+          if (habia) await guardar();
+          closeModal();
         });
       },
     }

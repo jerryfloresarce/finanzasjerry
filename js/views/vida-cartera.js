@@ -18,14 +18,14 @@ import {
   aportarAInversion,
   quitarAporte,
   guardarSistema,
-} from "../vida.js?v=136";
-import { formatEUR, formatFecha, fromTimestamp, addMovimiento, addCategoria, toTimestamp } from "../db.js?v=136";
-import { state } from "../store.js?v=136";
-import { t } from "../idioma.js?v=136";
-import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=136";
-import { colorTema } from "../tema.js?v=136";
-import { efectoAlGuardar } from "../efectos.js?v=136";
-import { initials, avatarColor } from "../icons.js?v=136";
+} from "../vida.js?v=137";
+import { formatEUR, formatFecha, fromTimestamp, addMovimiento, addCategoria, toTimestamp } from "../db.js?v=137";
+import { state } from "../store.js?v=137";
+import { t } from "../idioma.js?v=137";
+import { openModal, closeModal, optionsFrom, todayISO } from "../modal.js?v=137";
+import { colorTema } from "../tema.js?v=137";
+import { efectoAlGuardar } from "../efectos.js?v=137";
+import { initials, avatarColor } from "../icons.js?v=137";
 
 // El dinero que se mete en una inversión SALE de una cuenta: se apunta como
 // gasto en la categoría "Inversiones" (se crea sola la primera vez), con la

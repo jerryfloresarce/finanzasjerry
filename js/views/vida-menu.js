@@ -27,11 +27,11 @@ import {
   cambiosDeFecha,
   guardarCambiosDeFecha,
   platoDePlantilla,
-} from "../vida.js?v=136";
-import { fechaISO } from "../db.js?v=136";
-import { openModal, closeModal, esc } from "../modal.js?v=136";
-import { efectoAlGuardar } from "../efectos.js?v=136";
-import { localeActual } from "../idioma.js?v=136";
+} from "../vida.js?v=137";
+import { fechaISO } from "../db.js?v=137";
+import { openModal, closeModal, esc } from "../modal.js?v=137";
+import { efectoAlGuardar } from "../efectos.js?v=137";
+import { localeActual } from "../idioma.js?v=137";
 
 // Lo último que dijo el botón de pasar el menú a la compra: se repinta con
 // la pantalla (guardar la compra la vuelve a pintar) y se olvida a los pocos

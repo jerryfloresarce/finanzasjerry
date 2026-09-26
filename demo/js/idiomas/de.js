@@ -786,6 +786,7 @@ export const DICCIONARIO_DE = {
   "Haz tu menú de la semana con TUS ingredientes →": "Erstell deinen Wochenplan mit DEINEN Zutaten →",
   "Platos vuestros": "Eure eigenen Gerichte",
   "＋ Plato vuestro": "＋ Eigenes Gericht",
+  "Cada tarea se guarda sola al añadirla; la ventana se queda abierta para seguir apuntando.": "Jede Aufgabe speichert sich beim Hinzufügen von selbst; das Fenster bleibt offen, damit du weiter eintragen kannst.",
   "Es fácil de hacer (pocos pasos, poco lío)": "Einfach zu machen (wenige Schritte, wenig Aufwand)",
   "¿Qué lleva? (toca los ingredientes)": "Was ist drin? (Zutaten antippen)",
   "Con lo que marques aquí, el plato entra en el menú cuando esos ingredientes estén marcados, y pasa a la lista de la compra con el resto.": "Mit dem, was du hier markierst, kommt das Gericht in den Plan, sobald diese Zutaten markiert sind, und mit dem Rest auf die Einkaufsliste.",

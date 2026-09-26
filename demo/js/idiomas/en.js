@@ -787,6 +787,7 @@ export const DICCIONARIO_EN = {
   "Haz tu menú de la semana con TUS ingredientes →": "Build your weekly plan with YOUR ingredients →",
   "Platos vuestros": "Your own dishes",
   "＋ Plato vuestro": "＋ Your own dish",
+  "Cada tarea se guarda sola al añadirla; la ventana se queda abierta para seguir apuntando.": "Each task saves itself when added; the window stays open so you can keep adding.",
   "Es fácil de hacer (pocos pasos, poco lío)": "Easy to make (few steps, little fuss)",
   "¿Qué lleva? (toca los ingredientes)": "What's in it? (tap the ingredients)",
   "Con lo que marques aquí, el plato entra en el menú cuando esos ingredientes estén marcados, y pasa a la lista de la compra con el resto.": "With what you tick here, the dish joins the menu whenever those ingredients are ticked, and goes to the shopping list with the rest.",

@@ -1169,3 +1169,7 @@ button.agenda-bloque { cursor: pointer; }
 .plato-nuevo-ing { display: flex; gap: 8px; flex-wrap: wrap; }
 .plato-nuevo-ing input { flex: 1 1 140px; }
 .plato-nuevo-ing select { flex: 1 1 120px; }
+
+/* v137: la to-do list del día, con su botón de añadir al lado del campo. */
+.tareas-add { display: flex; gap: 8px; align-items: center; }
+.tareas-add input { flex: 1; }

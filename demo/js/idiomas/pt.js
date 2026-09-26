@@ -815,6 +815,7 @@ export const DICCIONARIO_PT = {
   "Haz tu menú de la semana con TUS ingredientes →": "Faça seu cardápio da semana com os SEUS ingredientes →",
   "Platos vuestros": "Pratos de vocês",
   "＋ Plato vuestro": "＋ Prato de vocês",
+  "Cada tarea se guarda sola al añadirla; la ventana se queda abierta para seguir apuntando.": "Cada tarefa é salva sozinha ao adicionar; a janela fica aberta para continuar anotando.",
   "Es fácil de hacer (pocos pasos, poco lío)": "É fácil de fazer (poucos passos, pouca bagunça)",
   "¿Qué lleva? (toca los ingredientes)": "O que leva? (toque nos ingredientes)",
   "Con lo que marques aquí, el plato entra en el menú cuando esos ingredientes estén marcados, y pasa a la lista de la compra con el resto.": "Com o que você marcar aqui, o prato entra no cardápio quando esses ingredientes estiverem marcados, e vai para a lista de compras com o resto.",

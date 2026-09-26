@@ -786,6 +786,7 @@ export const DICCIONARIO_CA = {
   "Haz tu menú de la semana con TUS ingredientes →": "Fes el teu menú de la setmana amb ELS TEUS ingredients →",
   "Platos vuestros": "Plats vostres",
   "＋ Plato vuestro": "＋ Plat vostre",
+  "Cada tarea se guarda sola al añadirla; la ventana se queda abierta para seguir apuntando.": "Cada tasca es desa sola en afegir-la; la finestra es queda oberta per continuar apuntant.",
   "Es fácil de hacer (pocos pasos, poco lío)": "És fàcil de fer (pocs passos, poc embolic)",
   "¿Qué lleva? (toca los ingredientes)": "Què porta? (toca els ingredients)",
   "Con lo que marques aquí, el plato entra en el menú cuando esos ingredientes estén marcados, y pasa a la lista de la compra con el resto.": "Amb el que marquis aquí, el plat entra al menú quan aquests ingredients estiguin marcats, i passa a la llista de la compra amb la resta.",
